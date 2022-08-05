@@ -1,16 +1,27 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const WebSocket = require("ws");
-const axios = require("axios");
-const Web3 = require("web3");
+import WebSocket from "ws";
+import axios from "axios";
+import fs from "fs-extra";
+import { Wallet } from "@ethersproject/wallet";
+import Web3 from "web3";
+
 const web3 = new Web3();
-const account = web3.eth.accounts.privateKeyToAccount("0x880d962ac552eaaf5e477105fed65b1467a09187f1ec8cd7b7a59e85408cb146");
-const address = account.address;
 const sleep = (time) => {
   return new Promise((resolve) => setTimeout(resolve, time));
 };
 
 (async () => {
+  let privateKey = ""; // put hex private key with prefix 0x
+  if (!privateKey) {
+    try {
+      const keySeed = await fs.readJSON("./nodes/node0/evmosd/key_seed.json");
+      privateKey = Wallet.fromMnemonic(keySeed.secret)._signingKey().privateKey.toLowerCase();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  const account = web3.eth.accounts.privateKeyToAccount(privateKey);
+  const address = account.address;
+
   const ws = new WebSocket("ws://127.0.0.1:8546");
   const unconfirmedTxs = `http://127.0.0.1:26657/num_unconfirmed_txs`;
   const TxPoolId = 0;

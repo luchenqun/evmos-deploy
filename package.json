@@ -18,6 +18,11 @@
   "license": "ISC",
   "dependencies": {
     "@cosmjs/crypto": "^0.28.11",
+    "@ethersproject/wallet": "^5.6.2",
+    "@metamask/eth-sig-util": "^4.0.1",
+    "@tharsis/address-converter": "^0.1.8",
+    "@tharsis/provider": "^0.2.4",
+    "@tharsis/transactions": "^0.2.5",
     "axios": "^0.27.2",
     "bip39": "^3.0.4",
     "ed25519": "^0.0.5",
