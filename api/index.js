@@ -32,4 +32,10 @@ export default class API {
   async authAccount(address) {
     return http.get(`${this.swagger}/cosmos/auth/v1beta1/accounts/${address}`);
   }
+  async txCommit(tx) {
+    return http.get(`${this.rpc}/broadcast_tx_commit`, { tx });
+  }
+  async genesis() {
+    return http.get(`${this.rpc}/genesis`);
+  }
 }

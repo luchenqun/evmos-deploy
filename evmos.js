@@ -18,7 +18,7 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, params) => {
     accountAddress: address,
     sequence: account.account.base_account.sequence,
     accountNumber: account.account.base_account.account_number,
-    pubkey: account.account.base_account.pub_key.key, // 0x034c725eac2ba0a25579059b9e2392ddf7dd6e234618d82ae7792bfbb91aaab55f
+    pubkey: account.account.base_account.pub_key.key,
   };
 
   const msg = createMessageSend(chain, sender, fee, memo, params);
@@ -34,8 +34,8 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, params) => {
   // Create the txRaw
   let rawTx = createTxRawEIP712(msg.legacyAmino.body, msg.legacyAmino.authInfo, extension);
   let txBytes = JSON.parse(generatePostBodyBroadcast(rawTx)).tx_bytes;
-  // console.log(txBytes);
-  return Buffer.from(txBytes).toString("hex");
+
+  return "0x" + Buffer.from(txBytes).toString("hex");
 };
 
 (async () => {
@@ -47,12 +47,13 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, params) => {
     } catch (error) {}
   }
 
+  const genesis = await api.genesis();
   const chain = {
-    chainId: 9727201502802,
-    cosmosChainId: "evmos_9727201502802-1",
+    chainId: parseInt(genesis.genesis.chain_id.split("_")[1].split("-")[0]),
+    cosmosChainId: genesis.genesis.chain_id,
   };
 
-  const fee = {
+  let fee = {
     amount: "10000000",
     denom: "aevmos",
     gas: "200000",
@@ -60,33 +61,19 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, params) => {
 
   let memo = "hello world";
 
-  const params = {
-    destinationAddress: "evmos1llllqxkm0ruf2x4z3ncxe6um3zv2986s568sjh",
-    amount: "1",
-    denom: "aevmos",
-  };
-  console.log(privateKey);
-  let data = await txHexBytes(privateKey, chain, fee, memo, params);
-  console.log(data);
-
-  // const msg = createMessageSend(chain, sender, fee, memo, params);
-  // privateKey = Buffer.from("880d962ac552eaaf5e477105fed65b1467a09187f1ec8cd7b7a59e85408cb146", "hex");
-  // const signature = signUtil.signTypedData({
-  //   privateKey,
-  //   data: msg.eipToSign,
-  //   version: "V4",
-  // });
-
-  // // The chain and sender objects are the same as the previous example
-  // let extension = signatureToWeb3Extension(chain, sender, signature);
-
-  // // Create the txRaw
-  // let rawTx = createTxRawEIP712(msg.legacyAmino.body, msg.legacyAmino.authInfo, extension);
-  // let txBytes = JSON.parse(generatePostBodyBroadcast(rawTx)).tx_bytes;
-  // // console.log(txBytes);
-  // console.log(Buffer.from(txBytes).toString("hex"));
-
-  // msg.signDirect is the transaction in Keplr format
-  // msg.legacyAmino is the transaction with legacy amino
-  // msg.eipToSign is the EIP712 data to sign with metamask
+  try {
+    {
+      memo = "transfer token";
+      const params = {
+        destinationAddress: "evmos1llllqxkm0ruf2x4z3ncxe6um3zv2986s568sjh",
+        amount: "1",
+        denom: "aevmos",
+      };
+      const data = await txHexBytes(privateKey, chain, fee, memo, params);
+      const reply = await api.txCommit(data);
+      console.log(reply.hash);
+    }
+  } catch (error) {
+    console.log(error);
+  }
 })();
