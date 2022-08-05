@@ -17,7 +17,7 @@ Based on the requirements and current situation mentioned above, we manage to wo
   * validators(alias v): type is number, the number of consensus nodes of validators. The default value is 4
   * commonNode(alias cn): type is number, the number of common nodes. The default value is 0
   * compile(alias c): type is bool, recompile of evmos code to generate evmosd excutable program. Note: this pattern requires the project to be placed in the evmos project code directory.
-* Execute `npm run start` (It's actually node start.js) to start all nodes.
+* Execute `npm run start` (It's actually node start.js) to start all nodes. You can use command `ps -ef | grep evmosd` check whether the program is running, and all node log is in the nodes dir。
 * Execute `npm run stop` (It's actually node stop.js) to stop all nodes.
 
 ## Some tips
