@@ -6,6 +6,7 @@ import { Wallet } from "@ethersproject/wallet";
 import TenderKeys from "./tenderKeys.js";
 import _yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import { ethToEvmos } from "@tharsis/address-converter";
 
 const yargs = _yargs(hideBin(process.argv)); // https://github.com/yargs/yargs/issues/1854#issuecomment-787509517
 let argv = yargs
@@ -146,6 +147,7 @@ let init = async function () {
       keySeed.publicKey = wallet._signingKey().publicKey.toLowerCase().replace("0x", "");
       keySeed.compressedPublicKey = wallet._signingKey().compressedPublicKey.toLowerCase().replace("0x", "");
       keySeed.address = wallet.address;
+      keySeed.bip39Address = ethToEvmos(wallet.address);
       await fs.outputJson(keySeedPath, keySeed, { spaces: 2 });
     }
 
