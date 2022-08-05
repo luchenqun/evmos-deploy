@@ -146,7 +146,7 @@ let init = async function () {
       keySeed.publicKey = wallet._signingKey().publicKey.toLowerCase().replace("0x", "");
       keySeed.compressedPublicKey = wallet._signingKey().compressedPublicKey.toLowerCase().replace("0x", "");
       keySeed.address = wallet.address;
-      await fs.outputJson(keySeedPath, keySeed, { spaces: 4 });
+      await fs.outputJson(keySeedPath, keySeed, { spaces: 2 });
     }
 
     for (let i = 0; i < nodesCount; i++) {
