@@ -1,7 +1,13 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const yargs = require("yargs");
+import util from "util";
+import { exec } from "child_process";
+import fs from "fs-extra";
+import path from "path";
+import { Wallet } from "@ethersproject/wallet";
+import TenderKeys from "./tenderKeys.js";
+import _yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 
+const yargs = _yargs(hideBin(process.argv)); // https://github.com/yargs/yargs/issues/1854#issuecomment-787509517
 let argv = yargs
   .option("n", {
     alias: "nohup",
@@ -55,15 +61,8 @@ const isCompile = argv.compile;
 const commonNode = argv.commonNode;
 const validators = argv.validators;
 const nodesCount = validators + commonNode;
-
 const platform = argv.platform ? argv.platform : process.platform;
-console.log(JSON.stringify(argv));
-
-const util = require("util");
-const exec = util.promisify(require("child_process").exec);
-const fs = require("fs-extra");
-const path = require("path");
-import TenderKeys from "./tenderKeys.js";
+const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
 const evmosd = platform == "win32" ? "evmosd.exe" : "evmosd";
@@ -75,6 +74,7 @@ const sleep = (time) => {
 };
 
 let init = async function () {
+  console.log("argv:", JSON.stringify(argv), "platform:", platform);
   try {
     // 读取配置文件
     let config;
@@ -86,12 +86,12 @@ let init = async function () {
 
     if (await fs.pathExists(scriptStop)) {
       console.log("Try to stop the evmosd under the nodes directory");
-      await exec(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
+      await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
       await sleep(300);
     }
     if (!fs.existsSync(evmosd) || isCompile) {
       console.log("Start recompiling evmosd...");
-      let make = await exec("go build ../cmd/evmosd", { cwd: curDir });
+      let make = await execPromis("go build ../cmd/evmosd", { cwd: curDir });
       console.log("evmosd compile finished", make);
     }
 
@@ -113,7 +113,7 @@ let init = async function () {
       const initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --keyring-backend test`;
       const initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --keyring-backend test`;
       console.log(`Exec cmd: ${initFiles}`);
-      const { stdout, stderr } = await exec(initFiles, { cwd: curDir });
+      const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
       console.log(`init-files ${stdout}${stderr}\n`);
 
       if (commonNode > 0) {
@@ -123,7 +123,7 @@ let init = async function () {
         await fs.remove(path.join(nodesDir, `gentxs`));
 
         // re init validator, and turn a validator node into a common node
-        await exec(initFilesValidator, { cwd: curDir });
+        await execPromis(initFilesValidator, { cwd: curDir });
         const genesisPath = path.join(nodesDir, `node0/evmosd/config/genesis.json`);
         for (let i = validators; i < nodesCount; i++) {
           await fs.copy(genesisPath, path.join(nodesDir, `node${i}/evmosd/config/genesis.json`));
@@ -138,6 +138,15 @@ let init = async function () {
       const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/evmosd/config/node_key.json`));
       const nodeId = tenderKeys.getBurrowAddressFromPrivKey(Buffer.from(nodeKey.priv_key.value, "base64").toString("hex"));
       nodeIds.push(nodeId);
+
+      const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
+      let keySeed = await fs.readJSON(keySeedPath);
+      const wallet = Wallet.fromMnemonic(keySeed.secret);
+      keySeed.privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
+      keySeed.publicKey = wallet._signingKey().publicKey.toLowerCase().replace("0x", "");
+      keySeed.compressedPublicKey = wallet._signingKey().compressedPublicKey.toLowerCase().replace("0x", "");
+      keySeed.address = wallet.address;
+      await fs.outputJson(keySeedPath, keySeed, { spaces: 4 });
     }
 
     for (let i = 0; i < nodesCount; i++) {
@@ -236,7 +245,7 @@ taskkill /F /PID %PID%`
 
     if (isStart) {
       console.log("Start all evmosd node under the folder nodes");
-      await exec(scriptStart, { cwd: nodesDir }); // 不管怎样先执行一下停止
+      await execPromis(scriptStart, { cwd: nodesDir }); // 不管怎样先执行一下停止
     }
   } catch (error) {
     console.log("error", error);

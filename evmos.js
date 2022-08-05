@@ -43,7 +43,9 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, params) => {
   if (!privateKey) {
     try {
       const keySeed = await fs.readJSON("./nodes/node0/evmosd/key_seed.json");
-      privateKey = Wallet.fromMnemonic(keySeed.secret)._signingKey().privateKey.toLowerCase().replace("0x", "");
+      const wallet = Wallet.fromMnemonic(keySeed.secret);
+      privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
+      console.log("privateKey", privateKey, "address", wallet.address);
     } catch (error) {}
   }
 
