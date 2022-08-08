@@ -149,6 +149,32 @@ let init = async function () {
       keySeed.address = wallet.address;
       keySeed.bip39Address = ethToEvmos(wallet.address);
       await fs.outputJson(keySeedPath, keySeed, { spaces: 2 });
+
+      const address = "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583"; // 0x00000be6819f41400225702d32d3dd23663dd690
+      const account = {
+        "@type": "/ethermint.types.v1.EthAccount",
+        base_account: {
+          address,
+          pub_key: null,
+          account_number: "0",
+          sequence: "0",
+        },
+        code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+      };
+      const balance = {
+        address,
+        coins: [
+          {
+            denom: "aevmos",
+            amount: "1000000000000000000000000000000000000000000000000000000",
+          },
+        ],
+      };
+      const genesisPath = path.join(nodesDir, `node${i}/evmosd/config/genesis.json`);
+      let genesis = await fs.readJSON(genesisPath);
+      genesis.app_state.auth.accounts.push(account);
+      genesis.app_state.bank.balances.push(balance);
+      await fs.outputJson(genesisPath, genesis, { spaces: 2 });
     }
 
     for (let i = 0; i < nodesCount; i++) {
