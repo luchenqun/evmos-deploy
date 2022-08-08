@@ -1,15 +1,17 @@
 import fs from "fs-extra";
 import path from "path";
-import { createMessageSend, createTxRawEIP712, signatureToWeb3Extension } from "@tharsis/transactions";
+import bech32 from "bech32-buffer";
+import { createMessageSend, createTxMsgDelegate, createTxMsgBeginRedelegate, createTxMsgUndelegate, createTxMsgWithdrawDelegatorReward, createTxRawEIP712, signatureToWeb3Extension } from "@tharsis/transactions";
 import { generateEndpointBroadcast, generatePostBodyBroadcast } from "@tharsis/provider";
 import signUtil from "@metamask/eth-sig-util";
 import { Wallet } from "@ethersproject/wallet";
 import { evmosToEth, ethToEvmos } from "@tharsis/address-converter";
+import unit from "ethjs-unit";
 import API from "./api/index.js";
 
 const api = new API("http://127.0.0.1", 26657, 1317);
 
-const txHexBytes = async (privateKeyHex, chain, fee, memo, params) => {
+const txHexBytes = async (privateKeyHex, chain, fee, memo, createMessage, params) => {
   const privateKey = Buffer.from(privateKeyHex.replace("0x", ""), "hex");
   const wallet = new Wallet(privateKey);
   const address = ethToEvmos(wallet.address);
@@ -18,10 +20,10 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, params) => {
     accountAddress: address,
     sequence: account.account.base_account.sequence,
     accountNumber: account.account.base_account.account_number,
-    pubkey: account.account.base_account.pub_key.key,
+    pubkey: Buffer.from(wallet._signingKey().compressedPublicKey.replace("0x", ""), "hex").toString("base64"),
   };
 
-  const msg = createMessageSend(chain, sender, fee, memo, params);
+  const msg = createMessage(chain, sender, fee, memo, params);
   const signature = signUtil.signTypedData({
     privateKey,
     data: msg.eipToSign,
@@ -38,17 +40,26 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, params) => {
   return "0x" + Buffer.from(txBytes).toString("hex");
 };
 
-(async () => {
-  let privateKey = ""; // put hex private key without prefix 0x
-  if (!privateKey) {
-    try {
-      const keySeed = await fs.readJSON("./nodes/node0/evmosd/key_seed.json");
-      const wallet = Wallet.fromMnemonic(keySeed.secret);
-      privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
-      console.log("privateKey", privateKey, "address", wallet.address);
-    } catch (error) {}
-  }
+const nodeKey = async (node) => {
+  const keySeed = await fs.readJSON(`./nodes/${node}/evmosd/key_seed.json`);
+  const wallet = Wallet.fromMnemonic(keySeed.secret);
+  const privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
+  const address = wallet.address;
+  const evmosAddress = ethToEvmos(address);
+  const publicKey = wallet._signingKey().publicKey;
+  const compressedPublicKey = wallet._signingKey().compressedPublicKey;
+  return { privateKey, publicKey, compressedPublicKey, address, evmosAddress };
+};
 
+const toAevmos = (evmos) => {
+  return unit.toWei(evmos, "ether").toString();
+};
+
+const bech32Encode = (prefix, address) => {
+  return bech32.encode(prefix, Uint8Array.from(Buffer.from(address.replace("0x", ""), "hex")));
+};
+
+(async () => {
   const genesis = await api.genesis();
   const chain = {
     chainId: parseInt(genesis.genesis.chain_id.split("_")[1].split("-")[0]),
@@ -58,20 +69,76 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, params) => {
   let fee = {
     amount: "10000000",
     denom: "aevmos",
-    gas: "200000",
+    gas: "2000000000",
   };
-
-  let memo = "hello world";
 
   try {
     {
-      memo = "transfer token";
+      const { privateKey } = await nodeKey("node0");
+      const { evmosAddress } = await nodeKey("node4");
+      const memo = "send token";
       const params = {
-        destinationAddress: "evmos1llllqxkm0ruf2x4z3ncxe6um3zv2986s568sjh",
-        amount: "1",
+        destinationAddress: evmosAddress,
+        amount: toAevmos(1000),
         denom: "aevmos",
       };
-      const data = await txHexBytes(privateKey, chain, fee, memo, params);
+      const data = await txHexBytes(privateKey, chain, fee, memo, createMessageSend, params);
+      const reply = await api.txCommit(data);
+      console.log("hash", reply.hash, "destinationAddress", evmosAddress);
+    }
+
+    {
+      const memo = "delegate";
+      const { privateKey } = await nodeKey("node4");
+      const { address } = await nodeKey("node0");
+      const params = {
+        validatorAddress: bech32Encode("evmosvaloper", address),
+        amount: toAevmos(10),
+        denom: "aevmos",
+      };
+      const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgDelegate, params);
+      const reply = await api.txCommit(data);
+      console.log(reply.hash);
+    }
+
+    {
+      const memo = "redelegate";
+      const { privateKey } = await nodeKey("node4");
+      const key0 = await nodeKey("node0");
+      const key1 = await nodeKey("node1");
+      const params = {
+        validatorSrcAddress: bech32Encode("evmosvaloper", key0.address),
+        validatorDstAddress: bech32Encode("evmosvaloper", key1.address),
+        amount: toAevmos(5),
+        denom: "aevmos",
+      };
+      const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgBeginRedelegate, params);
+      const reply = await api.txCommit(data);
+      console.log(reply.hash);
+    }
+
+    {
+      const memo = "undelegate";
+      const { privateKey } = await nodeKey("node4");
+      const { address } = await nodeKey("node0");
+      const params = {
+        validatorAddress: bech32Encode("evmosvaloper", address),
+        amount: toAevmos(1),
+        denom: "aevmos",
+      };
+      const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgUndelegate, params);
+      const reply = await api.txCommit(data);
+      console.log(reply.hash);
+    }
+
+    {
+      const memo = "undelegate";
+      const { privateKey } = await nodeKey("node4");
+      const { address } = await nodeKey("node0");
+      const params = {
+        validatorAddress: bech32Encode("evmosvaloper", address),
+      };
+      const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgWithdrawDelegatorReward, params);
       const reply = await api.txCommit(data);
       console.log(reply.hash);
     }
