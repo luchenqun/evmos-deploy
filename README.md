@@ -35,6 +35,7 @@ Based on the requirements and current situation mentioned above, we manage to wo
   * pprofPort: +incremental
 * If you want to compile code during initialization, it is best to put the project into the evmos project code directory and rename it to the **build** directory. The git of the evmos project has ignored the change of the build directory.
 * It can be integrated with another development tool [cosmos tool](http://cosmos.lucq.fun/)(only dashboard and RPC modules have been completed at present) to view chain information.
+* Have a fixed private key f78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769，evmos address: evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583，ethereum address: 0x00000Be6819f41400225702D32d3dd23663Dd690 . This private key contains a large amount of funds available
 
 ## 背景
 在开发的过程中，验证p2p，共识算法等模块一般需要搭建4节点。官方提供了[Multi Node](https://docs.evmos.org/developers/localnet/multi_node.html)以及[Testnet command](https://docs.evmos.org/developers/localnet/testnet_cmd.html)这两种方式搭建多节点的方式。但是这两种方式有如下缺点：Multi Node 实际是使用docker搭建的，对开发不太友好。而 Testnet command 的方式创建好4节点的配置之后，很多的端口是使用的是同一个端口导致无法启动。而且该方式是在同一个进程里面启动得，无法模拟开发模式。
@@ -71,6 +72,7 @@ Based on the requirements and current situation mentioned above, we manage to wo
   * pprofPort +递增
 * 如果需要在初始化执行编译代码，最好是将项目放到evmos项目代码目录之后重命名为build目录，evmos项目的Git已经忽略了build目录的改动。
 * 可以配合另外一个开发工具[cosmos-tool](http://cosmos.lucq.fun/) (目前只完成了dashboard与rpc两个模块)查看链信息。
+* 内置一个固定的私钥 f78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769，地址为 evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583，以太坊地址为 0x00000Be6819f41400225702D32d3dd23663Dd690 。该私钥含有大量的资金可用
 
 ## 问题
 * 在同一台机器下面运行多个节点，一定要将config.toml配置中的allow_duplicate_ip = false改为allow_duplicate_ip = true，否则多节点p2p无法连起来。详细可见:[Issue with peer connectivity](https://github.com/tendermint/tendermint/issues/6156)。我将那段话复制过来：
