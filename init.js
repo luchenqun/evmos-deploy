@@ -165,21 +165,22 @@ let init = async function () {
         address,
         coins: [
           {
-            denom: "aevmos",
+            denom: "agov",
             amount: "100000000000000000000000000",
           },
         ],
       };
-      const govCoin = {
-        denom: "agov",
+      const evmosCoin = {
+        denom: "aevmos",
         amount: "100000000000000000000000000",
       };
       const genesisPath = path.join(nodesDir, `node${i}/evmosd/config/genesis.json`);
       let genesis = await fs.readJSON(genesisPath);
       genesis.app_state.auth.accounts.push(account);
       genesis.app_state.bank.balances.push(balance);
+      // genesis.app_state.crisis.constant_fee.denom = "agov"
       for (let balances of genesis.app_state.bank.balances) {
-        balances.coins.push(govCoin);
+        balances.coins.unshift(evmosCoin);
       }
       await fs.outputJson(genesisPath, genesis, { spaces: 2 });
     }
