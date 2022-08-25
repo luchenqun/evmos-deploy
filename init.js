@@ -70,6 +70,10 @@ const evmosd = platform == "win32" ? "evmosd.exe" : "evmosd";
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
 const tenderKeys = new TenderKeys();
+const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "bq6XFN3gT1s5TR4uvEZo71VK2XrKdaQ1ecXKXOPEr8q0wRHFwEwP97pmwewLjtHDTYok5rS4T9751MaSIlS6Vg==" } };
+const privValidatorKey = { address: "A8BF37F9C6EAE0E808319460EDD5A3D714613D7A", pub_key: { type: "tendermint/PubKeyEd25519", value: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "jH2WRl02s7AIhqCJqYmnBl+atc7aXZnhb5DQCk3FbR1xov0F/syeuifLgc5iAqjklIJgvI3JNTK36nD69uaN3A==" } };
+const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "1.000000000000000000", max_rate: "1.000000000000000000", max_change_rate: "1.000000000000000000" }, min_self_delegation: "1", delegator_address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh", validator_address: "evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, value: { denom: "agov", amount: "100000000000000000000" } }], memo: "90d5c044ed4938cfeac4f41635db3b88c894c21f@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" } }, signatures: ["1JsQFlr80kizUs04uUmBKFLgm1qVJlLoJa8oiarVc8ML9HYrfv6l1WeQZXVmsKVq0q9mq1jJk+glBPifEh53LAE="] };
+const keySeed = { secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft", privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2", publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b", compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c", address: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7", bip39Address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh" };
 const sleep = (time) => {
   return new Promise((resolve) => setTimeout(resolve, time));
 };
@@ -111,8 +115,8 @@ let init = async function () {
     await fs.ensureDir(nodesDir);
     console.log("Folder nodes has been cleaned up");
     {
-      const initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --keyring-backend test`;
-      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --keyring-backend test`;
+      const initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
+      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
       console.log(`Exec cmd: ${initFiles}`);
       const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
       console.log(`init-files ${stdout}${stderr}\n`);
@@ -130,6 +134,21 @@ let init = async function () {
           await fs.copy(genesisPath, path.join(nodesDir, `node${i}/evmosd/config/genesis.json`));
         }
       }
+
+      await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/node_key.json`), nodeKey);
+      await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/priv_validator_key.json`), privValidatorKey);
+      await fs.outputJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`), keySeed);
+      const keyringPath = path.join(nodesDir, `node0/evmosd/keyring-test`);
+      await fs.emptyDir(keyringPath);
+      await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NjQ4NTEgKzA4MDAgQ1NUIG09KzAuMjI4NTE5MjUxIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiVHM3QXhNRmV4MlZtMTZpeiJ9.OrWluGLeod9SjmLDqvXTcA63z9P1VZ-D0l5LFzwVOhJG67vl3b0HXQ.BrINO_FqPHviDFff.yk2tJKWkWIo-OXZfxr7INBATtLws_mHvT5s4kSfwDkbpp2JJVyoEwFcozQHp5hh9owc3bPG7HRa_QHQarB5_Oz-fXJkuPlTxR955P6azI1C8vuWqBcZ7nfZkAhoFHgSZzQAPuFp6sPTWoDampAqocmtWu2lYPSiRnDHRZ6gEmP1slwsRwJTlASEwpmzjBeDsqrwCn9cT_jNrI7ilWB4LBUUXAkkKVu-p1X9bkqo8yZ_UrFFR2rI.6rVArcxnth5pzzgbEtuHSQ");
+      await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NTg1NjYgKzA4MDAgQ1NUIG09KzAuMjIyMjM0MDQzIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoicmk3MzV2Y3Fid2VkUF9JcCJ9.ht-BieDMdmkOBfb1saBx2nvBDaD9anNxP5RTirHIk-tHUXJr6HbeKA.FvpzGpaY6il86ngO.WwHd6HTneYvxg3KkEhsXx1_F_XkmzHqVJwSmQrnX9ZSg2L8ZCAxV6rvliuRwt30816o8tElb06qpp1krFGwGL_LvP1FtnOiX4GdJJxAyX1lgBgJQrhZuqKc6EEE78ArwUR1Mb6b3ax_6oV7IB42izg1ci2PP5bgXN-510EM9RrSi9fnVl3UMoAanoBL8NfJGYHo2Cusn_Y14yEnPDHxS96vTl7wZx_pZrjtapyQ9ktnDQHVBfsupIKmIYXSwpQ16FQ9G4eclfKGhit4uUFofdT0UMG1g_aQEGHt1nPG08w66w8PxmW8ma_D8yCQp0TW6m9pTLWODiCztorLucEr9RFW9mJLofi4pFdCuqHrGm_o.X06PXwtrfTMDgiQDIpPS0g");
+
+      // const genesisPath = path.join(nodesDir, `node0/evmosd/config/genesis.json`);
+      // let genesis = await fs.readJSON(genesisPath);
+      // genesis.app_state.auth.accounts[0].base_account.address = keySeed.bip39Address;
+      // genesis.app_state.bank.balances[0].address = keySeed.bip39Address;
+      // genesis.app_state.genutil.gen_txs[0] = createValidator;
+      // await fs.outputJson(genesisPath, genesis, { spaces: 2 });
     }
 
     await fs.copy(evmosd, `./nodes/${evmosd}`);
@@ -141,14 +160,14 @@ let init = async function () {
       nodeIds.push(nodeId);
 
       const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
-      let keySeed = await fs.readJSON(keySeedPath);
-      const wallet = Wallet.fromMnemonic(keySeed.secret);
-      keySeed.privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
-      keySeed.publicKey = wallet._signingKey().publicKey.toLowerCase().replace("0x", "");
-      keySeed.compressedPublicKey = wallet._signingKey().compressedPublicKey.toLowerCase().replace("0x", "");
-      keySeed.address = wallet.address;
-      keySeed.bip39Address = ethToEvmos(wallet.address);
-      await fs.outputJson(keySeedPath, keySeed, { spaces: 2 });
+      let curKeySeed = await fs.readJSON(keySeedPath);
+      const wallet = Wallet.fromMnemonic(curKeySeed.secret);
+      curKeySeed.privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
+      curKeySeed.publicKey = wallet._signingKey().publicKey.toLowerCase().replace("0x", "");
+      curKeySeed.compressedPublicKey = wallet._signingKey().compressedPublicKey.toLowerCase().replace("0x", "");
+      curKeySeed.address = wallet.address;
+      curKeySeed.bip39Address = ethToEvmos(wallet.address);
+      await fs.outputJson(keySeedPath, curKeySeed, { spaces: 2 });
 
       const address = "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583"; // 0x00000be6819f41400225702d32d3dd23663dd690
       const account = {
@@ -174,6 +193,7 @@ let init = async function () {
         denom: "aevmos",
         amount: "100000000000000000000000000",
       };
+
       const genesisPath = path.join(nodesDir, `node${i}/evmosd/config/genesis.json`);
       let genesis = await fs.readJSON(genesisPath);
       genesis.app_state.auth.accounts.push(account);
@@ -182,6 +202,11 @@ let init = async function () {
       for (let balances of genesis.app_state.bank.balances) {
         balances.coins.unshift(evmosCoin);
       }
+
+      genesis.app_state.auth.accounts[0].base_account.address = keySeed.bip39Address;
+      genesis.app_state.bank.balances[0].address = keySeed.bip39Address;
+      genesis.app_state.genutil.gen_txs[0] = createValidator;
+
       await fs.outputJson(genesisPath, genesis, { spaces: 2 });
     }
 

@@ -9,6 +9,8 @@ import { evmosToEth, ethToEvmos } from "@tharsis/address-converter";
 import unit from "ethjs-unit";
 import API from "./api/index.js";
 
+import message from "./messages.js";
+
 const api = new API("http://127.0.0.1", 26657, 1317);
 
 const txHexBytes = async (privateKeyHex, chain, fee, memo, createMessage, params) => {
@@ -18,7 +20,7 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, createMessage, params
   const account = await api.authAccount(address);
   const sender = {
     accountAddress: address,
-    sequence: account.account.base_account.sequence,
+    sequence: String(parseInt(account.account.base_account.sequence) - 1),
     accountNumber: account.account.base_account.account_number,
     pubkey: Buffer.from(wallet._signingKey().compressedPublicKey.replace("0x", ""), "hex").toString("base64"),
   };
@@ -36,6 +38,7 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, createMessage, params
   // Create the txRaw
   let rawTx = createTxRawEIP712(msg.legacyAmino.body, msg.legacyAmino.authInfo, extension);
   let txBytes = JSON.parse(generatePostBodyBroadcast(rawTx)).tx_bytes;
+  // console.log(JSON.stringify(msg.eipToSign.message.msgs, undefined, 2));
 
   return "0x" + Buffer.from(txBytes).toString("hex");
 };
@@ -75,7 +78,7 @@ const bech32Encode = (prefix, address) => {
   try {
     {
       const { privateKey } = await nodeKey("node0");
-      const { evmosAddress } = await nodeKey("node4");
+      const { evmosAddress } = await nodeKey("node0");
       const memo = "send token";
       const params = {
         destinationAddress: evmosAddress,
@@ -85,6 +88,28 @@ const bech32Encode = (prefix, address) => {
       const data = await txHexBytes(privateKey, chain, fee, memo, createMessageSend, params);
       const reply = await api.txCommit(data);
       console.log("hash", reply.hash, "destinationAddress", evmosAddress);
+    }
+
+    {
+      const { privateKey, evmosAddress } = await nodeKey("node0");
+      const memo = "gov test";
+      const params = {
+        content: {
+          "@type": "/cosmos.gov.v1beta1.TextProposal",
+          title: "Test Proposal",
+          description: "My awesome proposal",
+        },
+        initial_deposit: [
+          {
+            denom: "agov",
+            amount: "999999000",
+          },
+        ],
+        proposer: evmosAddress,
+      };
+      const data = await txHexBytes(privateKey, chain, fee, memo, message.createTxMsgTextProposal, params);
+      // const reply = await api.txCommit(data);
+      // console.log("hash", reply.hash);
     }
 
     {
