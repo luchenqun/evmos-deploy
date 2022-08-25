@@ -20,7 +20,7 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, createMessage, params
   const account = await api.authAccount(address);
   const sender = {
     accountAddress: address,
-    sequence: String(parseInt(account.account.base_account.sequence) - 1),
+    sequence: account.account.base_account.sequence,
     accountNumber: account.account.base_account.account_number,
     pubkey: Buffer.from(wallet._signingKey().compressedPublicKey.replace("0x", ""), "hex").toString("base64"),
   };
@@ -77,49 +77,52 @@ const bech32Encode = (prefix, address) => {
 
   try {
     {
+      console.log("Send Token");
       const { privateKey } = await nodeKey("node0");
-      const { evmosAddress } = await nodeKey("node0");
+      const { evmosAddress } = await nodeKey("node4");
       const memo = "send token";
       const params = {
         destinationAddress: evmosAddress,
         amount: toAevmos(1000),
-        denom: "aevmos",
+        denom: "agov",
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, createMessageSend, params);
       const reply = await api.txCommit(data);
       console.log("hash", reply.hash, "destinationAddress", evmosAddress);
     }
 
-    {
-      const { privateKey, evmosAddress } = await nodeKey("node0");
-      const memo = "gov test";
-      const params = {
-        content: {
-          "@type": "/cosmos.gov.v1beta1.TextProposal",
-          title: "Test Proposal",
-          description: "My awesome proposal",
-        },
-        initial_deposit: [
-          {
-            denom: "agov",
-            amount: "999999000",
-          },
-        ],
-        proposer: evmosAddress,
-      };
-      const data = await txHexBytes(privateKey, chain, fee, memo, message.createTxMsgTextProposal, params);
-      // const reply = await api.txCommit(data);
-      // console.log("hash", reply.hash);
-    }
+    // {
+    //   console.log("Test Proposal");
+    //   const { privateKey, evmosAddress } = await nodeKey("node0");
+    //   const memo = "gov test";
+    //   const params = {
+    //     content: {
+    //       "@type": "/cosmos.gov.v1beta1.TextProposal",
+    //       title: "Test Proposal",
+    //       description: "My awesome proposal",
+    //     },
+    //     initial_deposit: [
+    //       {
+    //         denom: "agov",
+    //         amount: "999999000",
+    //       },
+    //     ],
+    //     proposer: evmosAddress,
+    //   };
+    //   const data = await txHexBytes(privateKey, chain, fee, memo, message.createTxMsgTextProposal, params);
+    //   const reply = await api.txCommit(data);
+    //   console.log("hash", reply.hash);
+    // }
 
     {
+      console.log("Delegate");
       const memo = "delegate";
       const { privateKey } = await nodeKey("node4");
       const { address } = await nodeKey("node0");
       const params = {
         validatorAddress: bech32Encode("evmosvaloper", address),
         amount: toAevmos(10),
-        denom: "aevmos",
+        denom: "agov",
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgDelegate, params);
       const reply = await api.txCommit(data);
@@ -127,6 +130,7 @@ const bech32Encode = (prefix, address) => {
     }
 
     {
+      console.log("ReDelegate");
       const memo = "redelegate";
       const { privateKey } = await nodeKey("node4");
       const key0 = await nodeKey("node0");
@@ -135,7 +139,7 @@ const bech32Encode = (prefix, address) => {
         validatorSrcAddress: bech32Encode("evmosvaloper", key0.address),
         validatorDstAddress: bech32Encode("evmosvaloper", key1.address),
         amount: toAevmos(5),
-        denom: "aevmos",
+        denom: "agov",
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgBeginRedelegate, params);
       const reply = await api.txCommit(data);
@@ -143,13 +147,14 @@ const bech32Encode = (prefix, address) => {
     }
 
     {
+      console.log("Undelegate");
       const memo = "undelegate";
       const { privateKey } = await nodeKey("node4");
       const { address } = await nodeKey("node0");
       const params = {
         validatorAddress: bech32Encode("evmosvaloper", address),
         amount: toAevmos(1),
-        denom: "aevmos",
+        denom: "agov",
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgUndelegate, params);
       const reply = await api.txCommit(data);
@@ -157,6 +162,7 @@ const bech32Encode = (prefix, address) => {
     }
 
     {
+      console.log("Withdraw Delegator Reward");
       const memo = "undelegate";
       const { privateKey } = await nodeKey("node4");
       const { address } = await nodeKey("node0");
@@ -168,6 +174,6 @@ const bech32Encode = (prefix, address) => {
       console.log(reply.hash);
     }
   } catch (error) {
-    console.log(error);
+    // console.log(error);
   }
 })();
