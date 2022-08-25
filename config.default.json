@@ -7,5 +7,7 @@
   "wsRpcPort": 8546,
   "rpcServerPort": 26657,
   "p2pPort": 10000,
-  "pprofPort": 6060
+  "pprofPort": 6060,
+  "maxDepositPeriod": "172800s",
+  "votingPeriod": "172800s"
 }

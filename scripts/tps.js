@@ -13,7 +13,7 @@ const sleep = (time) => {
   let privateKey = ""; // put hex private key with prefix 0x
   if (!privateKey) {
     try {
-      const keySeed = await fs.readJSON("./nodes/node0/evmosd/key_seed.json");
+      const keySeed = await fs.readJSON("../nodes/node0/evmosd/key_seed.json");
       privateKey = Wallet.fromMnemonic(keySeed.secret)._signingKey().privateKey.toLowerCase();
     } catch (error) {
       console.log(error);
