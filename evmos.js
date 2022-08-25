@@ -77,14 +77,29 @@ const bech32Encode = (prefix, address) => {
 
   try {
     {
-      console.log("Send Token");
+      console.log("Send GOV Token");
       const { privateKey } = await nodeKey("node0");
       const { evmosAddress } = await nodeKey("node4");
-      const memo = "send token";
+      const memo = "send gov token";
       const params = {
         destinationAddress: evmosAddress,
         amount: toAevmos(1000),
         denom: "agov",
+      };
+      const data = await txHexBytes(privateKey, chain, fee, memo, createMessageSend, params);
+      const reply = await api.txCommit(data);
+      console.log("hash", reply.hash, "destinationAddress", evmosAddress);
+    }
+
+    {
+      console.log("Send Evmos Token");
+      const { privateKey } = await nodeKey("node0");
+      const { evmosAddress } = await nodeKey("node4");
+      const memo = "send evmos token";
+      const params = {
+        destinationAddress: evmosAddress,
+        amount: toAevmos(1000),
+        denom: "aevmos",
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, createMessageSend, params);
       const reply = await api.txCommit(data);
