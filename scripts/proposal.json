@@ -1,0 +1,12 @@
+{
+  "title": "Test Proposal Param Change",
+  "description": "Param Change MaxValidators",
+  "changes": [
+    {
+      "subspace": "staking",
+      "key": "MaxValidators",
+      "value": 10
+    }
+  ],
+  "deposit": "10000000agov"
+}

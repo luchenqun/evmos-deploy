@@ -67,6 +67,21 @@ let run = async function () {
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
     }
+
+    {
+      await sleep(3000); // wait the pre transaction to success
+      // submit-proposal param-change
+      cmd = `./evmosd tx gov submit-proposal param-change ./scripts/proposal.json ${fixed}`;
+      reply = await execPromis(cmd, { cwd });
+      console.log(cmd, "\n", decodeReply(reply));
+
+      await sleep(3000);
+
+      // vote yes ./scripts/proposal.json
+      cmd = `./evmosd tx gov vote 3 yes ${fixed}`;
+      reply = await execPromis(cmd, { cwd });
+      console.log(cmd, "\n", decodeReply(reply));
+    }
   } catch (error) {
     console.log("error", error);
   }
