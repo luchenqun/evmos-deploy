@@ -198,6 +198,7 @@ let init = async function () {
       }
       appState.gov.deposit_params.max_deposit_period = config.maxDepositPeriod;
       appState.gov.voting_params.voting_period = config.votingPeriod;
+      appState.inflation.params.mint_denom = config.mintDenom;
 
       appState.auth.accounts[0].base_account.address = keySeed.bip39Address;
       appState.bank.balances[0].address = keySeed.bip39Address;

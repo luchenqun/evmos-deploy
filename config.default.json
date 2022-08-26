@@ -9,5 +9,6 @@
   "p2pPort": 10000,
   "pprofPort": 6060,
   "maxDepositPeriod": "172800s",
-  "votingPeriod": "172800s"
+  "votingPeriod": "172800s",
+  "mintDenom": "aevmos"
 }
