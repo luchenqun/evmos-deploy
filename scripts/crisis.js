@@ -1,21 +1,5 @@
-import util from "util";
-import { exec } from "child_process";
 import path from "path";
-const execPromis = util.promisify(exec);
-const sleep = (time) => {
-  return new Promise((resolve) => setTimeout(resolve, time));
-};
-
-const decodeReply = (reply) => {
-  const stdout = reply.stdout;
-  if (stdout) {
-    const i = stdout.indexOf("code:");
-    const j = stdout.indexOf("codespace:");
-    const k = stdout.indexOf("txhash:");
-    return (stdout.substring(i, j) + ", " + stdout.substring(k)).replace("\n", "");
-  }
-  return reply.stdout;
-};
+import { decodeReply, execPromis } from "../utils.js";
 
 let run = async function () {
   try {
