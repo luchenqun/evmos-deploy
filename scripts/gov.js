@@ -3,6 +3,7 @@ import { decodeReply, execPromis, sleep } from "../utils.js";
 
 let run = async function () {
   try {
+    // you should use cmd `node init.js --v=1 --s=true` to run 1 nodes
     const cwd = path.join(process.cwd(), "..");
     const fixed = `--from=evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh --home=./nodes/node0/evmosd/ --keyring-backend=test --chain-id=evmos_20191205-1 -y`;
     let cmd;
