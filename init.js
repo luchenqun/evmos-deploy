@@ -92,7 +92,7 @@ let init = async function () {
     if (await fs.pathExists(scriptStop)) {
       console.log("Try to stop the evmosd under the nodes directory");
       await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
-      await sleep(300);
+      await sleep(platform == "win32" ? 600 : 300);
     }
     if (!fs.existsSync(evmosd) || isCompile) {
       console.log("Start recompiling evmosd...");
