@@ -1,18 +1,24 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
+import path from "path";
+import { execPromis } from "./utils.js";
 
-const util = require('util');
-const exec = util.promisify(require('child_process').exec);
-const path = require("path")
-const dir = path.join(process.cwd(), "nodes");
-const script = path.join(dir, process.platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
-let start = async function () {
+let run = async function () {
   try {
-    const { stdout, stderr } = await exec(script, {cwd: dir})
-    console.log(`${stdout}${stderr}`);
+    const dir = path.join(process.cwd(), "nodes");
+    if (process.argv.length == 3) {
+      const argv = process.argv[2].split(",");
+      for (let i = 0; i < argv.length; i++) {
+        const script = path.join(dir, process.platform == "win32" ? `stop${argv[i]}.bat` : `stop${argv[i]}.sh`);
+        const { stdout, stderr } = await execPromis(script, { cwd: dir });
+        console.log(`${stdout}${stderr}`);
+      }
+    } else {
+      const script = path.join(dir, process.platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
+      const { stdout, stderr } = await execPromis(script, { cwd: dir });
+      console.log(`${stdout}${stderr}`);
+    }
   } catch (error) {
-    console.log("error", error.stderr)
+    console.log("error", error.stderr);
   }
-}
+};
 
-start()
+run();
