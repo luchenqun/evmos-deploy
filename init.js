@@ -1,12 +1,12 @@
-import util from "util";
+import { Wallet } from "@ethersproject/wallet";
+import { ethToEvmos } from "@tharsis/address-converter";
 import { exec } from "child_process";
 import fs from "fs-extra";
 import path from "path";
-import { Wallet } from "@ethersproject/wallet";
-import TenderKeys from "./tenderKeys.js";
+import util from "util";
 import _yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { ethToEvmos } from "@tharsis/address-converter";
+import TenderKeys from "./tenderKeys.js";
 
 const yargs = _yargs(hideBin(process.argv)); // https://github.com/yargs/yargs/issues/1854#issuecomment-787509517
 let argv = yargs
@@ -182,10 +182,10 @@ let init = async function () {
           },
         ],
       };
-      const evmosCoin = {
-        denom: "aevmos",
-        amount: "100000000000000000000000000",
-      };
+      // const evmosCoin = {
+      //   denom: "aevmos",
+      //   amount: "100000000000000000000000000",
+      // };
 
       const genesisPath = path.join(nodesDir, `node${i}/evmosd/config/genesis.json`);
       let genesis = await fs.readJSON(genesisPath);
@@ -194,15 +194,23 @@ let init = async function () {
       appState.bank.balances.push(balance);
       // appState.crisis.constant_fee.denom = "agov"
       for (let balances of appState.bank.balances) {
-        balances.coins.unshift(evmosCoin);
+        // use balances.coins.unshift(evmosCoin) will modify appState.bank.balances[0].coins[1]
+        balances.coins.unshift({
+          denom: "aevmos",
+          amount: "100000000000000000000000000",
+        });
       }
-      appState.gov.deposit_params.max_deposit_period = config.maxDepositPeriod;
-      appState.gov.voting_params.voting_period = config.votingPeriod;
-      appState.inflation.params.mint_denom = config.mintDenom;
 
       appState.auth.accounts[0].base_account.address = keySeed.bip39Address;
       appState.bank.balances[0].address = keySeed.bip39Address;
       appState.genutil.gen_txs[0] = createValidator;
+
+      const genesisCfg = config.genesisCfg;
+      if (Array.isArray(genesisCfg)) {
+        for (const cfg of genesisCfg) {
+          eval("genesis." + cfg);
+        }
+      }
 
       await fs.outputJson(genesisPath, genesis, { spaces: 2 });
     }
