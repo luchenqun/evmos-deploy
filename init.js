@@ -70,10 +70,6 @@ const evmosd = platform == "win32" ? "evmosd.exe" : "evmosd";
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
 const tenderKeys = new TenderKeys();
-const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "bq6XFN3gT1s5TR4uvEZo71VK2XrKdaQ1ecXKXOPEr8q0wRHFwEwP97pmwewLjtHDTYok5rS4T9751MaSIlS6Vg==" } };
-const privValidatorKey = { address: "A8BF37F9C6EAE0E808319460EDD5A3D714613D7A", pub_key: { type: "tendermint/PubKeyEd25519", value: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "jH2WRl02s7AIhqCJqYmnBl+atc7aXZnhb5DQCk3FbR1xov0F/syeuifLgc5iAqjklIJgvI3JNTK36nD69uaN3A==" } };
-const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "1.000000000000000000", max_rate: "1.000000000000000000", max_change_rate: "1.000000000000000000" }, min_self_delegation: "1", delegator_address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh", validator_address: "evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, value: { denom: "agov", amount: "100000000000000000000" } }], memo: "90d5c044ed4938cfeac4f41635db3b88c894c21f@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" } }, signatures: ["1JsQFlr80kizUs04uUmBKFLgm1qVJlLoJa8oiarVc8ML9HYrfv6l1WeQZXVmsKVq0q9mq1jJk+glBPifEh53LAE="] };
-const keySeed = { secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft", privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2", publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b", compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c", address: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7", bip39Address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh" };
 const sleep = (time) => {
   return new Promise((resolve) => setTimeout(resolve, time));
 };
@@ -88,7 +84,11 @@ let init = async function () {
     } catch (error) {
       config = await fs.readJson("./config.default.json");
     }
-
+    const govCoin = config.govCoin;
+    const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "bq6XFN3gT1s5TR4uvEZo71VK2XrKdaQ1ecXKXOPEr8q0wRHFwEwP97pmwewLjtHDTYok5rS4T9751MaSIlS6Vg==" } };
+    const privValidatorKey = { address: "A8BF37F9C6EAE0E808319460EDD5A3D714613D7A", pub_key: { type: "tendermint/PubKeyEd25519", value: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "jH2WRl02s7AIhqCJqYmnBl+atc7aXZnhb5DQCk3FbR1xov0F/syeuifLgc5iAqjklIJgvI3JNTK36nD69uaN3A==" } };
+    const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "1.000000000000000000", max_rate: "1.000000000000000000", max_change_rate: "1.000000000000000000" }, min_self_delegation: "1", delegator_address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh", validator_address: "evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, value: { denom: govCoin ? "agov" : "aevmos", amount: "100000000000000000000" } }], memo: "90d5c044ed4938cfeac4f41635db3b88c894c21f@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" } }, signatures: [govCoin ? "1JsQFlr80kizUs04uUmBKFLgm1qVJlLoJa8oiarVc8ML9HYrfv6l1WeQZXVmsKVq0q9mq1jJk+glBPifEh53LAE=" : "iDMxbj9anar88NsGgWFFExQcsJup5zTWEC2fxtwaY49eJNaF0zYBHh1USdhwz0eTw53K76L20juujmLX2zI8IQA="] };
+    const keySeed = { secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft", privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2", publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b", compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c", address: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7", bip39Address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh" };
     if (await fs.pathExists(scriptStop)) {
       console.log("Try to stop the evmosd under the nodes directory");
       await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
@@ -177,7 +177,7 @@ let init = async function () {
         address,
         coins: [
           {
-            denom: "agov",
+            denom: govCoin ? "agov" : "aevmos",
             amount: "100000000000000000000000000",
           },
         ],
@@ -192,13 +192,14 @@ let init = async function () {
       let appState = genesis.app_state;
       appState.auth.accounts.push(account);
       appState.bank.balances.push(balance);
-      // appState.crisis.constant_fee.denom = "agov"
       for (let balances of appState.bank.balances) {
         // use balances.coins.unshift(evmosCoin) will modify appState.bank.balances[0].coins[1]
-        balances.coins.unshift({
-          denom: "aevmos",
-          amount: "100000000000000000000000000",
-        });
+        if (govCoin) {
+          balances.coins.unshift({
+            denom: "aevmos",
+            amount: "100000000000000000000000000",
+          });
+        }
       }
 
       appState.auth.accounts[0].base_account.address = keySeed.bip39Address;

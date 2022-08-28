@@ -8,6 +8,7 @@
   "rpcServerPort": 26657,
   "p2pPort": 10000,
   "pprofPort": 6060,
+  "govCoin": false,
   "genesisCfg": [
     "app_state.inflation.params.mint_denom='aevmos'"
   ]
