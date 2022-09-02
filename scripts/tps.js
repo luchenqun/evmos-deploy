@@ -1,8 +1,8 @@
-import WebSocket from "ws";
+import { Wallet } from "@ethersproject/wallet";
 import axios from "axios";
 import fs from "fs-extra";
-import { Wallet } from "@ethersproject/wallet";
 import Web3 from "web3";
+import WebSocket from "ws";
 
 const web3 = new Web3();
 const sleep = (time) => {

@@ -178,13 +178,13 @@ let init = async function () {
         coins: [
           {
             denom: govCoin ? "agov" : "aevmos",
-            amount: "100000000000000000000000000",
+            amount: "5000000000000000000000",
           },
         ],
       };
       // const evmosCoin = {
       //   denom: "aevmos",
-      //   amount: "100000000000000000000000000",
+      //   amount: "5000000000000000000000",
       // };
 
       const genesisPath = path.join(nodesDir, `node${i}/evmosd/config/genesis.json`);
@@ -197,7 +197,7 @@ let init = async function () {
         if (govCoin) {
           balances.coins.unshift({
             denom: "aevmos",
-            amount: "100000000000000000000000000",
+            amount: "5000000000000000000000",
           });
         }
       }
