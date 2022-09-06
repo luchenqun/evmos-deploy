@@ -9,6 +9,7 @@
   "p2pPort": 10000,
   "pprofPort": 6060,
   "preMinePerAccount": "5000000000000000000000",
+  "minimumGasPrices": "0aevmos",
   "govCoin": false,
   "genesisCfg": [
     "app_state.inflation.params.mint_denom='aevmos'"
