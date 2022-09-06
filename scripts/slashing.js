@@ -4,8 +4,8 @@ import { decodeReply, execPromis } from "../utils.js";
 let run = async function () {
   try {
     const cwd = path.join(process.cwd(), "..");
-    // update below params from before you run scripts
-    const from = `evmos1ylm9dxr8tt4gecs09jmt620w27tfs2wk9a3w6p`; // insure this address from node3/evmosd/key_seed.json
+
+    const from = `node3`;
     const fixed = `--from=${from} --home=./nodes/node3/evmosd/ --keyring-backend=test --chain-id=evmos_20191205-1 -y`;
     let cmd;
     let reply;

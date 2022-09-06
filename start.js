@@ -19,6 +19,9 @@ let run = async function () {
 
       const script = path.join(dir, `startTemp.` + (platform == "win32" ? "vbs" : "sh"));
       await fs.writeFile(script, vbsStart);
+      if (platform != "win32") {
+        await fs.chmod(script, 0o777);
+      }
       const { stdout, stderr } = await execPromis(script, { cwd: dir });
       console.log(`${stdout}${stderr}`);
       await fs.remove(script);

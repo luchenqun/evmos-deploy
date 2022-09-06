@@ -161,7 +161,9 @@ let init = async function () {
       curKeySeed.address = wallet.address;
       curKeySeed.bip39Address = ethToEvmos(wallet.address);
       await fs.outputJson(keySeedPath, curKeySeed, { spaces: 2 });
+    }
 
+    for (let i = 0; i < nodesCount; i++) {
       const address = "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583"; // 0x00000be6819f41400225702d32d3dd23663dd690
       const account = {
         "@type": "/ethermint.types.v1.EthAccount",
@@ -192,6 +194,18 @@ let init = async function () {
       let appState = genesis.app_state;
       appState.auth.accounts.push(account);
       appState.bank.balances.push(balance);
+      if (commonNode > 0) {
+        for (let i = nodesCount - commonNode; i < nodesCount; i++) {
+          const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
+          let curKeySeed = await fs.readJSON(keySeedPath);
+          let curAccount = JSON.parse(JSON.stringify(account));
+          let curBalance = JSON.parse(JSON.stringify(balance));
+          curAccount.base_account.address = curKeySeed.bip39Address;
+          curBalance.address = curKeySeed.bip39Address;
+          appState.auth.accounts.push(curAccount);
+          appState.bank.balances.push(curBalance);
+        }
+      }
       for (let balances of appState.bank.balances) {
         // use balances.coins.unshift(evmosCoin) will modify appState.bank.balances[0].coins[1]
         if (govCoin) {
