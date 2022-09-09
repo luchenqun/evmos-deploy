@@ -1,15 +1,12 @@
-import fs from "fs-extra";
-import path from "path";
-import bech32 from "bech32-buffer";
-import { createMessageSend, createTxMsgDelegate, createTxMsgBeginRedelegate, createTxMsgUndelegate, createTxMsgWithdrawDelegatorReward, createTxRawEIP712, signatureToWeb3Extension } from "@tharsis/transactions";
-import { generateEndpointBroadcast, generatePostBodyBroadcast } from "@tharsis/provider";
-import signUtil from "@metamask/eth-sig-util";
 import { Wallet } from "@ethersproject/wallet";
-import { evmosToEth, ethToEvmos } from "@tharsis/address-converter";
+import signUtil from "@metamask/eth-sig-util";
+import { ethToEvmos } from "@tharsis/address-converter";
+import { generatePostBodyBroadcast } from "@tharsis/provider";
+import { createMessageSend, createTxMsgBeginRedelegate, createTxMsgDelegate, createTxMsgUndelegate, createTxMsgWithdrawDelegatorReward, createTxRawEIP712, signatureToWeb3Extension } from "@tharsis/transactions";
+import bech32 from "bech32-buffer";
 import unit from "ethjs-unit";
+import fs from "fs-extra";
 import API from "./api/index.js";
-
-import message from "./messages.js";
 
 const api = new API("http://127.0.0.1", 26657, 1317);
 
@@ -75,6 +72,9 @@ const bech32Encode = (prefix, address) => {
     gas: "2000000000",
   };
 
+  // use `node init.js --v=4 --cn=1 --s=true` to run 5 node
+  const stakingDenom = "agov"; // please update this param
+
   try {
     {
       console.log("Send GOV Token");
@@ -84,7 +84,7 @@ const bech32Encode = (prefix, address) => {
       const params = {
         destinationAddress: evmosAddress,
         amount: toAevmos(1000),
-        denom: "agov",
+        denom: stakingDenom,
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, createMessageSend, params);
       const reply = await api.txCommit(data);
@@ -137,7 +137,7 @@ const bech32Encode = (prefix, address) => {
       const params = {
         validatorAddress: bech32Encode("evmosvaloper", address),
         amount: toAevmos(10),
-        denom: "agov",
+        denom: stakingDenom,
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgDelegate, params);
       const reply = await api.txCommit(data);
@@ -154,7 +154,7 @@ const bech32Encode = (prefix, address) => {
         validatorSrcAddress: bech32Encode("evmosvaloper", key0.address),
         validatorDstAddress: bech32Encode("evmosvaloper", key1.address),
         amount: toAevmos(5),
-        denom: "agov",
+        denom: stakingDenom,
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgBeginRedelegate, params);
       const reply = await api.txCommit(data);
@@ -169,7 +169,7 @@ const bech32Encode = (prefix, address) => {
       const params = {
         validatorAddress: bech32Encode("evmosvaloper", address),
         amount: toAevmos(1),
-        denom: "agov",
+        denom: stakingDenom,
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgUndelegate, params);
       const reply = await api.txCommit(data);
