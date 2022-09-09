@@ -1,0 +1,14 @@
+{
+  "title": "update contract blocked list proposal with a contract address list",
+  "description": "add a contract address list into the blocked list",
+  "addresses": [
+    "evmos1234udcqgdz2h035ug2uura45ey3ltx6amd342m"
+  ],
+  "operation": "OPERATION_ADD",
+  "deposit": [
+    {
+      "denom": "aevmos",
+      "amount": "10000000"
+    }
+  ]
+}

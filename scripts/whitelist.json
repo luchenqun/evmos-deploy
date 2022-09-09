@@ -1,0 +1,14 @@
+{
+  "title": "update contract deployment whitelist proposal with a address list of deployers",
+  "description": "add a deployer list into the whitelist",
+  "addresses": [
+    "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583"
+  ],
+  "operation": "OPERATION_ADD",
+  "deposit": [
+    {
+      "denom": "aevmos",
+      "amount": "10000000"
+    }
+  ]
+}
