@@ -1,5 +1,5 @@
 import { Wallet } from "@ethersproject/wallet";
-import { ethToEvmos } from "@tharsis/address-converter";
+import { ethToCosmos } from "@tharsis/address-converter";
 import { exec } from "child_process";
 import fs from "fs-extra";
 import path from "path";
@@ -66,7 +66,7 @@ const platform = argv.platform ? argv.platform : process.platform;
 const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
-const evmosd = platform == "win32" ? "evmosd.exe" : "evmosd";
+const app = platform == "win32" ? "simd.exe" : "simd";
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
 const tenderKeys = new TenderKeys();
@@ -84,24 +84,24 @@ let init = async function () {
     } catch (error) {
       config = await fs.readJson("./config.default.json");
     }
-    const { govCoin, preMinePerAccount } = config;
-    const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "bq6XFN3gT1s5TR4uvEZo71VK2XrKdaQ1ecXKXOPEr8q0wRHFwEwP97pmwewLjtHDTYok5rS4T9751MaSIlS6Vg==" } };
-    const privValidatorKey = { address: "A8BF37F9C6EAE0E808319460EDD5A3D714613D7A", pub_key: { type: "tendermint/PubKeyEd25519", value: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "jH2WRl02s7AIhqCJqYmnBl+atc7aXZnhb5DQCk3FbR1xov0F/syeuifLgc5iAqjklIJgvI3JNTK36nD69uaN3A==" } };
-    const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "0.100000000000000000", max_rate: "1.000000000000000000", max_change_rate: "0.100000000000000000" }, min_self_delegation: "1", delegator_address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh", validator_address: "evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, value: { denom: govCoin ? "agov" : "aevmos", amount: "100000000000000000000" } }], memo: "90d5c044ed4938cfeac4f41635db3b88c894c21f@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" } }, signatures: [govCoin ? "T1TtcdJol2tNFXIjilXZiP3qHWHcUTEURKZ0PMYp7pJr0Y12aJX320EFVenNUbje2Mt/VPoiIu2tQbgx1ZXi4wA=" : "HApoRLTw6JHNj+813tn1aQb3JG5wJWV1MMDbKFPUdxRpp1eEnMI3VcK7qm+bhXT/U8RO738si4ww6x0lnVeCggA="] };
-    const keySeed = { secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft", privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2", publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b", compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c", address: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7", bip39Address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh" };
+    const { preMinePerAccount } = config;
+    const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "i652NGR7/1jxYo1WDrFRjEkfVpgx5Gxnw/aznn5fqm1xkCwDJKSrWYqCaQBi85IvI1j2hBH6l/Fp7cuuLvPNjg==" } };
+    const privValidatorKey = { address: "83BA09EABD77EA3357DFD3CC28EEF85E4212B902", pub_key: { type: "tendermint/PubKeyEd25519", value: "yl7P8BSjYFxIC2R8OKcY5vtMNAC4EMciwkmEaCIw/ZI=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "lKxM9NE4GzQO83Jli84MvBndp9oecGmDFBGkmTIQbXXKXs/wFKNgXEgLZHw4pxjm+0w0ALgQxyLCSYRoIjD9kg==" } };
+    const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "0.100000000000000000", max_rate: "1.000000000000000000", max_change_rate: "1.000000000000000000" }, min_self_delegation: "1", delegator_address: "cosmos12ltvts09ga3gj32hsmnwq922ze0gmk4tgw4uxg", validator_address: "cosmosvaloper12ltvts09ga3gj32hsmnwq922ze0gmk4td6pf2m", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "yl7P8BSjYFxIC2R8OKcY5vtMNAC4EMciwkmEaCIw/ZI=" }, value: { denom: "stake", amount: "100000000" } }], memo: "5220fb21a28a13f5d40722611c53e7737cb6ba4d@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/cosmos.crypto.secp256k1.PubKey", key: "Ay0k04G0uccWGhKZUwljVabkSOwYNqxwFkerBrPbmPsr" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" } }, signatures: ["KTV5RObbWUOOVg2ViDgHwGcV3yRj34PUWVYpHmsEVxAhDWbHfjYs5636dDHwjf46lI7aXov29fjIdWH4mH5Fiw=="] };
+    const keySeed = { secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft", privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2", publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b", compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c", address: "0x57D6C5C1e5476289455786E6E0154a165E8ddaaB", bip39Address: "cosmos12ltvts09ga3gj32hsmnwq922ze0gmk4tgw4uxg" };
     if (await fs.pathExists(scriptStop)) {
-      console.log("Try to stop the evmosd under the nodes directory");
+      console.log("Try to stop the simd under the nodes directory");
       await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
       await sleep(platform == "win32" ? 600 : 300);
     }
-    if (!fs.existsSync(evmosd) || isCompile) {
-      console.log("Start recompiling evmosd...");
-      let make = await execPromis("go build ../cmd/evmosd", { cwd: curDir });
-      console.log("evmosd compile finished", make);
+    if (!fs.existsSync(app) || isCompile) {
+      console.log("Start recompiling simd...");
+      let make = await execPromis("go build ../simapp/simd", { cwd: curDir });
+      console.log("simd compile finished", make);
     }
 
-    if (!fs.existsSync(evmosd)) {
-      console.log("evmosd Executable file does not exist");
+    if (!fs.existsSync(app)) {
+      console.log("simd Executable file does not exist");
       return;
     }
 
@@ -115,8 +115,8 @@ let init = async function () {
     await fs.ensureDir(nodesDir);
     console.log("Folder nodes has been cleaned up");
     {
-      const initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
-      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
+      const initFiles = `${platform !== "win32" ? "./" : ""}${app} testnet --v ${nodesCount} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
+      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${app} testnet --v ${validators} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
       console.log(`Exec cmd: ${initFiles}`);
       const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
       console.log(`init-files ${stdout}${stderr}\n`);
@@ -129,92 +129,81 @@ let init = async function () {
 
         // re init validator, and turn a validator node into a common node
         await execPromis(initFilesValidator, { cwd: curDir });
-        const genesisPath = path.join(nodesDir, `node0/evmosd/config/genesis.json`);
+        const genesisPath = path.join(nodesDir, `node0/simd/config/genesis.json`);
         for (let i = validators; i < nodesCount; i++) {
-          await fs.copy(genesisPath, path.join(nodesDir, `node${i}/evmosd/config/genesis.json`));
+          await fs.copy(genesisPath, path.join(nodesDir, `node${i}/simd/config/genesis.json`));
         }
       }
 
-      await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/node_key.json`), nodeKey);
-      await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/priv_validator_key.json`), privValidatorKey);
-      await fs.outputJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`), keySeed);
-      const keyringPath = path.join(nodesDir, `node0/evmosd/keyring-test`);
+      await fs.writeJSON(path.join(nodesDir, `node0/simd/config/node_key.json`), nodeKey);
+      await fs.writeJSON(path.join(nodesDir, `node0/simd/config/priv_validator_key.json`), privValidatorKey);
+      await fs.outputJSON(path.join(nodesDir, `node0/simd/key_seed.json`), keySeed);
+      const keyringPath = path.join(nodesDir, `node0/simd/keyring-test`);
       await fs.emptyDir(keyringPath);
-      await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NjQ4NTEgKzA4MDAgQ1NUIG09KzAuMjI4NTE5MjUxIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiVHM3QXhNRmV4MlZtMTZpeiJ9.OrWluGLeod9SjmLDqvXTcA63z9P1VZ-D0l5LFzwVOhJG67vl3b0HXQ.BrINO_FqPHviDFff.yk2tJKWkWIo-OXZfxr7INBATtLws_mHvT5s4kSfwDkbpp2JJVyoEwFcozQHp5hh9owc3bPG7HRa_QHQarB5_Oz-fXJkuPlTxR955P6azI1C8vuWqBcZ7nfZkAhoFHgSZzQAPuFp6sPTWoDampAqocmtWu2lYPSiRnDHRZ6gEmP1slwsRwJTlASEwpmzjBeDsqrwCn9cT_jNrI7ilWB4LBUUXAkkKVu-p1X9bkqo8yZ_UrFFR2rI.6rVArcxnth5pzzgbEtuHSQ");
-      await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NTg1NjYgKzA4MDAgQ1NUIG09KzAuMjIyMjM0MDQzIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoicmk3MzV2Y3Fid2VkUF9JcCJ9.ht-BieDMdmkOBfb1saBx2nvBDaD9anNxP5RTirHIk-tHUXJr6HbeKA.FvpzGpaY6il86ngO.WwHd6HTneYvxg3KkEhsXx1_F_XkmzHqVJwSmQrnX9ZSg2L8ZCAxV6rvliuRwt30816o8tElb06qpp1krFGwGL_LvP1FtnOiX4GdJJxAyX1lgBgJQrhZuqKc6EEE78ArwUR1Mb6b3ax_6oV7IB42izg1ci2PP5bgXN-510EM9RrSi9fnVl3UMoAanoBL8NfJGYHo2Cusn_Y14yEnPDHxS96vTl7wZx_pZrjtapyQ9ktnDQHVBfsupIKmIYXSwpQ16FQ9G4eclfKGhit4uUFofdT0UMG1g_aQEGHt1nPG08w66w8PxmW8ma_D8yCQp0TW6m9pTLWODiCztorLucEr9RFW9mJLofi4pFdCuqHrGm_o.X06PXwtrfTMDgiQDIpPS0g");
+      await fs.writeFile(path.join(keyringPath, `57d6c5c1e5476289455786e6e0154a165e8ddaab.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOS0xMCAyMzo0OTowOS45Njc2Mjg3ICswODAwIENTVCBtPSswLjA5OTcxOTgwMSIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjgxOTIsInAycyI6ImxCWWVyMEhTWFc3ZmtpT1EifQ.WWTZoA0Kvd9LQC4wMqE_R2MmlItRin01wAKDWvaX5HYAfzASRzkesw.zhcHjVunAQSHiRfq.A9cGTMljuXiBswiVJjB1SiCvvai4FrB0VPEIj3VzE2MiUbAJvriYnUP1hgbLFKDCQ49_oMpbMvG3Nm0WFp-xgsyK7JDVxc6cMqLyEhd0sqNAQZrVLj91301akmyDlKr2F5slh9OIJBQjCp08Pj1nBcxhJqHEzaB4HHUwv1PyKGTC-rI22emhmeRcLh0dzRRDRe8klcTbYKl1kRg-YYJjXmibJ6aJ2qGgeydnXNDwSaTQP9uhdn0.caIRzfJK5NyuliAESVNV5w");
+      await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOS0xMCAyMzo0OTowOS45NjE1MDcxICswODAwIENTVCBtPSswLjA5MzU5ODIwMSIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjgxOTIsInAycyI6IjEzTEdSWFprZVFiNWRrVkoifQ.L9_qkFSEQb-rciobi6YcLIF_kjFqXhbGxTFj7nZZjaHBFOkbgGiIKw.j6S3Fd3TAL0UrPuw.gMlCmxqvs8kzPcIG-Y87CKTWOCmMCmnkbShOuknC-a713zb4z90-Y-Se7Ki-8QTLUyOZe0ksVwFZBzEivVJRQ1gNRWQ8dFnhGHMVtC1IRt87xnu8dn5RHautYuwAdmwpZzduDeQJGyTx8xNl0ZPnJ-qjoLcgUTV7KNQG-orpnPH7LnGTfTHKl4W3mAMSD-XrSIz3ZzNElTAUHEMs6JXsHgKi3o1YR7H2e3dzQpWXqNFKPZb14PWaAvMrYvCoTJ6D0gaaPX-YqAmWwYcqA42rWfbIpZtukVbcG16GfNvo6CYJoN-ZfndKcsm8rvA2l51xEUneQTCVP6UGcOJ2fmIxKsa-Vks1uuZY.plLvTYQTdZr8fJZtg4zm2Q");
     }
 
-    await fs.copy(evmosd, `./nodes/${evmosd}`);
+    await fs.copy(app, `./nodes/${app}`);
 
     let nodeIds = [];
     for (let i = 0; i < nodesCount; i++) {
-      const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/evmosd/config/node_key.json`));
+      const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/simd/config/node_key.json`));
       const nodeId = tenderKeys.getBurrowAddressFromPrivKey(Buffer.from(nodeKey.priv_key.value, "base64").toString("hex"));
       nodeIds.push(nodeId);
 
-      const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
+      const keySeedPath = path.join(nodesDir, `node${i}/simd/key_seed.json`);
       let curKeySeed = await fs.readJSON(keySeedPath);
       const wallet = Wallet.fromMnemonic(curKeySeed.secret);
       curKeySeed.privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
       curKeySeed.publicKey = wallet._signingKey().publicKey.toLowerCase().replace("0x", "");
       curKeySeed.compressedPublicKey = wallet._signingKey().compressedPublicKey.toLowerCase().replace("0x", "");
       curKeySeed.address = wallet.address;
-      curKeySeed.bip39Address = ethToEvmos(wallet.address);
+      curKeySeed.bip39Address = ethToCosmos(wallet.address);
       await fs.outputJson(keySeedPath, curKeySeed, { spaces: 2 });
     }
 
     for (let i = 0; i < nodesCount; i++) {
-      const address = "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583"; // 0x00000be6819f41400225702d32d3dd23663dd690
+      const address = "cosmos1qqqqhe5pnaq5qq39wqkn957aydnrm45s0jk6ae"; // 0x00000be6819f41400225702d32d3dd23663dd690
       const account = {
-        "@type": "/ethermint.types.v1.EthAccount",
-        base_account: {
-          address,
-          pub_key: null,
-          account_number: "0",
-          sequence: "0",
-        },
-        code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+        "@type": "/cosmos.auth.v1beta1.BaseAccount",
+        address,
+        pub_key: null,
+        account_number: "0",
+        sequence: "0",
       };
       const balance = {
         address,
         coins: [
           {
-            denom: govCoin ? "agov" : "aevmos",
+            denom: "stake",
+            amount: "0",
+          },
+          {
+            denom: "testtoken",
             amount: "0",
           },
         ],
       };
-      // const evmosCoin = {
-      //   denom: "aevmos",
-      //   amount: "0",
-      // };
 
-      const genesisPath = path.join(nodesDir, `node${i}/evmosd/config/genesis.json`);
+      const genesisPath = path.join(nodesDir, `node${i}/simd/config/genesis.json`);
       let genesis = await fs.readJSON(genesisPath);
       let appState = genesis.app_state;
       appState.auth.accounts.push(account);
       appState.bank.balances.push(balance);
       if (commonNode > 0) {
         for (let i = nodesCount - commonNode; i < nodesCount; i++) {
-          const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
+          const keySeedPath = path.join(nodesDir, `node${i}/simd/key_seed.json`);
           let curKeySeed = await fs.readJSON(keySeedPath);
           let curAccount = JSON.parse(JSON.stringify(account));
           let curBalance = JSON.parse(JSON.stringify(balance));
-          curAccount.base_account.address = curKeySeed.bip39Address;
+          curAccount.address = curKeySeed.bip39Address;
           curBalance.address = curKeySeed.bip39Address;
           appState.auth.accounts.push(curAccount);
           appState.bank.balances.push(curBalance);
         }
       }
-      for (let balances of appState.bank.balances) {
-        // use balances.coins.unshift(evmosCoin) will modify appState.bank.balances[0].coins[1]
-        if (govCoin) {
-          balances.coins.unshift({
-            denom: "aevmos",
-            amount: "0",
-          });
-        }
-      }
+      delete genesis.app_state.bank.supply;
 
       for (let balances of appState.bank.balances) {
         for (let coin of balances.coins) {
@@ -222,29 +211,27 @@ let init = async function () {
         }
       }
 
-      appState.auth.accounts[0].base_account.address = keySeed.bip39Address;
+      appState.auth.accounts[0].address = keySeed.bip39Address;
       appState.bank.balances[0].address = keySeed.bip39Address;
       appState.genutil.gen_txs[0] = createValidator;
 
-      const genesisCfg = config.genesisCfg;
-      if (Array.isArray(genesisCfg)) {
-        for (const cfg of genesisCfg) {
-          eval("genesis." + cfg);
-        }
-      }
+      // const genesisCfg = config.genesisCfg;
+      // if (Array.isArray(genesisCfg)) {
+      //   for (const cfg of genesisCfg) {
+      //     eval("genesis." + cfg);
+      //   }
+      // }
 
       await fs.outputJson(genesisPath, genesis, { spaces: 2 });
     }
 
     for (let i = 0; i < nodesCount; i++) {
       let data;
-      const appConfigPath = path.join(nodesDir, `node${i}/evmosd/config/app.toml`);
+      const appConfigPath = path.join(nodesDir, `node${i}/simd/config/app.toml`);
       const swaggerPort = config.swaggerPort || 1317;
       const rosettaPort = config.rosettaPort || 8080;
       const grpcPort = config.grpcPort || 9090;
       const grpcWebPort = config.grpcWebPort || 9091;
-      const jsonRpcPort = config.jsonRpcPort || 8545;
-      const wsRpcPort = config.wsRpcPort || 8546;
       data = await fs.readFile(appConfigPath, "utf8");
       data = data.replace("tcp://0.0.0.0:1317", `tcp://0.0.0.0:${swaggerPort + i}`);
       data = data.replace("swagger = false", `swagger = true`);
@@ -253,13 +240,10 @@ let init = async function () {
       data = data.replace(":8080", `:${rosettaPort + i}`);
       data = data.replace("0.0.0.0:9090", `0.0.0.0:${grpcPort - i}`);
       data = data.replace("0.0.0.0:9091", `0.0.0.0:${grpcWebPort + i}`);
-      data = data.replace("0.0.0.0:8545", `0.0.0.0:${jsonRpcPort - i}`);
-      data = data.replace("0.0.0.0:8546", `0.0.0.0:${wsRpcPort + i}`);
-      data = data.replace("eth,net,web3", `eth,txpool,personal,net,debug,web3`);
-      data = data.replace(`minimum-gas-prices = "0aevmos"`, `minimum-gas-prices = "${config.minimumGasPrices}"`);
+      data = data.replace(`minimum-gas-prices = "0stake"`, `minimum-gas-prices = "${config.minimumGasPrices}"`);
       await fs.writeFile(appConfigPath, data);
 
-      const configPath = path.join(nodesDir, `node${i}/evmosd/config/config.toml`);
+      const configPath = path.join(nodesDir, `node${i}/simd/config/config.toml`);
       const rpcServerPort = config.rpcServerPort || 26657;
       const p2pPort = config.p2pPort || 10000;
       const pprofPort = config.pprofPort || 6060;
@@ -269,7 +253,6 @@ let init = async function () {
       data = data.replaceAll("allow_duplicate_ip = false", `allow_duplicate_ip = true`);
       data = data.replace("tcp://0.0.0.0:26656", `tcp://0.0.0.0:${p2pPort + i}`);
       data = data.replace("localhost:6060", `localhost:${pprofPort + i}`);
-      data = data.replace("40f4fac63da8b1ce8f850b0fa0f79b2699d2ce72@seed.evmos.jerrychong.com:26656,e3e11fca4ecf4035a751f3fea90e3a821e274487@bd-evmos-mainnet-seed-node-01.bdnodes.net:26656,fc86e7e75c5d2e4699535e1b1bec98ae55b16826@bd-evmos-mainnet-seed-node-02.bdnodes.net:26656", ``);
 
       // replace persistent_peers
       let peers = [];
@@ -295,7 +278,7 @@ let init = async function () {
     let vbsStop = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
     for (let i = 0; i < nodesCount; i++) {
       let p2pPort = config.p2pPort + i;
-      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${evmosd} start --home ./node${i}/evmosd/` + (isNohup && platform !== "win32" ? ` >./evmos${i}.log 2>&1 &` : "");
+      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${app} start --home ./node${i}/simd/` + (isNohup && platform !== "win32" ? ` >./evmos${i}.log 2>&1 &` : "");
       let stop =
         platform == "win32"
           ? `@echo off
@@ -304,7 +287,7 @@ taskkill /F /PID %PID%`
           : platform == "linux"
           ? `pid=\`netstat -anp | grep :::${p2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
     kill -15 $pid`
-          : `pid=\`lsof -i :${p2pPort} | grep evmosd | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
+          : `pid=\`lsof -i :${p2pPort} | grep simd | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
     if [ "$pid" != "" ]; then kill -15 $pid; fi`;
       let startPath = path.join(nodesDir, `start${i}.` + (platform == "win32" ? "bat" : "sh"));
       let stopPath = path.join(nodesDir, `stop${i}.` + (platform == "win32" ? "bat" : "sh"));
@@ -332,7 +315,7 @@ taskkill /F /PID %PID%`
     }
 
     if (isStart) {
-      console.log("Start all evmosd node under the folder nodes");
+      console.log("Start all simd node under the folder nodes");
       await execPromis(scriptStart, { cwd: nodesDir }); // 不管怎样先执行一下停止
     }
   } catch (error) {
