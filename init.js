@@ -215,12 +215,12 @@ let init = async function () {
       appState.bank.balances[0].address = keySeed.bip39Address;
       appState.genutil.gen_txs[0] = createValidator;
 
-      // const genesisCfg = config.genesisCfg;
-      // if (Array.isArray(genesisCfg)) {
-      //   for (const cfg of genesisCfg) {
-      //     eval("genesis." + cfg);
-      //   }
-      // }
+      const genesisCfg = config.genesisCfg;
+      if (Array.isArray(genesisCfg)) {
+        for (const cfg of genesisCfg) {
+          eval("genesis." + cfg);
+        }
+      }
 
       await fs.outputJson(genesisPath, genesis, { spaces: 2 });
     }

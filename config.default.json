@@ -3,15 +3,15 @@
   "rosettaPort": 8080,
   "grpcPort": 9090,
   "grpcWebPort": 9091,
-  "jsonRpcPort": 8545,
-  "wsRpcPort": 8546,
   "rpcServerPort": 26657,
   "p2pPort": 10000,
   "pprofPort": 6060,
-  "preMinePerAccount": "5000000000000000000000",
-  "minimumGasPrices": "0aevmos",
-  "govCoin": false,
+  "preMinePerAccount": "8000000000000000000000",
+  "minimumGasPrices": "0stake",
   "genesisCfg": [
-    "app_state.inflation.params.mint_denom='aevmos'"
+    "app_state.gov.deposit_params.max_deposit_period='60s'",
+    "app_state.gov.voting_params.voting_period='60s'",
+    "app_state.staking.params.max_validators=100",
+    "app_state.staking.params.unbonding_time='180s'"
   ]
 }
