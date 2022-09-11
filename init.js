@@ -164,7 +164,7 @@ let init = async function () {
     }
 
     for (let i = 0; i < nodesCount; i++) {
-      const address = "cosmos1qqqqhe5pnaq5qq39wqkn957aydnrm45s0jk6ae"; // 0x00000be6819f41400225702d32d3dd23663dd690
+      const address = "cosmos1gfg9ucc7rrzc207y9qfmf58erftzf8z8ww5lr7"; // 0x00000be6819f41400225702d32d3dd23663dd690
       const account = {
         "@type": "/cosmos.auth.v1beta1.BaseAccount",
         address,

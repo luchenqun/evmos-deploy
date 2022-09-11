@@ -18,6 +18,8 @@
   "license": "ISC",
   "dependencies": {
     "@cosmjs/crypto": "^0.28.11",
+    "@cosmjs/encoding": "^0.28.13",
+    "@cosmjs/proto-signing": "^0.28.13",
     "@cosmjs/stargate": "^0.28.13",
     "@ethersproject/wallet": "^5.6.2",
     "@metamask/eth-sig-util": "^4.0.1",
