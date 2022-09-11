@@ -85,10 +85,6 @@ let init = async function () {
       config = await fs.readJson("./config.default.json");
     }
     const { preMinePerAccount } = config;
-    const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "i652NGR7/1jxYo1WDrFRjEkfVpgx5Gxnw/aznn5fqm1xkCwDJKSrWYqCaQBi85IvI1j2hBH6l/Fp7cuuLvPNjg==" } };
-    const privValidatorKey = { address: "83BA09EABD77EA3357DFD3CC28EEF85E4212B902", pub_key: { type: "tendermint/PubKeyEd25519", value: "yl7P8BSjYFxIC2R8OKcY5vtMNAC4EMciwkmEaCIw/ZI=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "lKxM9NE4GzQO83Jli84MvBndp9oecGmDFBGkmTIQbXXKXs/wFKNgXEgLZHw4pxjm+0w0ALgQxyLCSYRoIjD9kg==" } };
-    const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "0.100000000000000000", max_rate: "1.000000000000000000", max_change_rate: "1.000000000000000000" }, min_self_delegation: "1", delegator_address: "cosmos12ltvts09ga3gj32hsmnwq922ze0gmk4tgw4uxg", validator_address: "cosmosvaloper12ltvts09ga3gj32hsmnwq922ze0gmk4td6pf2m", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "yl7P8BSjYFxIC2R8OKcY5vtMNAC4EMciwkmEaCIw/ZI=" }, value: { denom: "stake", amount: "100000000" } }], memo: "5220fb21a28a13f5d40722611c53e7737cb6ba4d@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/cosmos.crypto.secp256k1.PubKey", key: "Ay0k04G0uccWGhKZUwljVabkSOwYNqxwFkerBrPbmPsr" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" } }, signatures: ["KTV5RObbWUOOVg2ViDgHwGcV3yRj34PUWVYpHmsEVxAhDWbHfjYs5636dDHwjf46lI7aXov29fjIdWH4mH5Fiw=="] };
-    const keySeed = { secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft", privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2", publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b", compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c", address: "0x57D6C5C1e5476289455786E6E0154a165E8ddaaB", bip39Address: "cosmos12ltvts09ga3gj32hsmnwq922ze0gmk4tgw4uxg" };
     if (await fs.pathExists(scriptStop)) {
       console.log("Try to stop the simd under the nodes directory");
       await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
@@ -134,14 +130,6 @@ let init = async function () {
           await fs.copy(genesisPath, path.join(nodesDir, `node${i}/simd/config/genesis.json`));
         }
       }
-
-      await fs.writeJSON(path.join(nodesDir, `node0/simd/config/node_key.json`), nodeKey);
-      await fs.writeJSON(path.join(nodesDir, `node0/simd/config/priv_validator_key.json`), privValidatorKey);
-      await fs.outputJSON(path.join(nodesDir, `node0/simd/key_seed.json`), keySeed);
-      const keyringPath = path.join(nodesDir, `node0/simd/keyring-test`);
-      await fs.emptyDir(keyringPath);
-      await fs.writeFile(path.join(keyringPath, `57d6c5c1e5476289455786e6e0154a165e8ddaab.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOS0xMCAyMzo0OTowOS45Njc2Mjg3ICswODAwIENTVCBtPSswLjA5OTcxOTgwMSIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjgxOTIsInAycyI6ImxCWWVyMEhTWFc3ZmtpT1EifQ.WWTZoA0Kvd9LQC4wMqE_R2MmlItRin01wAKDWvaX5HYAfzASRzkesw.zhcHjVunAQSHiRfq.A9cGTMljuXiBswiVJjB1SiCvvai4FrB0VPEIj3VzE2MiUbAJvriYnUP1hgbLFKDCQ49_oMpbMvG3Nm0WFp-xgsyK7JDVxc6cMqLyEhd0sqNAQZrVLj91301akmyDlKr2F5slh9OIJBQjCp08Pj1nBcxhJqHEzaB4HHUwv1PyKGTC-rI22emhmeRcLh0dzRRDRe8klcTbYKl1kRg-YYJjXmibJ6aJ2qGgeydnXNDwSaTQP9uhdn0.caIRzfJK5NyuliAESVNV5w");
-      await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOS0xMCAyMzo0OTowOS45NjE1MDcxICswODAwIENTVCBtPSswLjA5MzU5ODIwMSIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjgxOTIsInAycyI6IjEzTEdSWFprZVFiNWRrVkoifQ.L9_qkFSEQb-rciobi6YcLIF_kjFqXhbGxTFj7nZZjaHBFOkbgGiIKw.j6S3Fd3TAL0UrPuw.gMlCmxqvs8kzPcIG-Y87CKTWOCmMCmnkbShOuknC-a713zb4z90-Y-Se7Ki-8QTLUyOZe0ksVwFZBzEivVJRQ1gNRWQ8dFnhGHMVtC1IRt87xnu8dn5RHautYuwAdmwpZzduDeQJGyTx8xNl0ZPnJ-qjoLcgUTV7KNQG-orpnPH7LnGTfTHKl4W3mAMSD-XrSIz3ZzNElTAUHEMs6JXsHgKi3o1YR7H2e3dzQpWXqNFKPZb14PWaAvMrYvCoTJ6D0gaaPX-YqAmWwYcqA42rWfbIpZtukVbcG16GfNvo6CYJoN-ZfndKcsm8rvA2l51xEUneQTCVP6UGcOJ2fmIxKsa-Vks1uuZY.plLvTYQTdZr8fJZtg4zm2Q");
     }
 
     await fs.copy(app, `./nodes/${app}`);
@@ -164,7 +152,7 @@ let init = async function () {
     }
 
     for (let i = 0; i < nodesCount; i++) {
-      const address = "cosmos1gfg9ucc7rrzc207y9qfmf58erftzf8z8ww5lr7"; // 0x00000be6819f41400225702d32d3dd23663dd690
+      const address = "cosmos1gfg9ucc7rrzc207y9qfmf58erftzf8z8ww5lr7"; // f78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769 0x00000be6819f41400225702d32d3dd23663dd690
       const account = {
         "@type": "/cosmos.auth.v1beta1.BaseAccount",
         address,
@@ -203,6 +191,7 @@ let init = async function () {
           appState.bank.balances.push(curBalance);
         }
       }
+
       delete genesis.app_state.bank.supply;
 
       for (let balances of appState.bank.balances) {
@@ -210,10 +199,6 @@ let init = async function () {
           coin.amount = preMinePerAccount;
         }
       }
-
-      appState.auth.accounts[0].address = keySeed.bip39Address;
-      appState.bank.balances[0].address = keySeed.bip39Address;
-      appState.genutil.gen_txs[0] = createValidator;
 
       const genesisCfg = config.genesisCfg;
       if (Array.isArray(genesisCfg)) {
