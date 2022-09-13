@@ -67,6 +67,7 @@ const createTxMsgTextProposal = (chain, sender, fee, memo, params) => {
 };
 
 const createTxMsgParameterChangeProposal = (chain, sender, fee, memo, params) => {
+  console.log("params", JSON.stringify(params, undefined, 2));
   const feeObject = generateFee(fee.amount, fee.denom, fee.gas, sender.accountAddress);
   const MSG_TEXT_PROPOSAL_TYPES = {
     ...MSG_SUBMIT_PROPOSAL_TYPES,
@@ -88,16 +89,16 @@ const createTxMsgParameterChangeProposal = (chain, sender, fee, memo, params) =>
       title: params.content.value.title,
       description: params.content.value.description,
       changes: params.content.value.changes.map(
-        (p) =>
+        (change) =>
           new cmparams.cosmos.params.v1beta1.ParamChange({
-            subspace: p.subspace,
-            key: p.key,
-            value: p.value,
+            subspace: change.subspace,
+            key: change.key,
+            value: change.value,
           })
       ),
     }),
   };
-  console.log(proposal);
+
   const msg = {
     type: "cosmos-sdk/MsgSubmitProposal",
     value: {

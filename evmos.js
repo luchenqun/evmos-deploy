@@ -78,39 +78,6 @@ const bech32Encode = (prefix, address) => {
 
   try {
     {
-      console.log("Parameter Change Proposal");
-      const { privateKey, evmosAddress } = await nodeKey("node0");
-      const memo = "gov parameter chage proposal test";
-      const params = {
-        content: {
-          type: "ParameterChange",
-          value: {
-            title: "Max Validators Parameter Change",
-            description: "Parameter Change Test",
-            changes: [
-              {
-                subspace: "staking",
-                key: "MaxValidators",
-                value: 128,
-              },
-            ],
-          },
-        },
-        initial_deposit: [
-          {
-            denom: stakingDenom,
-            amount: "10000000",
-          },
-        ],
-        proposer: evmosAddress,
-      };
-      const data = await txHexBytes(privateKey, chain, fee, memo, gov.createTxMsgParameterChangeProposal, params);
-      console.log(data);
-      const reply = await api.txCommit(data);
-      console.log("hash", reply.hash);
-    }
-    return;
-    {
       console.log("Send GOV Token");
       const { privateKey } = await nodeKey("node0");
       const { evmosAddress } = await nodeKey("node4");
@@ -161,6 +128,39 @@ const bech32Encode = (prefix, address) => {
         proposer: evmosAddress,
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, gov.createTxMsgTextProposal, params);
+      const reply = await api.txCommit(data);
+      console.log("hash", reply.hash);
+    }
+
+    {
+      console.log("Parameter Change Proposal");
+      const { privateKey, evmosAddress } = await nodeKey("node0");
+      const memo = "gov parameter chage proposal test";
+      const params = {
+        content: {
+          type: "ParameterChange",
+          value: {
+            title: "Max Validators Parameter Change",
+            description: "Parameter Change Test",
+            changes: [
+              {
+                subspace: "staking",
+                key: "MaxValidators",
+                value: "128",
+              },
+            ],
+          },
+        },
+        initial_deposit: [
+          {
+            denom: stakingDenom,
+            amount: "10000000",
+          },
+        ],
+        proposer: evmosAddress,
+      };
+      const data = await txHexBytes(privateKey, chain, fee, memo, gov.createTxMsgParameterChangeProposal, params);
+      console.log(data);
       const reply = await api.txCommit(data);
       console.log("hash", reply.hash);
     }
