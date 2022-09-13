@@ -8,6 +8,7 @@ import unit from "ethjs-unit";
 import fs from "fs-extra";
 import API from "./api/index.js";
 import gov from "./msg/gov.js";
+import slashing from "./msg/slashing.js";
 
 const api = new API("http://127.0.0.1", 26657, 1317);
 
@@ -77,6 +78,19 @@ const bech32Encode = (prefix, address) => {
   const stakingDenom = "agov"; // please update this param
 
   try {
+    {
+      console.log("Test Unjail");
+      const { privateKey, evmosAddress } = await nodeKey("node3");
+      const memo = "gov text proposal test";
+      const params = {
+        validator_addr: "evmosvaloper1m4seq5rdvl7slnc9anaqyplrduvq5ypf4h85sc",
+      };
+      const data = await txHexBytes(privateKey, chain, fee, memo, slashing.createTxMsgUnjail, params);
+      console.log(data);
+      const reply = await api.txCommit(data);
+      console.log("hash", reply.hash);
+    }
+    return;
     {
       console.log("Send GOV Token");
       const { privateKey } = await nodeKey("node0");
@@ -160,7 +174,6 @@ const bech32Encode = (prefix, address) => {
         proposer: evmosAddress,
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, gov.createTxMsgParameterChangeProposal, params);
-      console.log(data);
       const reply = await api.txCommit(data);
       console.log("hash", reply.hash);
     }
