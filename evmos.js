@@ -7,6 +7,7 @@ import bech32 from "bech32-buffer";
 import unit from "ethjs-unit";
 import fs from "fs-extra";
 import API from "./api/index.js";
+import gov from "./msg/gov.js";
 
 const api = new API("http://127.0.0.1", 26657, 1317);
 
@@ -106,28 +107,30 @@ const bech32Encode = (prefix, address) => {
       console.log("hash", reply.hash, "destinationAddress", evmosAddress);
     }
 
-    // {
-    //   console.log("Test Proposal");
-    //   const { privateKey, evmosAddress } = await nodeKey("node0");
-    //   const memo = "gov test";
-    //   const params = {
-    //     content: {
-    //       "@type": "/cosmos.gov.v1beta1.TextProposal",
-    //       title: "Test Proposal",
-    //       description: "My awesome proposal",
-    //     },
-    //     initial_deposit: [
-    //       {
-    //         denom: "agov",
-    //         amount: "999999000",
-    //       },
-    //     ],
-    //     proposer: evmosAddress,
-    //   };
-    //   const data = await txHexBytes(privateKey, chain, fee, memo, message.createTxMsgTextProposal, params);
-    //   const reply = await api.txCommit(data);
-    //   console.log("hash", reply.hash);
-    // }
+    {
+      console.log("Test Proposal");
+      const { privateKey, evmosAddress } = await nodeKey("node0");
+      const memo = "gov test";
+      const params = {
+        content: {
+          type: "Text",
+          value: {
+            title: "Test Proposal",
+            description: "My awesome proposal",
+          },
+        },
+        initial_deposit: [
+          {
+            denom: "agov",
+            amount: "999999000",
+          },
+        ],
+        proposer: evmosAddress,
+      };
+      const data = await txHexBytes(privateKey, chain, fee, memo, gov.createTxMsgTextProposal, params);
+      const reply = await api.txCommit(data);
+      console.log("hash", reply.hash);
+    }
 
     {
       console.log("Delegate");
@@ -189,6 +192,6 @@ const bech32Encode = (prefix, address) => {
       console.log(reply.hash);
     }
   } catch (error) {
-    // console.log(error);
+    console.log(error);
   }
 })();
