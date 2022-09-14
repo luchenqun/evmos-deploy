@@ -123,12 +123,31 @@ const bech32Encode = (prefix, address) => {
         initial_deposit: [
           {
             denom: stakingDenom,
-            amount: "10000000",
+            amount: "1",
           },
         ],
         proposer: evmosAddress,
       };
       const data = await txHexBytes(privateKey, chain, fee, memo, gov.createTxMsgTextProposal, params);
+      const reply = await api.txCommit(data);
+      console.log("hash", reply.hash);
+    }
+
+    {
+      console.log("Deposit Proposal");
+      const { privateKey, evmosAddress } = await nodeKey("node0");
+      const memo = "gov deposit proposal test";
+      const params = {
+        amount: [
+          {
+            denom: stakingDenom,
+            amount: "10000000",
+          },
+        ],
+        proposalId: 1,
+        depositor: evmosAddress,
+      };
+      const data = await txHexBytes(privateKey, chain, fee, memo, gov.createTxMsgDeposit, params);
       const reply = await api.txCommit(data);
       console.log("hash", reply.hash);
     }
