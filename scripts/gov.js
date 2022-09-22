@@ -56,7 +56,7 @@ let run = async function () {
     {
       await sleep(3000); // wait the pre transaction to success
       // submit-proposal param-change
-      cmd = `./evmosd tx gov submit-proposal param-change ./scripts/proposal.json ${fixed}`;
+      cmd = `./evmosd tx gov submit-proposal param-change ./scripts/proposal/param.json ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
 
@@ -64,6 +64,21 @@ let run = async function () {
 
       // vote yes ./scripts/proposal.json
       cmd = `./evmosd tx gov vote 3 yes ${fixed}`;
+      reply = await execPromis(cmd, { cwd });
+      console.log(cmd, "\n", decodeReply(reply));
+    }
+
+    {
+      await sleep(3000); // wait the pre transaction to success
+      // submit-proposal community-pool-spend
+      cmd = `./evmosd tx gov submit-proposal community-pool-spend ./scripts/proposal/community.json ${fixed}`;
+      reply = await execPromis(cmd, { cwd });
+      console.log(cmd, "\n", decodeReply(reply));
+
+      await sleep(3000);
+
+      // vote yes ./scripts/proposal.json
+      cmd = `./evmosd tx gov vote 4 yes ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
     }
