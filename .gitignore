@@ -13,3 +13,4 @@ temp/
 data/
 *.exe
 evmosd*
+simd*

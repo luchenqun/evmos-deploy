@@ -111,8 +111,8 @@ let init = async function () {
     await fs.ensureDir(nodesDir);
     console.log("Folder nodes has been cleaned up");
     {
-      const initFiles = `${platform !== "win32" ? "./" : ""}${app} testnet --v ${nodesCount} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
-      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${app} testnet --v ${validators} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
+      const initFiles = `${platform !== "win32" ? "./" : ""}${app} testnet --v ${nodesCount} --output-dir ./nodes --chain-id sim_20191205-1 --keyring-backend test`;
+      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${app} testnet --v ${validators} --output-dir ./nodes --chain-id sim_20191205-1 --keyring-backend test`;
       console.log(`Exec cmd: ${initFiles}`);
       const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
       console.log(`init-files ${stdout}${stderr}\n`);
@@ -263,7 +263,7 @@ let init = async function () {
     let vbsStop = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
     for (let i = 0; i < nodesCount; i++) {
       let p2pPort = config.p2pPort + i;
-      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${app} start --home ./node${i}/simd/` + (isNohup && platform !== "win32" ? ` >./evmos${i}.log 2>&1 &` : "");
+      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${app} start --home ./node${i}/simd/` + (isNohup && platform !== "win32" ? ` >./sim${i}.log 2>&1 &` : "");
       let stop =
         platform == "win32"
           ? `@echo off
