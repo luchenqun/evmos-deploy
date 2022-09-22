@@ -111,8 +111,8 @@ let init = async function () {
     await fs.ensureDir(nodesDir);
     console.log("Folder nodes has been cleaned up");
     {
-      const initFiles = `${platform !== "win32" ? "./" : ""}${app} testnet --v ${nodesCount} --output-dir ./nodes --chain-id sim_20191205-1 --keyring-backend test`;
-      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${app} testnet --v ${validators} --output-dir ./nodes --chain-id sim_20191205-1 --keyring-backend test`;
+      const initFiles = `${platform !== "win32" ? "./" : ""}${app} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id sim_20191205-1 --keyring-backend test`;
+      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${app} testnet init-files --v ${validators} --output-dir ./nodes --chain-id sim_20191205-1 --keyring-backend test`;
       console.log(`Exec cmd: ${initFiles}`);
       const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
       console.log(`init-files ${stdout}${stderr}\n`);
