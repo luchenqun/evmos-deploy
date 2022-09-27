@@ -8,9 +8,13 @@
   "rpcServerPort": 26657,
   "p2pPort": 10000,
   "pprofPort": 6060,
+  "preMineAccounts": [
+    "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583"
+  ],
   "preMinePerAccount": "5000000000000000000000",
   "minimumGasPrices": "0aevmos",
   "govCoin": false,
+  "fixedFirstValidator": true,
   "genesisCfg": [
     "app_state.inflation.params.mint_denom='aevmos'"
   ]

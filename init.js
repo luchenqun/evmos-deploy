@@ -84,7 +84,7 @@ let init = async function () {
     } catch (error) {
       config = await fs.readJson("./config.default.json");
     }
-    const { govCoin, preMinePerAccount } = config;
+    const { govCoin, preMinePerAccount, fixedFirstValidator, preMineAccounts } = config;
     const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "bq6XFN3gT1s5TR4uvEZo71VK2XrKdaQ1ecXKXOPEr8q0wRHFwEwP97pmwewLjtHDTYok5rS4T9751MaSIlS6Vg==" } };
     const privValidatorKey = { address: "A8BF37F9C6EAE0E808319460EDD5A3D714613D7A", pub_key: { type: "tendermint/PubKeyEd25519", value: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "jH2WRl02s7AIhqCJqYmnBl+atc7aXZnhb5DQCk3FbR1xov0F/syeuifLgc5iAqjklIJgvI3JNTK36nD69uaN3A==" } };
     const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "0.100000000000000000", max_rate: "1.000000000000000000", max_change_rate: "0.100000000000000000" }, min_self_delegation: "1", delegator_address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh", validator_address: "evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, value: { denom: govCoin ? "agov" : "aevmos", amount: "100000000000000000000" } }], memo: "90d5c044ed4938cfeac4f41635db3b88c894c21f@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" } }, signatures: [govCoin ? "T1TtcdJol2tNFXIjilXZiP3qHWHcUTEURKZ0PMYp7pJr0Y12aJX320EFVenNUbje2Mt/VPoiIu2tQbgx1ZXi4wA=" : "HApoRLTw6JHNj+813tn1aQb3JG5wJWV1MMDbKFPUdxRpp1eEnMI3VcK7qm+bhXT/U8RO738si4ww6x0lnVeCggA="] };
@@ -135,13 +135,15 @@ let init = async function () {
         }
       }
 
-      await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/node_key.json`), nodeKey);
-      await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/priv_validator_key.json`), privValidatorKey);
-      await fs.outputJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`), keySeed);
-      const keyringPath = path.join(nodesDir, `node0/evmosd/keyring-test`);
-      await fs.emptyDir(keyringPath);
-      await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NjQ4NTEgKzA4MDAgQ1NUIG09KzAuMjI4NTE5MjUxIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiVHM3QXhNRmV4MlZtMTZpeiJ9.OrWluGLeod9SjmLDqvXTcA63z9P1VZ-D0l5LFzwVOhJG67vl3b0HXQ.BrINO_FqPHviDFff.yk2tJKWkWIo-OXZfxr7INBATtLws_mHvT5s4kSfwDkbpp2JJVyoEwFcozQHp5hh9owc3bPG7HRa_QHQarB5_Oz-fXJkuPlTxR955P6azI1C8vuWqBcZ7nfZkAhoFHgSZzQAPuFp6sPTWoDampAqocmtWu2lYPSiRnDHRZ6gEmP1slwsRwJTlASEwpmzjBeDsqrwCn9cT_jNrI7ilWB4LBUUXAkkKVu-p1X9bkqo8yZ_UrFFR2rI.6rVArcxnth5pzzgbEtuHSQ");
-      await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NTg1NjYgKzA4MDAgQ1NUIG09KzAuMjIyMjM0MDQzIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoicmk3MzV2Y3Fid2VkUF9JcCJ9.ht-BieDMdmkOBfb1saBx2nvBDaD9anNxP5RTirHIk-tHUXJr6HbeKA.FvpzGpaY6il86ngO.WwHd6HTneYvxg3KkEhsXx1_F_XkmzHqVJwSmQrnX9ZSg2L8ZCAxV6rvliuRwt30816o8tElb06qpp1krFGwGL_LvP1FtnOiX4GdJJxAyX1lgBgJQrhZuqKc6EEE78ArwUR1Mb6b3ax_6oV7IB42izg1ci2PP5bgXN-510EM9RrSi9fnVl3UMoAanoBL8NfJGYHo2Cusn_Y14yEnPDHxS96vTl7wZx_pZrjtapyQ9ktnDQHVBfsupIKmIYXSwpQ16FQ9G4eclfKGhit4uUFofdT0UMG1g_aQEGHt1nPG08w66w8PxmW8ma_D8yCQp0TW6m9pTLWODiCztorLucEr9RFW9mJLofi4pFdCuqHrGm_o.X06PXwtrfTMDgiQDIpPS0g");
+      if (fixedFirstValidator) {
+        await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/node_key.json`), nodeKey);
+        await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/priv_validator_key.json`), privValidatorKey);
+        await fs.outputJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`), keySeed);
+        const keyringPath = path.join(nodesDir, `node0/evmosd/keyring-test`);
+        await fs.emptyDir(keyringPath);
+        await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NjQ4NTEgKzA4MDAgQ1NUIG09KzAuMjI4NTE5MjUxIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiVHM3QXhNRmV4MlZtMTZpeiJ9.OrWluGLeod9SjmLDqvXTcA63z9P1VZ-D0l5LFzwVOhJG67vl3b0HXQ.BrINO_FqPHviDFff.yk2tJKWkWIo-OXZfxr7INBATtLws_mHvT5s4kSfwDkbpp2JJVyoEwFcozQHp5hh9owc3bPG7HRa_QHQarB5_Oz-fXJkuPlTxR955P6azI1C8vuWqBcZ7nfZkAhoFHgSZzQAPuFp6sPTWoDampAqocmtWu2lYPSiRnDHRZ6gEmP1slwsRwJTlASEwpmzjBeDsqrwCn9cT_jNrI7ilWB4LBUUXAkkKVu-p1X9bkqo8yZ_UrFFR2rI.6rVArcxnth5pzzgbEtuHSQ");
+        await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NTg1NjYgKzA4MDAgQ1NUIG09KzAuMjIyMjM0MDQzIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoicmk3MzV2Y3Fid2VkUF9JcCJ9.ht-BieDMdmkOBfb1saBx2nvBDaD9anNxP5RTirHIk-tHUXJr6HbeKA.FvpzGpaY6il86ngO.WwHd6HTneYvxg3KkEhsXx1_F_XkmzHqVJwSmQrnX9ZSg2L8ZCAxV6rvliuRwt30816o8tElb06qpp1krFGwGL_LvP1FtnOiX4GdJJxAyX1lgBgJQrhZuqKc6EEE78ArwUR1Mb6b3ax_6oV7IB42izg1ci2PP5bgXN-510EM9RrSi9fnVl3UMoAanoBL8NfJGYHo2Cusn_Y14yEnPDHxS96vTl7wZx_pZrjtapyQ9ktnDQHVBfsupIKmIYXSwpQ16FQ9G4eclfKGhit4uUFofdT0UMG1g_aQEGHt1nPG08w66w8PxmW8ma_D8yCQp0TW6m9pTLWODiCztorLucEr9RFW9mJLofi4pFdCuqHrGm_o.X06PXwtrfTMDgiQDIpPS0g");
+      }
     }
 
     await fs.copy(evmosd, `./nodes/${evmosd}`);
@@ -163,27 +165,17 @@ let init = async function () {
       await fs.outputJson(keySeedPath, curKeySeed, { spaces: 2 });
     }
 
+    const account = { "@type": "/ethermint.types.v1.EthAccount", base_account: { address: "", pub_key: null, account_number: "0", sequence: "0" }, code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" };
+    const balance = { address: "", coins: [{ denom: govCoin ? "agov" : "aevmos", amount: "0" }] };
     for (let i = 0; i < nodesCount; i++) {
-      const address = "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583"; // 0x00000be6819f41400225702d32d3dd23663dd690
-      const account = {
-        "@type": "/ethermint.types.v1.EthAccount",
-        base_account: {
-          address,
-          pub_key: null,
-          account_number: "0",
-          sequence: "0",
-        },
-        code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
-      };
-      const balance = {
-        address,
-        coins: [
-          {
-            denom: govCoin ? "agov" : "aevmos",
-            amount: "0",
-          },
-        ],
-      };
+      let accounts = [];
+      let balances = [];
+      if (Array.isArray(preMineAccounts)) {
+        for (const address of preMineAccounts) {
+          accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
+          balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
+        }
+      }
       // const evmosCoin = {
       //   denom: "aevmos",
       //   amount: "0",
@@ -192,18 +184,15 @@ let init = async function () {
       const genesisPath = path.join(nodesDir, `node${i}/evmosd/config/genesis.json`);
       let genesis = await fs.readJSON(genesisPath);
       let appState = genesis.app_state;
-      appState.auth.accounts.push(account);
-      appState.bank.balances.push(balance);
+      appState.auth.accounts.push(...accounts);
+      appState.bank.balances.push(...balances);
       if (commonNode > 0) {
         for (let i = nodesCount - commonNode; i < nodesCount; i++) {
           const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
-          let curKeySeed = await fs.readJSON(keySeedPath);
-          let curAccount = JSON.parse(JSON.stringify(account));
-          let curBalance = JSON.parse(JSON.stringify(balance));
-          curAccount.base_account.address = curKeySeed.bip39Address;
-          curBalance.address = curKeySeed.bip39Address;
-          appState.auth.accounts.push(curAccount);
-          appState.bank.balances.push(curBalance);
+          const curKeySeed = await fs.readJSON(keySeedPath);
+          const address = curKeySeed.bip39Address;
+          appState.auth.accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
+          appState.bank.balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
         }
       }
       for (let balances of appState.bank.balances) {
@@ -221,10 +210,11 @@ let init = async function () {
           coin.amount = preMinePerAccount;
         }
       }
-
-      appState.auth.accounts[0].base_account.address = keySeed.bip39Address;
-      appState.bank.balances[0].address = keySeed.bip39Address;
-      appState.genutil.gen_txs[0] = createValidator;
+      if (fixedFirstValidator) {
+        appState.auth.accounts[0].base_account.address = keySeed.bip39Address;
+        appState.bank.balances[0].address = keySeed.bip39Address;
+        appState.genutil.gen_txs[0] = createValidator;
+      }
 
       const genesisCfg = config.genesisCfg;
       if (Array.isArray(genesisCfg)) {
