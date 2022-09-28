@@ -216,7 +216,6 @@ const nodeKey = async (node) => {
     const randNumber = parseInt(Math.random() * 4) + 1;
     try {
       if (randNumber == 1) {
-        console.log(getRandomArrayElements([weth._address, matic._address, usdt._address], 2));
         await send(fromAccount, router02, "swapExactTokensForTokens", [randWei, "1", getRandomArrayElements([weth._address, matic._address, usdt._address], 2), fromAccount.address, parseInt(new Date().getTime() / 1000) + 600]);
       }
       if (randNumber == 2) {
