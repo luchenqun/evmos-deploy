@@ -6,11 +6,11 @@ import { createMessageSend, createTxMsgBeginRedelegate, createTxMsgDelegate, cre
 import bech32 from "bech32-buffer";
 import unit from "ethjs-unit";
 import fs from "fs-extra";
-import API from "./api/index.js";
-import gov from "./msg/gov.js";
-import slashing from "./msg/slashing.js";
+import API from "../api/index.js";
+import gov from "../msg/gov.js";
+import slashing from "../msg/slashing.js";
 
-const api = new API("http://127.0.0.1", 26657, 1317);
+const api = new API("http://127.0.0.1:26657", "http://127.0.0.1:1317");
 
 const txHexBytes = async (privateKeyHex, chain, fee, memo, createMessage, params) => {
   const privateKey = Buffer.from(privateKeyHex.replace("0x", ""), "hex");
@@ -43,7 +43,7 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, createMessage, params
 };
 
 const nodeKey = async (node) => {
-  const keySeed = await fs.readJSON(`./nodes/${node}/evmosd/key_seed.json`);
+  const keySeed = await fs.readJSON(`../nodes/${node}/evmosd/key_seed.json`);
   const wallet = Wallet.fromMnemonic(keySeed.secret);
   const privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
   const address = wallet.address;
@@ -74,8 +74,11 @@ const bech32Encode = (prefix, address) => {
     gas: "2000000000",
   };
 
+  const staking = await api.stakingParams();
+  console.log(staking);
+
   // use `node init.js --v=4 --cn=1 --s=true` to run 5 node
-  const stakingDenom = "agov"; // please update this param
+  const stakingDenom = staking.params.bond_denom; // please update this param
 
   try {
     {
