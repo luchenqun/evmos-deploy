@@ -233,7 +233,7 @@ const nodeKey = async (node) => {
     }
 
     loading = false;
-  }, 1000);
+  }, 2000);
 
   setInterval(async () => {
     if (loading) return;
@@ -254,5 +254,5 @@ const nodeKey = async (node) => {
     }
 
     loading = false;
-  }, 1000 * 11 * 60);
+  }, 1000 * 5 * 60);
 })();
