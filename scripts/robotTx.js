@@ -2,7 +2,7 @@ import { Wallet } from "@ethersproject/wallet";
 import signUtil from "@metamask/eth-sig-util";
 import { ethToEvmos } from "@tharsis/address-converter";
 import { generatePostBodyBroadcast } from "@tharsis/provider";
-import { createTxMsgWithdrawDelegatorReward, createTxRawEIP712, signatureToWeb3Extension } from "@tharsis/transactions";
+import { createMessageSend, createTxMsgDelegate, createTxMsgWithdrawDelegatorReward, createTxRawEIP712, signatureToWeb3Extension } from "@tharsis/transactions";
 import bech32 from "bech32-buffer";
 import unit from "ethjs-unit";
 import fs from "fs-extra";
@@ -232,7 +232,7 @@ const nodeKey = async (node) => {
     }
 
     loading = false;
-  }, 2000);
+  }, 1500);
 
   setInterval(async () => {
     if (loading) return;
