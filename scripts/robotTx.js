@@ -216,23 +216,23 @@ const nodeKey = async (node) => {
     const randNumber = parseInt(Math.random() * 4) + 1;
     try {
       if (randNumber == 1) {
-        await send(fromAccount, router02, "swapExactTokensForTokens", [randWei, "1", getRandomArrayElements([weth._address, matic._address, usdt._address], 2), fromAccount.address, parseInt(new Date().getTime() / 1000) + 600]);
+        send(fromAccount, router02, "swapExactTokensForTokens", [randWei, "1", getRandomArrayElements([weth._address, matic._address, usdt._address], 2), fromAccount.address, parseInt(new Date().getTime() / 1000) + 600]);
       }
       if (randNumber == 2) {
-        await send(fromAccount, weth, "deposit", [], randWei);
+        send(fromAccount, weth, "deposit", [], randWei);
       }
       if (randNumber == 3) {
-        await send(fromAccount, getRandomArrayElements([weth, matic, usdt], 1)[0], "transfer", [toAccount.address, randWei]);
+        send(fromAccount, getRandomArrayElements([weth, matic, usdt], 1)[0], "transfer", [toAccount.address, randWei]);
       }
       if (randNumber == 4) {
-        await sendTransaction(fromAccount, "0x", toAccount.address, randWei);
+        sendTransaction(fromAccount, "0x", toAccount.address, randWei);
       }
     } catch (error) {
       console.log(error);
     }
 
     loading = false;
-  }, 1500);
+  }, 1000);
 
   setInterval(async () => {
     if (loading) return;
@@ -246,7 +246,7 @@ const nodeKey = async (node) => {
           validatorAddress: bech32Encode("evmosvaloper", address),
         };
         const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgWithdrawDelegatorReward, params);
-        await api.txCommit(data);
+        api.txCommit(data);
       }
     } catch (error) {
       console.log(error);
