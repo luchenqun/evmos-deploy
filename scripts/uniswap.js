@@ -6,6 +6,7 @@ import UniswapV2Pair from "./v2-core/UniswapV2Pair.json" assert { type: "json" }
 import UniswapV2Router01 from "./v2-periphery/UniswapV2Router01.json" assert { type: "json" };
 import UniswapV2Router02 from "./v2-periphery/UniswapV2Router02.json" assert { type: "json" };
 import WETH9 from "./v2-periphery/WETH9.json" assert { type: "json" };
+import fs from "fs-extra";
 
 let endpoint, hexPrivateKey;
 endpoint = "http://carina-eth-rpc.mybc.fun";
@@ -24,6 +25,8 @@ hexPrivateKey = "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f
   const gas = 5000000;
   const APPROVE_AMOUNT = web3.utils.toWei("1000000000000000000000000000000000000000000");
   const to = "0x1111102Dd32160B064F2A512CDEf74bFdB6a9F96";
+
+  let uniswap = { deployPrivateKey: hexPrivateKey };
 
   // calc code hash
   {
@@ -77,11 +80,13 @@ hexPrivateKey = "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f
   let weth = new web3.eth.Contract(WETH9.abi);
   await deploy(weth, WETH9.bytecode, []);
   console.info("WETH:", weth.address);
+  uniswap.weth = weth.address;
 
   // deploy UniswapV2Factory contract
   let factory = new web3.eth.Contract(UniswapV2Factory.abi);
   await deploy(factory, UniswapV2Factory.bytecode, [from]);
   console.info("UniswapV2Factory:", factory.address);
+  uniswap.factory = factory.address;
 
   // deploy UniswapV2Router01 contract
   let router01 = new web3.eth.Contract(UniswapV2Router01.abi);
@@ -92,6 +97,7 @@ hexPrivateKey = "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f
   let router02 = new web3.eth.Contract(UniswapV2Router02.abi);
   await deploy(router02, UniswapV2Router02.bytecode, [factory.address, weth.address]);
   console.info("UniswapV2Router02:", router02.address);
+  uniswap.router02 = router02.address;
 
   // deploy Multicall contract
   let multicall = new web3.eth.Contract(Multicall.abi);
@@ -102,11 +108,13 @@ hexPrivateKey = "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f
   let matic = new web3.eth.Contract(MyToken.abi);
   await deploy(matic, MyToken.bytecode, ["Matic Token", "MATIC", 18, web3.utils.toWei("100000000")]);
   console.info("MyToken MATIC:", matic.address);
+  uniswap.matic = matic.address;
 
   // deploy USDT Token contract
   let usdt = new web3.eth.Contract(MyToken.abi);
   await deploy(usdt, MyToken.bytecode, ["Tether USD", "USDT", 18, web3.utils.toWei("100000000")]);
   console.info("MyToken USDT:", usdt.address);
+  uniswap.usdt = usdt.address;
 
   console.log("deposit ETH to WETH contract");
   await send(weth, "deposit", [], web3.utils.toWei("5"));
@@ -134,4 +142,6 @@ hexPrivateKey = "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f
 
   console.log(`after swapExactTokensForTokens ${from} have weth:`, web3.utils.fromWei(await call(weth, "balanceOf", from, [from])));
   console.log(`after swapExactTokensForTokens ${to} have matic:`, web3.utils.fromWei(await call(matic, "balanceOf", to, [to])));
+
+  await fs.outputJSON("./uniswap.json", uniswap, { spaces: 2 });
 })();

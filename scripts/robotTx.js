@@ -8,6 +8,7 @@ import unit from "ethjs-unit";
 import fs from "fs-extra";
 import Web3 from "web3";
 import API from "../api/index.js";
+import uniswap from "./uniswap.json" assert { type: "json" };
 
 const bech32Encode = (prefix, address) => {
   return bech32.encode(prefix, Uint8Array.from(Buffer.from(address.replace("0x", ""), "hex")));
@@ -44,17 +45,17 @@ const nodeKey = async (node) => {
 };
 
 (async () => {
-  const hexPrivateKey = "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769";
+  const hexPrivateKey = uniswap.deployPrivateKey || "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769";
   const endpoint = "http://127.0.0.1:8545";
   const apiUrl = "http://127.0.0.1:1317";
   const rpcUrl = "http://127.0.0.1:26657";
   // const endpoint = "http://carina-eth-rpc.mybc.fun";
   // const apiUrl = "http://carina-api.mybc.fun";
   // const rpcUrl = "http://carina-rpc.mybc.fun";
-  const router02Address = "0xb4936c57f5b6B5a247aD6089C56064DF98fFf470";
-  const wethAddress = "0x546bc6E008689577C69C42b9C1f6b4C923f59B5d";
-  const maticAddress = "0x4BD9051a87E8d731E452eD84D22AA6E33b608E25";
-  const usdtAddress = "0x67a2de7C64F04C1c8E894674acB2A2F99710bDDE";
+  const router02Address = uniswap.router02 || "0xb4936c57f5b6B5a247aD6089C56064DF98fFf470";
+  const wethAddress = uniswap.weth || "0x546bc6E008689577C69C42b9C1f6b4C923f59B5d";
+  const maticAddress = uniswap.matic || "0x4BD9051a87E8d731E452eD84D22AA6E33b608E25";
+  const usdtAddress = uniswap.usdt || "0x67a2de7C64F04C1c8E894674acB2A2F99710bDDE";
 
   const UniswapV2Router02 = JSON.parse(await fs.readFile(new URL("./v2-periphery/UniswapV2Router02.json", import.meta.url)));
   const MyToken = JSON.parse(await fs.readFile(new URL("./v2-periphery/WETH9.json", import.meta.url)));
@@ -89,7 +90,7 @@ const nodeKey = async (node) => {
   const chainId = await web3.eth.getChainId();
   const gasPrice = await web3.eth.getGasPrice();
   const gas = 5000000;
-  const APPROVE_AMOUNT = web3.utils.toWei("1000000000000000000000000000000000000000000");
+  const APPROVE_AMOUNT = web3.utils.toWei("9007199254740992");
 
   const txHexBytes = async (privateKeyHex, chain, fee, memo, createMessage, params) => {
     const privateKey = Buffer.from(privateKeyHex.replace("0x", ""), "hex");
