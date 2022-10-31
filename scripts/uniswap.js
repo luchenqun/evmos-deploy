@@ -1,25 +1,18 @@
 import Web3 from "web3";
-import Multicall from "./v2-core/Multicall.json" assert { type: "json" };
-import MyToken from "./v2-core/MyToken.json" assert { type: "json" };
-import UniswapV2Factory from "./v2-core/UniswapV2Factory.json" assert { type: "json" };
-import UniswapV2Pair from "./v2-core/UniswapV2Pair.json" assert { type: "json" };
-import UniswapV2Router01 from "./v2-periphery/UniswapV2Router01.json" assert { type: "json" };
-import UniswapV2Router02 from "./v2-periphery/UniswapV2Router02.json" assert { type: "json" };
-import WETH9 from "./v2-periphery/WETH9.json" assert { type: "json" };
-import fs from "fs-extra";
+import { readFile } from "fs/promises";
+const Multicall = JSON.parse(await readFile(new URL("./v2-core/Multicall.json", import.meta.url)));
+const MyToken = JSON.parse(await readFile(new URL("./v2-core/MyToken.json", import.meta.url)));
+const UniswapV2Factory = JSON.parse(await readFile(new URL("./v2-core/UniswapV2Factory.json", import.meta.url)));
+const UniswapV2Pair = JSON.parse(await readFile(new URL("./v2-core/UniswapV2Pair.json", import.meta.url)));
+const UniswapV2Router01 = JSON.parse(await readFile(new URL("./v2-periphery/UniswapV2Router01.json", import.meta.url)));
+const UniswapV2Router02 = JSON.parse(await readFile(new URL("./v2-periphery/UniswapV2Router02.json", import.meta.url)));
+const WETH9 = JSON.parse(await readFile(new URL("./v2-periphery/WETH9.json", import.meta.url)));
 
-let endpoint, hexPrivateKey;
-endpoint = "http://carina-eth-rpc.mybc.fun";
-hexPrivateKey = "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769";
-
-endpoint = "http://127.0.0.1:8545";
-hexPrivateKey = "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769";
-
-class UniSwap {
+class Uniswap {
   constructor({ url, privateKey, gas, weth, factory, router01, router02, multicall, matic, usdt }) {
     this.web3 = new Web3(new Web3.providers.HttpProvider(url, { timeout: 1000 * 30 }));
     this.privateKey = privateKey;
-    this.account = web3.eth.accounts.privateKeyToAccount(hexPrivateKey);
+    this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
     this.from = this.account.address;
     this.gas = gas || 5000000;
     this.chainId = undefined;
@@ -87,181 +80,108 @@ class UniSwap {
 
     let data = UniswapV2Pair.bytecode;
     if (!data.startsWith("0x")) data = "0x" + data;
-    const hash = web3.utils.keccak256(data);
+    const hash = this.web3.utils.keccak256(data);
     console.info("INIT_CODE_HASH:", hash);
-    if (hash != "0xd2c96a9e01a194a1b1ea751757305327f2b69850cd83b135d7868817bb70590c") {
+    if (hash != "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f") {
       console.warn("计算出来的init code hash为 " + hash + " ，与系统默认的不一致，请确保你已经更新合约v2-periphery/contracts/libraries/UniswapV2Library.sol里面的init code hash并重新编译过合约了。");
       return ret;
     }
-
+    console.log("=========================uniswap deploying, please wait.... =========================");
     ret.weth = await this.deploy(this.weth, WETH9.bytecode, []);
+    console.log("weth address: ", ret.weth);
     ret.factory = await this.deploy(this.factory, UniswapV2Factory.bytecode, [this.from]);
+    console.log("factory address: ", ret.factory);
     ret.router01 = await this.deploy(this.router01, UniswapV2Router01.bytecode, [this.factory.address, this.weth.address]);
+    console.log("router01 address: ", ret.router01);
     ret.router02 = await this.deploy(this.router02, UniswapV2Router02.bytecode, [this.factory.address, this.weth.address]);
+    console.log("router02 address: ", ret.router02);
     ret.multicall = await this.deploy(this.multicall, Multicall.bytecode, []);
-    ret.matic = await this.deploy(this.matic, MyToken.bytecode, ["Matic Token", "MATIC", 18, web3.utils.toWei("100000000")]);
-    ret.usdt = await this.deploy(this.usdt, MyToken.bytecode, ["Tether USD", "USDT", 18, web3.utils.toWei("100000000")]);
+    console.log("multicall address: ", ret.multicall);
+    ret.matic = await this.deploy(this.matic, MyToken.bytecode, ["Matic Token", "MATIC", 18, this.web3.utils.toWei("10000000000")]);
+    console.log("matic address: ", ret.matic);
+    ret.usdt = await this.deploy(this.usdt, MyToken.bytecode, ["Tether USD", "USDT", 18, this.web3.utils.toWei("10000000000")]);
+    console.log("usdt address: ", ret.usdt);
+    console.log("=================================UNISWAP DEPLOY INFO=================================");
+    console.log(JSON.stringify(ret, undefined, 2));
+    console.log("=================================UNISWAP DEPLOY INFO=================================");
     return ret;
   }
-  async approveToRouter() {
-    const APPROVE_AMOUNT = web3.utils.toWei("100000000");
-    const { from, router02, web3, send, call } = this;
+  async approveToRouter(minAmount) {
+    const { from, router02, web3, call } = this;
+    const APPROVE_AMOUNT = web3.utils.toWei(minAmount ? String(minAmount * 100) : "10000000000");
     const approve = async (contract) => {
-      let amount = parseFloat(web3.utils.fromWei(await call(contract, "allowance", [from, router02.address])));
-      if (amount < 10000000) {
-        await send(contract, "approve", [router02.address, APPROVE_AMOUNT]);
+      let curAmount = parseFloat(web3.utils.fromWei(await call(contract, "allowance", from, [from, router02.address])));
+      if (curAmount < parseFloat(minAmount || "1000000000")) {
+        console.log(contract.address, "approve to router");
+        await this.send(contract, "approve", [router02.address, APPROVE_AMOUNT]);
       }
     };
     await approve(this.weth);
     await approve(this.matic);
     await approve(this.usdt);
   }
-  async deposit(amount) {
-    const { from, weth, web3, send, call } = this;
+  async depositMaxWeth(maxAmount) {
+    const { from, weth, web3, call } = this;
     let curAmout = parseFloat(web3.utils.fromWei(await call(weth, "balanceOf", from, [from])));
-    if (parseFloat(amount) < curAmout) {
-      await send(weth, "deposit", [], web3.utils.toWei(String(parseFloat(amount) - curAmout)));
+    if (parseFloat(maxAmount) > curAmout) {
+      await this.send(weth, "deposit", [], web3.utils.toWei(String(parseFloat(maxAmount) - curAmout)));
     }
   }
   async transfer(token, to, amount) {
-    const { web3, send } = this;
-    await send(token, "transfer", [to, web3.utils.toWei(amount)]);
+    await this.send(token, "transfer", [to, this.web3.utils.toWei(String(amount))]);
+  }
+  async transferMax(token, to, maxAmount) {
+    let curAmount = parseFloat(this.web3.utils.fromWei(await this.balanceOf(token, to)));
+    if (parseFloat(maxAmount) > curAmount) {
+      await this.send(token, "transfer", [to, this.web3.utils.toWei(String(parseFloat(maxAmount) - curAmount))]);
+    }
+  }
+  async balanceOf(token, owner) {
+    return await this.call(token, "balanceOf", this.from, [owner]);
+  }
+  async balanceOfReadable(token, owner) {
+    return this.web3.utils.fromWei(await this.call(token, "balanceOf", this.from, [owner]));
   }
   async addLiquidity(token1, token2, amount1, amount2) {
-    await this.approveToRouter();
-    const params = [token1.address, token2.address, web3.utils.toWei(amount1), web3.utils.toWei(amount2), 1, 1, this.from, parseInt(new Date().getTime() / 1000) + 600];
-    await this.send(this.router02, "addLiquidity", params);
+    const { web3 } = this;
+    const pairAddress = await this.call(this.factory, "getPair", this.from, [token1.address, token2.address]);
+    if (pairAddress == "0x0000000000000000000000000000000000000000") {
+      await this.approveToRouter();
+      if (token1.address == this.weth.address) {
+        await this.depositMaxWeth(amount1);
+      }
+      if (token2.address == this.weth.address) {
+        await this.depositMaxWeth(amount2);
+      }
+      const params = [token1.address, token2.address, web3.utils.toWei(amount1), web3.utils.toWei(amount2), 1, 1, this.from, parseInt(new Date().getTime() / 1000) + 600];
+      await this.send(this.router02, "addLiquidity", params);
+    } else {
+      console.log(`pair ${token1.address} - ${token2.address} is existed!`);
+    }
+  }
+  async swapExactTokensForTokens(token1, token2, amountIn) {
+    const { from, web3, router02 } = this;
+    if (token1.address == this.weth.address) {
+      await this.depositMaxWeth(amountIn);
+    }
+    const params = [web3.utils.toWei(amountIn), "1", [token1.address, token2.address], from, parseInt(new Date().getTime() / 1000) + 600];
+    await this.send(router02, "swapExactTokensForTokens", params);
   }
 }
 
 (async () => {
-  return;
-  const web3 = new Web3(new Web3.providers.HttpProvider(endpoint, { timeout: 1000 * 30 }));
-  const account = web3.eth.accounts.privateKeyToAccount(hexPrivateKey);
-  const from = account.address;
+  let url, privateKey;
+  url = "http://carina-eth-rpc.mybc.fun";
+  privateKey = "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769";
 
-  const chainId = await web3.eth.getChainId();
-  const gasPrice = await web3.eth.getGasPrice();
-  const gas = 5000000;
-  const APPROVE_AMOUNT = web3.utils.toWei("1000000000000000000000000000000000000000000");
-  const to = "0x1111102Dd32160B064F2A512CDEf74bFdB6a9F96";
+  url = "http://127.0.0.1:8545";
+  privateKey = "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769";
 
-  let uniswap = { deployPrivateKey: hexPrivateKey };
-
-  // calc code hash
-  {
-    let data = UniswapV2Pair.bytecode;
-    if (!data.startsWith("0x")) data = "0x" + data;
-    const hash = web3.utils.keccak256(data);
-    console.info("INIT_CODE_HASH:", hash);
-    if (hash != "0xd2c96a9e01a194a1b1ea751757305327f2b69850cd83b135d7868817bb70590c") {
-      console.warn("计算出来的init code hash为 " + hash + " ，与系统默认的不一致，请确保你已经更新合约v2-periphery/contracts/libraries/UniswapV2Library.sol里面的init code hash并重新编译过合约了。");
-    }
-  }
-
-  async function sendTransaction(data, to, value) {
-    let nonce = await web3.eth.getTransactionCount(from);
-    data = data.startsWith("0x") ? data : "0x" + data;
-    const message = { from, gas, gasPrice, data, nonce, chainId };
-    if (to) {
-      message.to = to;
-    }
-    if (value) {
-      message.value = value;
-    }
-    const transaction = await account.signTransaction(message);
-    return web3.eth.sendSignedTransaction(transaction.rawTransaction);
-  }
-
-  async function deploy(contract, bytecode, args) {
-    let data = contract.deploy({ data: bytecode, arguments: args || [] }).encodeABI();
-    let receipt = await sendTransaction(data);
-    contract.options.address = receipt.contractAddress;
-    contract.address = receipt.contractAddress;
-  }
-
-  async function send(contract, method, args, value) {
-    const data = contract.methods[method].apply(contract.methods, args || []).encodeABI();
-    await sendTransaction(data, contract.options.address, value);
-  }
-
-  async function call(contract, method, from, inputArr) {
-    if (!Array.isArray(inputArr)) {
-      inputArr = [];
-    }
-    let func = contract.methods[method].apply(contract.methods, inputArr);
-    let options = from ? { from } : {};
-    options.gas = 5000000;
-    options.gasPrice = 1000000000;
-    return await func.call(options);
-  }
-
-  // deploy WETH contract
-  let weth = new web3.eth.Contract(WETH9.abi);
-  await deploy(weth, WETH9.bytecode, []);
-  console.info("WETH:", weth.address);
-  uniswap.weth = weth.address;
-
-  // deploy UniswapV2Factory contract
-  let factory = new web3.eth.Contract(UniswapV2Factory.abi);
-  await deploy(factory, UniswapV2Factory.bytecode, [from]);
-  console.info("UniswapV2Factory:", factory.address);
-  uniswap.factory = factory.address;
-
-  // deploy UniswapV2Router01 contract
-  let router01 = new web3.eth.Contract(UniswapV2Router01.abi);
-  await deploy(router01, UniswapV2Router01.bytecode, [factory.address, weth.address]);
-  console.info("UniswapV2Router01:", router01.address);
-
-  // deploy UniswapV2Router02 contract
-  let router02 = new web3.eth.Contract(UniswapV2Router02.abi);
-  await deploy(router02, UniswapV2Router02.bytecode, [factory.address, weth.address]);
-  console.info("UniswapV2Router02:", router02.address);
-  uniswap.router02 = router02.address;
-
-  // deploy Multicall contract
-  let multicall = new web3.eth.Contract(Multicall.abi);
-  await deploy(multicall, Multicall.bytecode, []);
-  console.info("Multicall:", multicall.address);
-
-  // deploy Matic Token contract
-  let matic = new web3.eth.Contract(MyToken.abi);
-  await deploy(matic, MyToken.bytecode, ["Matic Token", "MATIC", 18, web3.utils.toWei("100000000")]);
-  console.info("MyToken MATIC:", matic.address);
-  uniswap.matic = matic.address;
-
-  // deploy USDT Token contract
-  let usdt = new web3.eth.Contract(MyToken.abi);
-  await deploy(usdt, MyToken.bytecode, ["Tether USD", "USDT", 18, web3.utils.toWei("100000000")]);
-  console.info("MyToken USDT:", usdt.address);
-  uniswap.usdt = usdt.address;
-
-  console.log("deposit ETH to WETH contract");
-  await send(weth, "deposit", [], web3.utils.toWei("5"));
-
-  console.log("weth approve router02");
-  await send(weth, "approve", [router02.address, APPROVE_AMOUNT]);
-
-  console.log("matic approve router02");
-  await send(matic, "approve", [router02.address, APPROVE_AMOUNT]);
-
-  console.log("usdt approve router02");
-  await send(usdt, "approve", [router02.address, APPROVE_AMOUNT]);
-
-  console.log("addLiquidity weth <--> matic (1:1333) ");
-  await send(router02, "addLiquidity", [weth.address, matic.address, web3.utils.toWei("1"), web3.utils.toWei("1333"), 1, 1, from, parseInt(new Date().getTime() / 1000) + 600]); // 10分钟内要成交, neloMata用得是ms, ethereum 用得是s
-
-  console.log("addLiquidity weth <--> usdt (1:4000)");
-  await send(router02, "addLiquidity", [weth.address, usdt.address, web3.utils.toWei("1"), web3.utils.toWei("4000"), 1, 1, from, parseInt(new Date().getTime() / 1000) + 600]);
-
-  console.log(`before swapExactTokensForTokens ${from} have weth:`, web3.utils.fromWei(await call(weth, "balanceOf", from, [from])));
-  console.log(`before swapExactTokensForTokens ${to} have matic:`, web3.utils.fromWei(await call(weth, "balanceOf", to, [to])));
-
-  console.log("swapExactTokensForTokens");
-  await send(router02, "swapExactTokensForTokens", [web3.utils.toWei("0.01"), "1", [weth.address, matic.address], to, parseInt(new Date().getTime() / 1000) + 600]);
-
-  console.log(`after swapExactTokensForTokens ${from} have weth:`, web3.utils.fromWei(await call(weth, "balanceOf", from, [from])));
-  console.log(`after swapExactTokensForTokens ${to} have matic:`, web3.utils.fromWei(await call(matic, "balanceOf", to, [to])));
-
-  await fs.outputJSON("./uniswap.json", uniswap, { spaces: 2 });
+  const uniswap = new Uniswap({ url, privateKey, weth: "0xfF45Ac560476aEd6F7794f0e835b61d95e5d1C21" });
+  await uniswap.deployContract();
+  await uniswap.depositMaxWeth(10);
+  await uniswap.addLiquidity(uniswap.weth, uniswap.matic, "1", "1333");
+  await uniswap.addLiquidity(uniswap.weth, uniswap.usdt, "1", "4000");
+  await uniswap.addLiquidity(uniswap.matic, uniswap.usdt, "1333", "4000");
+  await uniswap.swapExactTokensForTokens(uniswap.matic, uniswap.weth, "1333");
 })();
