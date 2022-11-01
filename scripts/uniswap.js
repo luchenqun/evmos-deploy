@@ -142,51 +142,51 @@ export default class Uniswap {
     if (!(await deployed(this.weth))) {
       delete this.weth._address;
       await this.deploy(this.weth, WETH9.bytecode, []);
-      console.log("weth address: ", ret.weth);
     }
     ret.weth = this.weth._address;
+    console.log("weth address: ", ret.weth);
 
     if (!(await deployed(this.factory))) {
       delete this.factory._address;
       await this.deploy(this.factory, UniswapV2Factory.bytecode, [this.from]);
-      console.log("factory address: ", ret.factory);
     }
     ret.factory = this.factory._address;
+    console.log("factory address: ", ret.factory);
 
     if (!(await deployed(this.router01))) {
       delete this.router01._address;
       await this.deploy(this.router01, UniswapV2Router01.bytecode, [this.factory.address, this.weth.address]);
-      console.log("router01 address: ", ret.router01);
     }
     ret.router01 = this.router01._address;
+    console.log("router01 address: ", ret.router01);
 
     if (!(await deployed(this.router02))) {
       delete this.router02._address;
       await this.deploy(this.router02, UniswapV2Router02.bytecode, [this.factory.address, this.weth.address]);
-      console.log("router02 address: ", ret.router02);
     }
     ret.router02 = this.router02._address;
+    console.log("router02 address: ", ret.router02);
 
     if (!(await deployed(this.multicall))) {
       delete this.multicall._address;
       await this.deploy(this.multicall, Multicall.bytecode, []);
-      console.log("multicall address: ", ret.multicall);
     }
     ret.multicall = this.multicall._address;
+    console.log("multicall address: ", ret.multicall);
 
     if (!(await deployed(this.matic))) {
       delete this.matic._address;
       await this.deploy(this.matic, MyToken.bytecode, ["Matic Token", "MATIC", 18, this.web3.utils.toWei("10000000000")]);
-      console.log("matic address: ", ret.matic);
     }
     ret.matic = this.matic._address;
+    console.log("matic address: ", ret.matic);
 
     if (!(await deployed(this.usdt))) {
       delete this.usdt._address;
       await this.deploy(this.usdt, MyToken.bytecode, ["Tether USD", "USDT", 18, this.web3.utils.toWei("10000000000")]);
-      console.log("usdt address: ", ret.usdt);
     }
     ret.usdt = this.usdt._address;
+    console.log("usdt address: ", ret.usdt);
 
     console.log("=================================UNISWAP DEPLOY INFO=================================");
     console.log(JSON.stringify(ret, undefined, 2));
@@ -208,9 +208,10 @@ export default class Uniswap {
   }
   async depositTenWeth(minAmount) {
     const { from, weth, web3, call } = this;
+    const minAmountNum = parseFloat(web3.utils.fromWei(minAmount));
     let curAmout = parseFloat(web3.utils.fromWei(await call(weth, "balanceOf", from, [from])));
-    let amount = parseFloat(minAmount) > 10 ? parseFloat(minAmount) : 10;
-    if (parseFloat(minAmount) > curAmout) {
+    let amount = minAmountNum > 10 ? minAmountNum : 10;
+    if (minAmountNum > curAmout) {
       await this.send(weth, "deposit", [], web3.utils.toWei(String(amount - curAmout)));
     }
   }

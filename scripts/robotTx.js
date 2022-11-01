@@ -271,7 +271,7 @@ const accountInfo = async (node) => {
     if (loading) return;
     loading = true;
 
-    const [fromKey, toKey] = getRandomArrayElements(privateKeys, 2);
+    const [fromKey, toKey] = getRandomArrayElements(config.privateKeys, 2);
     const toAccount = await accountInfo(toKey);
     const randWei = toWei(String((Math.random() / 1000).toFixed(10)));
     const denom = getRandomArrayElements(["aevmos", stakingDenom], 1);
