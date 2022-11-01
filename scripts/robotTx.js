@@ -41,7 +41,7 @@ const getRandomArrayElements = (arr, count) => {
 const accountInfo = async (node) => {
   let wallet;
   if (node.length >= 64) {
-    wallet = new Wallet.fromMnemonic(node);
+    wallet = new Wallet(node);
   } else {
     const keySeed = await fs.readJSON(`../nodes/${node}/evmosd/key_seed.json`);
     wallet = Wallet.fromMnemonic(keySeed.secret);
@@ -69,7 +69,7 @@ const accountInfo = async (node) => {
 
     if (!config.chain) config.chain = {};
     if (!config.chain.api) config.chain.api = "http://127.0.0.1:1317";
-    if (!config.chain.rpc) config.chain.rpc = "http://127.0.0.1:1317";
+    if (!config.chain.rpc) config.chain.rpc = "http://127.0.0.1:26657";
     if (!config.chain.ethRpc) config.chain.ethRpc = "http://127.0.0.1:8545";
 
     if (!Array.isArray(config.validatorPrivateKeys) || config.validatorPrivateKeys.length == 0) {
@@ -116,15 +116,12 @@ const accountInfo = async (node) => {
   {
     uniswap = new Uniswap(Object.assign({ url: config.chain.ethRpc }, config.uniswap));
     const contractCfg = await uniswap.deployCheckContract();
-    await uniswap.addLiquidity(uniswap.weth, uniswap.matic, "1000", "1333000");
-    await uniswap.addLiquidity(uniswap.weth, uniswap.usdt, "1000", "4000000");
-    await uniswap.addLiquidity(uniswap.matic, uniswap.usdt, "1333000", "4000000");
+    await uniswap.addLiquidity(uniswap.weth, uniswap.matic, toWei("1000"), toWei("1333000"));
+    await uniswap.addLiquidity(uniswap.weth, uniswap.usdt, toWei("1000"), toWei("4000000"));
+    await uniswap.addLiquidity(uniswap.matic, uniswap.usdt, toWei("1333000"), toWei("4000000"));
     Object.assign(config.uniswap, contractCfg);
-    console.log(config);
     await fs.outputJSON("./robotTx.json", config, { spaces: 2 });
   }
-
-  return;
 
   const api = new API({ rpcHttp: config.chain.rpc, apiHttp: config.chain.api });
   const genesis = await api.genesis();
@@ -255,7 +252,7 @@ const accountInfo = async (node) => {
     for (const denom of denoms) {
       const amount = await bankBalanceReadable(evmosAddress, denom);
       if (amount < 10) {
-        await tranfer(config.uniswap.privateKey, evmosAddress, denom, 100);
+        await tranfer(config.uniswap.privateKey, evmosAddress, denom, toWei(100));
       }
     }
 
@@ -264,7 +261,7 @@ const accountInfo = async (node) => {
     for (const token of tokens) {
       const amount = await uniswap.balanceOfReadable(token, address);
       if (amount < 10) {
-        await uniswap.transfer(token, address, 100);
+        await uniswap.transfer(token, address, toWei(100));
       }
     }
   }
@@ -285,10 +282,10 @@ const accountInfo = async (node) => {
       const randNumber = parseInt(Math.random() * 3) + 1;
       if (randNumber == 1) {
         const [token1, token2] = getRandomArrayElements(tokens, 2);
-        uniswap.swapExactTokensForTokens(token1, token2, randWei);
+        await uniswap.swapExactTokensForTokens(token1, token2, randWei);
       } else if (randNumber == 2) {
         const token = getRandomArrayElements(tokens, 1);
-        uniswap.transfer(token, toAccount.address, randWei);
+        await uniswap.transfer(token, toAccount.address, randWei);
       } else {
         await tranfer(fromKey, toAccount.evmosAddress, denom, randWei);
       }
@@ -320,7 +317,7 @@ const accountInfo = async (node) => {
     try {
       for (const privateKey of config.privateKeys) {
         const { evmosAddress } = await accountInfo(privateKey);
-        const data = api.delegations(evmosAddress);
+        const data = await api.delegations(evmosAddress);
         for (const delegation of data.delegation_responses) {
           await undelegate(privateKey, delegation.delegation.validator_address, delegation.balance.amount);
         }
@@ -336,7 +333,7 @@ const accountInfo = async (node) => {
       const privateKey = getRandomArrayElements(config.validatorPrivateKeys, 1);
       const str = new Date().getTime();
       await textProposal(privateKey, "Test Proposal" + str, "I Love This World" + str, "10000000");
-      const data = api.proposals(0, 1);
+      const data = await api.proposals(0, 1);
       const proposalId = data.pagination.total;
       for (const privateKey of config.validatorPrivateKeys) {
         const option = getRandomArrayElements(["1", "2", "3", "4"], 1);

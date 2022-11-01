@@ -215,7 +215,7 @@ export default class Uniswap {
     }
   }
   async transfer(token, to, amount) {
-    await this.send(token, "transfer", [to, this.web3.utils.toWei(String(amount))]);
+    await this.send(token, "transfer", [to, amount]);
   }
   async balanceOf(token, owner) {
     return await this.call(token, "balanceOf", this.from, [owner]);
@@ -224,7 +224,6 @@ export default class Uniswap {
     return parseFloat(this.web3.utils.fromWei(await this.call(token, "balanceOf", this.from, [owner])));
   }
   async addLiquidity(token1, token2, amount1, amount2) {
-    const { web3 } = this;
     const pairAddress = await this.call(this.factory, "getPair", this.from, [token1.address, token2.address]);
     if (pairAddress == "0x0000000000000000000000000000000000000000") {
       if (token1.address == this.weth.address) {
@@ -234,19 +233,19 @@ export default class Uniswap {
         await this.depositTenWeth(amount2);
       }
       await this.approveToRouter();
-      const params = [token1.address, token2.address, web3.utils.toWei(amount1), web3.utils.toWei(amount2), 1, 1, this.from, parseInt(new Date().getTime() / 1000) + 600];
+      const params = [token1.address, token2.address, amount1, amount2, 1, 1, this.from, parseInt(new Date().getTime() / 1000) + 600];
       await this.send(this.router02, "addLiquidity", params);
     } else {
       console.log(`pair ${token1.address} - ${token2.address} is existed!`);
     }
   }
   async swapExactTokensForTokens(token1, token2, amountIn) {
-    const { from, web3, router02 } = this;
+    const { from, router02 } = this;
     if (token1.address == this.weth.address) {
       await this.depositTenWeth(amountIn);
     }
     await this.approveToRouter();
-    const params = [web3.utils.toWei(amountIn), "1", [token1.address, token2.address], from, parseInt(new Date().getTime() / 1000) + 600];
+    const params = [amountIn, "1", [token1.address, token2.address], from, parseInt(new Date().getTime() / 1000) + 600];
     await this.send(router02, "swapExactTokensForTokens", params);
   }
 }
