@@ -9,6 +9,11 @@ import Web3 from "web3";
 import API from "../api/index.js";
 import Uniswap from "./uniswap.js";
 import gov from "../msg/gov.js";
+import slashing from "../msg/slashing.js";
+
+const sleep = (time) => {
+  return new Promise((resolve) => setTimeout(resolve, time));
+};
 
 const bech32Encode = (prefix, address) => {
   return bech32.encode(prefix, Uint8Array.from(Buffer.from(address.replace("0x", ""), "hex")));
@@ -233,13 +238,22 @@ const accountInfo = async (node) => {
     return api.txCommit(data);
   };
 
-  const msgVote = async (privateKey, proposalId, option) => {
+  const vote = async (privateKey, proposalId, option) => {
     const memo = "msgVote by robot";
     const params = {
       proposalId,
       option,
     };
     const data = await txHexBytes(privateKey, chain, fee, memo, createTxMsgVote, params);
+    return api.txCommit(data);
+  };
+
+  const unjail = async (privateKey, address) => {
+    const memo = "unjail test by robot";
+    const params = {
+      address,
+    };
+    const data = await txHexBytes(privateKey, chain, fee, memo, slashing.createTxMsgUnjail, params);
     return api.txCommit(data);
   };
 
@@ -296,7 +310,9 @@ const accountInfo = async (node) => {
   }, 1000); // 1s
 
   setInterval(async () => {
-    if (loading) return;
+    while (loading) {
+      await sleep(100);
+    }
     loading = true;
     try {
       const randWei = toWei(String((Math.random() / 10).toFixed(10)));
@@ -312,7 +328,9 @@ const accountInfo = async (node) => {
   }, 1000 * 60 * 10); // 10 min
 
   setInterval(async () => {
-    if (loading) return;
+    while (loading) {
+      await sleep(100);
+    }
     loading = true;
     try {
       for (const privateKey of config.privateKeys) {
@@ -327,17 +345,34 @@ const accountInfo = async (node) => {
   }, 1000 * 60 * 60); // 1h
 
   setInterval(async () => {
-    if (loading) return;
+    while (loading) {
+      await sleep(100);
+    }
+    loading = true;
+    try {
+      for (const privateKey of config.validatorPrivateKeys) {
+        const { validatorAddress } = await accountInfo(privateKey);
+        await unjail(privateKey, validatorAddress);
+      }
+    } catch (error) {}
+    loading = false;
+  }, 1000 * 60 * 60); // 1h
+
+  setInterval(async () => {
+    while (loading) {
+      await sleep(100);
+    }
     loading = true;
     try {
       const privateKey = getRandomArrayElements(config.validatorPrivateKeys, 1);
-      const str = new Date().getTime();
-      await textProposal(privateKey, "Test Proposal" + str, "I Love This World" + str, "10000000");
       const data = await api.proposals(0, 1);
-      const proposalId = data.pagination.total;
+      const total = parseInt(data.pagination.total);
+      const proposalId = String(total + 1);
+      await textProposal(privateKey, "Proposal " + proposalId, "I Love This World", "10000000");
+
       for (const privateKey of config.validatorPrivateKeys) {
         const option = getRandomArrayElements(["1", "2", "3", "4"], 1);
-        await msgVote(privateKey, proposalId, option);
+        await vote(privateKey, proposalId, option);
       }
     } catch (error) {}
     loading = false;
