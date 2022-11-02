@@ -66,6 +66,7 @@ const accountInfo = async (node) => {
   let config = {};
   let uniswap = undefined;
   let validatorPrivateKeys = [];
+  let privateKeys = [];
   // init config
   {
     try {
@@ -100,7 +101,7 @@ const accountInfo = async (node) => {
     if (!config.uniswap.privateKey) config.uniswap.privateKey = validatorPrivateKeys[0];
 
     if (!Array.isArray(config.privateKeys) || config.privateKeys.length == 0) {
-      config.privateKeys = [
+      privateKeys = [
         "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769", // 0x00000be6819f41400225702d32d3dd23663dd690
         "0x95e06fa1a8411d7f6693f486f0f450b122c58feadbcee43fbd02e13da59395d5", // 0x1111102dd32160b064f2a512cdef74bfdb6a9f96
         "0x322673135bc119c82300450aed4f29373c06926f02a03f15d31cac3db1ee7716", // 0x2222207b1f7b8d37566d9a2778732451dbfbc5d0
@@ -118,6 +119,8 @@ const accountInfo = async (node) => {
         "0x03012804714caf41d1fa61c3677699b3dfa08adb9d89075cecd2eb4649669c19", // 0xeeeee5d1d01f99d760f9da356e683cc1f29f2f81
         "0xb5383875512d64281acfb81cc37a95b0ddc00b235a3aa60cf8b4be25a3ba8fe5", // 0xfffff01adb78f8951aa28cf06ceb9b8898a29f50
       ];
+    } else {
+      privateKeys = config.privateKeys;
     }
   }
 
@@ -265,7 +268,7 @@ const accountInfo = async (node) => {
 
   /*--------------------------- for robot tx ---------------------------*/
   // Start up fund
-  for (const privateKey of config.privateKeys) {
+  for (const privateKey of privateKeys) {
     const { address, evmosAddress } = await accountInfo(privateKey);
 
     // transfer native token
@@ -287,21 +290,12 @@ const accountInfo = async (node) => {
     }
   }
 
-  for (const privateKey of validatorPrivateKeys) {
-    const { evmosAddress, validatorAddress } = await accountInfo(privateKey);
-    const amount = await bankBalanceReadable(evmosAddress, stakingDenom);
-    console.log(evmosAddress, amount);
-    if (amount > 100) {
-      await delegate(privateKey, validatorAddress, toWei(amount * 0.88));
-    }
-  }
-
   let loading = false;
   setInterval(async () => {
     if (loading) return;
     loading = true;
 
-    const [fromKey, toKey] = getRandomArrayElements(config.privateKeys, 2);
+    const [fromKey, toKey] = getRandomArrayElements(privateKeys, 2);
     const toAccount = await accountInfo(toKey);
     const randWei = toWei(String(Math.random().toFixed(2)));
     const denom = getRandomArrayElements(["aevmos", stakingDenom], 1);
@@ -332,10 +326,19 @@ const accountInfo = async (node) => {
     loading = true;
     try {
       const randWei = toWei(String((Math.random() / 10).toFixed(10)));
-      for (const privateKey of config.privateKeys) {
+      for (const privateKey of privateKeys) {
         for (const validatorPrivateKey of validatorPrivateKeys) {
           const { validatorAddress } = await accountInfo(validatorPrivateKey);
           await delegate(privateKey, validatorAddress, randWei);
+          await withdrawDelegatorReward(privateKey, validatorAddress);
+        }
+      }
+
+      for (const privateKey of validatorPrivateKeys) {
+        const { evmosAddress, validatorAddress } = await accountInfo(privateKey);
+        const amount = await bankBalanceReadable(evmosAddress, stakingDenom);
+        if (amount > 100) {
+          await delegate(privateKey, validatorAddress, toWei(amount - 100));
           await withdrawDelegatorReward(privateKey, validatorAddress);
         }
       }
@@ -349,7 +352,7 @@ const accountInfo = async (node) => {
     }
     loading = true;
     try {
-      for (const privateKey of config.privateKeys) {
+      for (const privateKey of privateKeys.concat(validatorPrivateKeys)) {
         const { evmosAddress } = await accountInfo(privateKey);
         const data = await api.delegations(evmosAddress);
         for (const delegation of data.delegation_responses) {
@@ -385,10 +388,14 @@ const accountInfo = async (node) => {
       const total = parseInt(data.pagination.total);
       const proposalId = String(total + 1);
       await textProposal(privateKey, "Proposal " + proposalId, "I Love This World", "10000000");
-
-      for (const privateKey of validatorPrivateKeys) {
-        const option = getRandomArrayElements(["1", "2", "3", "4"], 1);
-        await vote(privateKey, proposalId, option);
+      const option = getRandomArrayElements(["1", "2", "3"], 1);
+      for (const privateKey of validatorPrivateKeys.concat(privateKeys)) {
+        if (Math.random() >= 0.7) {
+          const curOption = getRandomArrayElements(["1", "2", "3"], 1);
+          await vote(privateKey, proposalId, curOption);
+        } else {
+          await vote(privateKey, proposalId, option);
+        }
       }
     } catch (error) {}
     loading = false;
