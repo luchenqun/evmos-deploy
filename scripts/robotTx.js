@@ -11,6 +11,8 @@ import Uniswap from "./uniswap.js";
 import gov from "../msg/gov.js";
 import slashing from "../msg/slashing.js";
 
+const randomInt = (min, max) => ((Math.random() * (max - min + 1)) | 0) + min;
+
 const sleep = (time) => {
   return new Promise((resolve) => setTimeout(resolve, time));
 };
@@ -63,7 +65,7 @@ const accountInfo = async (node) => {
 (async () => {
   let config = {};
   let uniswap = undefined;
-
+  let validatorPrivateKeys = [];
   // init config
   {
     try {
@@ -78,22 +80,24 @@ const accountInfo = async (node) => {
     if (!config.chain.ethRpc) config.chain.ethRpc = "http://127.0.0.1:8545";
 
     if (!Array.isArray(config.validatorPrivateKeys) || config.validatorPrivateKeys.length == 0) {
-      config.validatorPrivateKeys = [];
       const files = await fs.readdir("../nodes");
       for (const node of files) {
         if (node.startsWith("node")) {
           const { privateKey } = await accountInfo(node);
-          config.validatorPrivateKeys.push(privateKey);
+          validatorPrivateKeys.push(privateKey);
         }
       }
+    } else {
+      validatorPrivateKeys = config.validatorAddress;
     }
-    if (!Array.isArray(config.validatorPrivateKeys) || config.validatorPrivateKeys.length == 0) {
+
+    if (!Array.isArray(validatorPrivateKeys) || validatorPrivateKeys.length == 0) {
       console.log("Error: No Validator PrivateKeys");
       return;
     }
 
     if (!config.uniswap) config.uniswap = {};
-    if (!config.uniswap.privateKey) config.uniswap.privateKey = config.validatorPrivateKeys[0];
+    if (!config.uniswap.privateKey) config.uniswap.privateKey = validatorPrivateKeys[0];
 
     if (!Array.isArray(config.privateKeys) || config.privateKeys.length == 0) {
       config.privateKeys = [
@@ -121,12 +125,14 @@ const accountInfo = async (node) => {
   {
     uniswap = new Uniswap(Object.assign({ url: config.chain.ethRpc }, config.uniswap));
     const contractCfg = await uniswap.deployCheckContract();
-    await uniswap.addLiquidity(uniswap.weth, uniswap.matic, toWei("1000"), toWei("1333000"));
-    await uniswap.addLiquidity(uniswap.weth, uniswap.usdt, toWei("1000"), toWei("4000000"));
-    await uniswap.addLiquidity(uniswap.matic, uniswap.usdt, toWei("1333000"), toWei("4000000"));
+    await uniswap.addLiquidity(uniswap.weth, uniswap.matic, toWei("10"), toWei("13330"));
+    await uniswap.addLiquidity(uniswap.weth, uniswap.usdt, toWei("10"), toWei("40000"));
+    await uniswap.addLiquidity(uniswap.matic, uniswap.usdt, toWei("133300"), toWei("400000"));
     Object.assign(config.uniswap, contractCfg);
-    await fs.outputJSON("./robotTx.json", config, { spaces: 2 });
+    console.log(config.uniswap);
   }
+
+  await fs.outputJSON("./robotTx.json", config, { spaces: 2 });
 
   const api = new API({ rpcHttp: config.chain.rpc, apiHttp: config.chain.api });
   const genesis = await api.genesis();
@@ -257,6 +263,7 @@ const accountInfo = async (node) => {
     return api.txCommit(data);
   };
 
+  /*--------------------------- for robot tx ---------------------------*/
   // Start up fund
   for (const privateKey of config.privateKeys) {
     const { address, evmosAddress } = await accountInfo(privateKey);
@@ -280,6 +287,15 @@ const accountInfo = async (node) => {
     }
   }
 
+  for (const privateKey of validatorPrivateKeys) {
+    const { evmosAddress, validatorAddress } = await accountInfo(privateKey);
+    const amount = await bankBalanceReadable(evmosAddress, stakingDenom);
+    console.log(evmosAddress, amount);
+    if (amount > 100) {
+      await delegate(privateKey, validatorAddress, toWei(amount * 0.88));
+    }
+  }
+
   let loading = false;
   setInterval(async () => {
     if (loading) return;
@@ -287,10 +303,10 @@ const accountInfo = async (node) => {
 
     const [fromKey, toKey] = getRandomArrayElements(config.privateKeys, 2);
     const toAccount = await accountInfo(toKey);
-    const randWei = toWei(String((Math.random() / 1000).toFixed(10)));
+    const randWei = toWei(String(Math.random().toFixed(2)));
     const denom = getRandomArrayElements(["aevmos", stakingDenom], 1);
     const uniswap = new Uniswap(Object.assign(JSON.parse(JSON.stringify(config.uniswap)), { privateKey: fromKey }));
-    const tokens = [uniswap.weth, uniswap.matic, uniswap.usdt];
+    const tokens = [uniswap.matic, uniswap.usdt];
 
     try {
       const randNumber = parseInt(Math.random() * 3) + 1;
@@ -317,7 +333,7 @@ const accountInfo = async (node) => {
     try {
       const randWei = toWei(String((Math.random() / 10).toFixed(10)));
       for (const privateKey of config.privateKeys) {
-        for (const validatorPrivateKey of config.validatorPrivateKeys) {
+        for (const validatorPrivateKey of validatorPrivateKeys) {
           const { validatorAddress } = await accountInfo(validatorPrivateKey);
           await delegate(privateKey, validatorAddress, randWei);
           await withdrawDelegatorReward(privateKey, validatorAddress);
@@ -350,7 +366,7 @@ const accountInfo = async (node) => {
     }
     loading = true;
     try {
-      for (const privateKey of config.validatorPrivateKeys) {
+      for (const privateKey of validatorPrivateKeys) {
         const { validatorAddress } = await accountInfo(privateKey);
         await unjail(privateKey, validatorAddress);
       }
@@ -364,13 +380,13 @@ const accountInfo = async (node) => {
     }
     loading = true;
     try {
-      const privateKey = getRandomArrayElements(config.validatorPrivateKeys, 1);
+      const privateKey = getRandomArrayElements(validatorPrivateKeys, 1);
       const data = await api.proposals(0, 1);
       const total = parseInt(data.pagination.total);
       const proposalId = String(total + 1);
       await textProposal(privateKey, "Proposal " + proposalId, "I Love This World", "10000000");
 
-      for (const privateKey of config.validatorPrivateKeys) {
+      for (const privateKey of validatorPrivateKeys) {
         const option = getRandomArrayElements(["1", "2", "3", "4"], 1);
         await vote(privateKey, proposalId, option);
       }
