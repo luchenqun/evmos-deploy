@@ -66,7 +66,8 @@ const accountInfo = async (node) => {
   let config = {};
   let uniswap = undefined;
   let validatorPrivateKeys = [];
-  let privateKeys = [];
+  let commonPrivateKeys = [];
+  let allPrivateKeys = [];
   // init config
   {
     try {
@@ -101,7 +102,7 @@ const accountInfo = async (node) => {
     if (!config.uniswap.privateKey) config.uniswap.privateKey = validatorPrivateKeys[0];
 
     if (!Array.isArray(config.privateKeys) || config.privateKeys.length == 0) {
-      privateKeys = [
+      commonPrivateKeys = [
         "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769", // 0x00000be6819f41400225702d32d3dd23663dd690
         "0x95e06fa1a8411d7f6693f486f0f450b122c58feadbcee43fbd02e13da59395d5", // 0x1111102dd32160b064f2a512cdef74bfdb6a9f96
         "0x322673135bc119c82300450aed4f29373c06926f02a03f15d31cac3db1ee7716", // 0x2222207b1f7b8d37566d9a2778732451dbfbc5d0
@@ -120,8 +121,10 @@ const accountInfo = async (node) => {
         "0xb5383875512d64281acfb81cc37a95b0ddc00b235a3aa60cf8b4be25a3ba8fe5", // 0xfffff01adb78f8951aa28cf06ceb9b8898a29f50
       ];
     } else {
-      privateKeys = config.privateKeys;
+      commonPrivateKeys = config.privateKeys;
     }
+
+    allPrivateKeys = validatorPrivateKeys.concat(commonPrivateKeys);
   }
 
   // init uniswap
@@ -268,7 +271,7 @@ const accountInfo = async (node) => {
 
   /*--------------------------- for robot tx ---------------------------*/
   // Start up fund
-  for (const privateKey of privateKeys) {
+  for (const privateKey of commonPrivateKeys) {
     const { address, evmosAddress } = await accountInfo(privateKey);
 
     // transfer native token
@@ -295,7 +298,7 @@ const accountInfo = async (node) => {
     if (loading) return;
     loading = true;
 
-    const [fromKey, toKey] = getRandomArrayElements(privateKeys, 2);
+    const [fromKey, toKey] = getRandomArrayElements(commonPrivateKeys, 2);
     const toAccount = await accountInfo(toKey);
     const randWei = toWei(String(Math.random().toFixed(2)));
     const denom = getRandomArrayElements(["aevmos", stakingDenom], 1);
@@ -326,7 +329,7 @@ const accountInfo = async (node) => {
     loading = true;
     try {
       const randWei = toWei(String(Math.random().toFixed(2)));
-      for (const privateKey of privateKeys) {
+      for (const privateKey of commonPrivateKeys) {
         const { validatorAddress } = await accountInfo(getRandomArrayElements(validatorPrivateKeys, 1));
         await delegate(privateKey, validatorAddress, randWei);
         for (const validatorPrivateKey of validatorPrivateKeys) {
@@ -353,7 +356,7 @@ const accountInfo = async (node) => {
     }
     loading = true;
     try {
-      for (const privateKey of privateKeys.concat(validatorPrivateKeys)) {
+      for (const privateKey of allPrivateKeys) {
         const { evmosAddress } = await accountInfo(privateKey);
         const data = await api.delegations(evmosAddress);
         for (const delegation of data.delegation_responses) {
@@ -390,7 +393,7 @@ const accountInfo = async (node) => {
       const proposalId = String(total + 1);
       await textProposal(privateKey, "Proposal " + proposalId, "I Love This World", "10000000");
       const option = getRandomArrayElements(["1", "2", "3"], 1);
-      for (const privateKey of validatorPrivateKeys.concat(privateKeys)) {
+      for (const privateKey of allPrivateKeys) {
         if (Math.random() >= 0.7) {
           const curOption = getRandomArrayElements(["1", "2", "3"], 1);
           await vote(privateKey, proposalId, curOption);
