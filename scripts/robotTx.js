@@ -325,11 +325,12 @@ const accountInfo = async (node) => {
     }
     loading = true;
     try {
-      const randWei = toWei(String((Math.random() / 10).toFixed(10)));
+      const randWei = toWei(String(Math.random().toFixed(2)));
       for (const privateKey of privateKeys) {
+        const { validatorAddress } = await accountInfo(getRandomArrayElements(validatorPrivateKeys, 1));
+        await delegate(privateKey, validatorAddress, randWei);
         for (const validatorPrivateKey of validatorPrivateKeys) {
           const { validatorAddress } = await accountInfo(validatorPrivateKey);
-          await delegate(privateKey, validatorAddress, randWei);
           await withdrawDelegatorReward(privateKey, validatorAddress);
         }
       }
@@ -399,5 +400,5 @@ const accountInfo = async (node) => {
       }
     } catch (error) {}
     loading = false;
-  }, 1000 * 60 * 60 * 8); // 8h
+  }, 1000 * 60 * 60); // 1h
 })();
