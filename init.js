@@ -247,6 +247,7 @@ let init = async function () {
       data = data.replace("0.0.0.0:8546", `0.0.0.0:${wsRpcPort + i}`);
       data = data.replace("eth,net,web3", `eth,txpool,personal,net,debug,web3`);
       data = data.replace(`minimum-gas-prices = "0aevmos"`, `minimum-gas-prices = "${config.minimumGasPrices}"`);
+      config.pruning && (data = data.replace(`pruning = "default"`, `pruning = "${config.pruning}"`));
       await fs.writeFile(appConfigPath, data);
 
       const configPath = path.join(nodesDir, `node${i}/evmosd/config/config.toml`);
