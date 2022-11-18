@@ -474,7 +474,7 @@ taskkill /F /PID %PID%`
           : platform == "linux"
           ? `pid=\`netstat -anp | grep :::${gaiaP2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
     kill -15 $pid`
-          : `pid=\`lsof -i localhost:${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
+          : `pid=\`lsof -i :${gaiaP2pPort} | grep localhost | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
     if [ "$pid" != "" ]; then kill -15 $pid; fi`;
       let startPath = path.join(nodesDir, platform == "win32" ? "startGaia.bat" : "startGaia.sh");
       let stopPath = path.join(nodesDir, platform == "win32" ? "stopGaia.bat" : "stopGaia.sh");
