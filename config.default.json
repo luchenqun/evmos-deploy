@@ -15,6 +15,7 @@
   "minimumGasPrices": "0aevmos",
   "govCoin": false,
   "fixedFirstValidator": true,
+  "ibc": false,
   "genesisCfg": [
     "app_state.inflation.params.mint_denom='aevmos'"
   ]

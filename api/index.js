@@ -1,7 +1,6 @@
 import http from "./http.js";
 export default class API {
   constructor({ rpcHttp, rpcWebsocket, apiHttp }) {
-    console.log(rpcHttp, rpcWebsocket, apiHttp);
     this.apiHttp = apiHttp;
     this.rpcHttp = rpcHttp;
     this.rpcWebsocket = rpcWebsocket;

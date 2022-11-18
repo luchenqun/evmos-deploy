@@ -381,7 +381,7 @@ const accountInfo = async (node) => {
     loading = false;
   }, 1000 * 60 * 60); // 1h
 
-  setInterval(async () => {
+  const proposal = async (first) => {
     while (loading) {
       await sleep(100);
     }
@@ -390,6 +390,10 @@ const accountInfo = async (node) => {
       const privateKey = getRandomArrayElements(validatorPrivateKeys, 1);
       const data = await api.proposals(0, 1);
       const total = parseInt(data.pagination.total);
+      if (total > 0 && first) {
+        loading = false;
+        return; // 如果已经有提案了，立即提交的提案就不要执行了
+      }
       const proposalId = String(total + 1);
       await textProposal(privateKey, "Proposal " + proposalId, "I Love This World", "10000000");
       const option = getRandomArrayElements(["1", "2", "3"], 1);
@@ -403,5 +407,8 @@ const accountInfo = async (node) => {
       }
     } catch (error) {}
     loading = false;
-  }, 1000 * 60 * 60); // 1h
+  };
+
+  proposal(true); // 启动立即执行一遍
+  setInterval(proposal, 1000 * 60 * 60 * 8, false);
 })();

@@ -1,8 +1,10 @@
 import { Wallet } from "@ethersproject/wallet";
 import { ethToEvmos } from "@tharsis/address-converter";
 import { exec } from "child_process";
+import download from "download";
 import fs from "fs-extra";
 import path from "path";
+import os from "os";
 import util from "util";
 import _yargs from "yargs";
 import { hideBin } from "yargs/helpers";
@@ -63,10 +65,13 @@ const commonNode = argv.commonNode;
 const validators = argv.validators;
 const nodesCount = validators + commonNode;
 const platform = argv.platform ? argv.platform : process.platform;
+const arch = os.arch();
 const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
 const evmosd = platform == "win32" ? "evmosd.exe" : "evmosd";
+const rly = "rly";
+const gaiad = "gaiad";
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
 const tenderKeys = new TenderKeys();
@@ -75,7 +80,7 @@ const sleep = (time) => {
 };
 
 let init = async function () {
-  console.log("argv:", JSON.stringify(argv), "platform:", platform);
+  console.log("argv:", JSON.stringify(argv), "platform:", platform, "arch:", arch);
   try {
     // 读取配置文件
     let config;
@@ -84,7 +89,44 @@ let init = async function () {
     } catch (error) {
       config = await fs.readJson("./config.default.json");
     }
-    const { govCoin, preMinePerAccount, fixedFirstValidator, preMineAccounts } = config;
+    const { govCoin, preMinePerAccount, fixedFirstValidator, preMineAccounts, ibc } = config;
+
+    if (ibc && platform == "win32") {
+      console.warn("relayer is not support windows system");
+      return;
+    }
+
+    if (ibc && !fs.existsSync(rly)) {
+      try {
+        console.log("begin download relayer.....");
+        const rlyUrl = `https://github.com/cosmos/relayer/releases/download/v2.1.2/Cosmos.Relayer_2.1.2_${platform}_${arch}.tar.gz`;
+        await download(rlyUrl, "./relayer", { extract: true });
+        await fs.copyFile("./relayer/Cosmos Relayer", `./${rly}`);
+      } catch (error) {}
+    }
+
+    if (ibc && !fs.existsSync(rly)) {
+      console.warn("relayer is not exist, please go to https://github.com/cosmos/relayer/releases download and extract rename executable program to rly");
+      return;
+    } else {
+      await fs.chmod(rly, 0o777);
+    }
+
+    if (ibc && !fs.existsSync(gaiad)) {
+      try {
+        console.log("begin download gaiad.....");
+        const gaiadUrl = `https://github.com/cosmos/gaia/releases/download/v7.1.0/gaiad-v7.1.0-${platform}-${arch}`;
+        await download(gaiadUrl, ".", { filename: gaiad });
+      } catch (error) {}
+    }
+
+    if (ibc && !fs.existsSync(gaiad)) {
+      console.warn("gaiad is not exist, please go to https://github.com/cosmos/gaia/releases download and extract rename executable program to gaiad");
+      return;
+    } else {
+      await fs.chmod(gaiad, 0o777);
+    }
+
     const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "bq6XFN3gT1s5TR4uvEZo71VK2XrKdaQ1ecXKXOPEr8q0wRHFwEwP97pmwewLjtHDTYok5rS4T9751MaSIlS6Vg==" } };
     const privValidatorKey = { address: "A8BF37F9C6EAE0E808319460EDD5A3D714613D7A", pub_key: { type: "tendermint/PubKeyEd25519", value: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "jH2WRl02s7AIhqCJqYmnBl+atc7aXZnhb5DQCk3FbR1xov0F/syeuifLgc5iAqjklIJgvI3JNTK36nD69uaN3A==" } };
     const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "0.100000000000000000", max_rate: "1.000000000000000000", max_change_rate: "0.100000000000000000" }, min_self_delegation: "1", delegator_address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh", validator_address: "evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, value: { denom: govCoin ? "agov" : "aevmos", amount: "100000000000000000000" } }], memo: "90d5c044ed4938cfeac4f41635db3b88c894c21f@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" } }, signatures: [govCoin ? "T1TtcdJol2tNFXIjilXZiP3qHWHcUTEURKZ0PMYp7pJr0Y12aJX320EFVenNUbje2Mt/VPoiIu2tQbgx1ZXi4wA=" : "HApoRLTw6JHNj+813tn1aQb3JG5wJWV1MMDbKFPUdxRpp1eEnMI3VcK7qm+bhXT/U8RO738si4ww6x0lnVeCggA="] };
