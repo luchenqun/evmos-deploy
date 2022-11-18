@@ -89,7 +89,7 @@ chains:
         type: cosmos
         value:
             key: testkey
-            chain-id: ${evmosChainId}
+            chain-id: evmos_20191205-1
             rpc-addr: http://localhost:26657
             account-prefix: evmos
             keyring-backend: test
@@ -104,8 +104,8 @@ chains:
         type: cosmos
         value:
             key: testkey
-            chain-id: ${gaiaChainId}
-            rpc-addr: http://localhost:${gaiaRpcPort}
+            chain-id: cosmoshub-test
+            rpc-addr: http://localhost:16657
             account-prefix: cosmos
             keyring-backend: test
             gas-adjustment: 1.5
@@ -118,13 +118,9 @@ chains:
 paths:
     demo:
         src:
-            chain-id: ${evmosChainId}
-            client-id: 07-tendermint-0
-            connection-id: connection-0
+            chain-id: evmos_20191205-1
         dst:
-            chain-id: ${gaiaChainId}
-            client-id: 07-tendermint-0
-            connection-id: connection-0
+            chain-id: cosmoshub-test
         src-channel-filter:
             rule: ""
             channel-list: []
@@ -478,7 +474,7 @@ taskkill /F /PID %PID%`
           : platform == "linux"
           ? `pid=\`netstat -anp | grep :::${gaiaP2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
     kill -15 $pid`
-          : `pid=\`lsof -i :${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
+          : `pid=\`lsof -i localhost:${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
     if [ "$pid" != "" ]; then kill -15 $pid; fi`;
       let startPath = path.join(nodesDir, platform == "win32" ? "startGaia.bat" : "startGaia.sh");
       let stopPath = path.join(nodesDir, platform == "win32" ? "stopGaia.bat" : "stopGaia.sh");
