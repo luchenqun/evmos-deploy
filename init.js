@@ -70,11 +70,65 @@ const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
 const evmosd = platform == "win32" ? "evmosd.exe" : "evmosd";
-const rly = "rly";
 const gaiad = "gaiad";
 const gaiaHome = "./nodes/gaia";
-const gaiaChainId = "ibc-1";
+const gaiaChainId = "cosmoshub-test";
 const gaiaP2pPort = 16656;
+const gaiaRpcPort = 16657;
+const evmosChainId = "evmos_20191205-1";
+const rly = "rly";
+const rlyHome = "./nodes/relayer";
+const rlyCft = `
+global:
+    api-listen-addr: :5183
+    timeout: 10s
+    memo: ""
+    light-cache-size: 20
+chains:
+    ibc-0:
+        type: cosmos
+        value:
+            key: testkey
+            chain-id: ${evmosChainId}
+            rpc-addr: http://localhost:26657
+            account-prefix: evmos
+            keyring-backend: test
+            gas-adjustment: 1.5
+            gas-prices: 1aevmos
+            min-gas-amount: 0
+            debug: true
+            timeout: 10s
+            output-format: json
+            sign-mode: direct
+    ibc-1:
+        type: cosmos
+        value:
+            key: testkey
+            chain-id: ${gaiaChainId}
+            rpc-addr: http://localhost:${gaiaRpcPort}
+            account-prefix: cosmos
+            keyring-backend: test
+            gas-adjustment: 1.5
+            gas-prices: 0uatom
+            min-gas-amount: 0
+            debug: true
+            timeout: 10s
+            output-format: json
+            sign-mode: direct
+paths:
+    demo:
+        src:
+            chain-id: ${evmosChainId}
+            client-id: 07-tendermint-0
+            connection-id: connection-0
+        dst:
+            chain-id: ${gaiaChainId}
+            client-id: 07-tendermint-0
+            connection-id: connection-0
+        src-channel-filter:
+            rule: ""
+            channel-list: []
+`;
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
 const tenderKeys = new TenderKeys();
@@ -164,9 +218,9 @@ let init = async function () {
     if (ibc) {
       await execPromis(`./${gaiad} init gaia --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
       await execPromis(`./${gaiad} keys add validator --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/validator_seed.json 2>&1`, { cwd: curDir });
-      await execPromis(`./${gaiad} keys add user --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/user_seed.json 2>&1`, { cwd: curDir });
+      await execPromis(`./${gaiad} keys add user --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/key_seed.json 2>&1`, { cwd: curDir });
       const validatorAddress = (await fs.readJSON(`${gaiaHome}/validator_seed.json`)).address;
-      const userAddress = (await fs.readJSON(`${gaiaHome}/user_seed.json`)).address;
+      const userAddress = (await fs.readJSON(`${gaiaHome}/key_seed.json`)).address;
       await execPromis(`./${gaiad} add-genesis-account ${validatorAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
       await execPromis(`./${gaiad} add-genesis-account ${userAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
       await execPromis(`./${gaiad} gentx validator 1000000000000000000uatom --keyring-backend=test --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
@@ -178,7 +232,7 @@ let init = async function () {
       data = data.replace("tcp://0.0.0.0:1317", `tcp://0.0.0.0:11317`);
       data = data.replace("swagger = false", `swagger = true`);
       data = data.replaceAll("enabled-unsafe-cors = false", `enabled-unsafe-cors = true`);
-      data = data.replaceAll("enable = false", `enable = true`); // on rosetta enable is false, and we need is false
+      data = data.replaceAll("enable = false", `enable = true`);
       data = data.replace(":8080", `:18080`);
       data = data.replace("0.0.0.0:9090", `0.0.0.0:19090`);
       data = data.replace("0.0.0.0:9091", `0.0.0.0:19091`);
@@ -187,7 +241,7 @@ let init = async function () {
 
       const configPath = `${gaiaHome}/config/config.toml`;
       data = await fs.readFile(configPath, "utf8");
-      data = data.replace("127.0.0.1:26657", `0.0.0.0:16657`);
+      data = data.replace("127.0.0.1:26657", `0.0.0.0:${gaiaRpcPort}`);
       data = data.replaceAll("cors_allowed_origins = []", `cors_allowed_origins = ["*"]`);
       data = data.replaceAll("allow_duplicate_ip = false", `allow_duplicate_ip = true`);
       // data = data.replaceAll("prometheus = false", `prometheus = true`);
@@ -202,8 +256,8 @@ let init = async function () {
     }
 
     {
-      const initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
-      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
+      const initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${evmosChainId} --keyring-backend test`;
+      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${evmosChainId} --keyring-backend test`;
       console.log(`Exec cmd: ${initFiles}`);
       const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
       console.log(`init-files ${stdout}${stderr}\n`);
@@ -235,6 +289,7 @@ let init = async function () {
 
     await fs.copy(evmosd, `./nodes/${evmosd}`);
     await fs.copy(gaiad, `./nodes/${gaiad}`);
+    await fs.copy(rly, `./nodes/${rly}`);
 
     let nodeIds = [];
     for (let i = 0; i < nodesCount; i++) {
@@ -370,6 +425,17 @@ let init = async function () {
       await fs.writeFile(configPath, data);
     }
 
+    if (ibc) {
+      await fs.ensureFile(path.join(rlyHome, "config/config.yaml"));
+      await fs.writeFile(path.join(rlyHome, "config/config.yaml"), rlyCft);
+
+      let keySeed;
+      keySeed = await fs.readJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`));
+      await execPromis(`./${rly} keys restore ibc-0 testkey "${keySeed.secret}" --coin-type 60 --home ${rlyHome}`, { cwd: curDir });
+      keySeed = await fs.readJSON(`${gaiaHome}/key_seed.json`);
+      await execPromis(`./${rly} keys restore ibc-1 testkey "${keySeed.mnemonic}" --home ${rlyHome}`, { cwd: curDir });
+    }
+
     // 生成启动命令脚本
     let vbsStart = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
     let vbsStop = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
@@ -402,7 +468,7 @@ taskkill /F /PID %PID%`
       }
     }
 
-    {
+    if (ibc) {
       let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${gaiad} start --home ./gaia` + (isNohup && platform !== "win32" ? ` >./gaia.log 2>&1 &` : "");
       let stop =
         platform == "win32"
@@ -412,19 +478,46 @@ taskkill /F /PID %PID%`
           : platform == "linux"
           ? `pid=\`netstat -anp | grep :::${gaiaP2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
     kill -15 $pid`
-          : `pid=\`lsof -i :${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
+          : `pid=\`lsof -i :${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
     if [ "$pid" != "" ]; then kill -15 $pid; fi`;
-      let startPath = path.join(nodesDir, platform == "win32" ? "gaiaStart.bat" : "gaiaStart.sh");
-      let stopPath = path.join(nodesDir, platform == "win32" ? "gaiaStop.bat" : "gaiaStop.sh");
+      let startPath = path.join(nodesDir, platform == "win32" ? "startGaia.bat" : "startGaia.sh");
+      let stopPath = path.join(nodesDir, platform == "win32" ? "stopGaia.bat" : "stopGaia.sh");
       await fs.writeFile(startPath, start);
       await fs.writeFile(stopPath, stop);
 
       if (platform == "win32") {
-        vbsStart += `ws.Run ".\\gaiaStart.bat",0\n`;
-        vbsStop += `ws.Run ".\\gaiaStop.bat",0\n`;
+        vbsStart += `ws.Run ".\\startGaia.bat",0\n`;
+        vbsStop += `ws.Run ".\\stopGaia.bat",0\n`;
       } else {
-        vbsStart += `./gaiaStart.sh\n`;
-        vbsStop += `./gaiaStop.sh\n`;
+        vbsStart += `./startGaia.sh\n`;
+        vbsStop += `./stopGaia.sh\n`;
+        await fs.chmod(startPath, 0o777);
+        await fs.chmod(stopPath, 0o777);
+      }
+    }
+    if (ibc) {
+      let start = (platform == "win32" ? "TIMEOUT /T 3 /NOBREAK\nrly tx link demo -d -t 3s --home ./relayer\n" : "#!/bin/bash\nsleep 3\n./rly tx link demo -d -t 3s --home ./relayer\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${rly} start --home ./relayer` + (isNohup && platform !== "win32" ? ` >./relayer.log 2>&1 &` : "");
+      let stop =
+        platform == "win32"
+          ? `@echo off
+for /f "tokens=5" %%i in ('netstat -ano ^| findstr ${rly}') do set PID=%%i
+taskkill /F /PID %PID%`
+          : platform == "linux"
+          ? `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
+    kill -15 $pid`
+          : `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
+    if [ "$pid" != "" ]; then kill -15 $pid; fi`;
+      let startPath = path.join(nodesDir, platform == "win32" ? "startRly.bat" : "startRly.sh");
+      let stopPath = path.join(nodesDir, platform == "win32" ? "stopRly.bat" : "stopRly.sh");
+      await fs.writeFile(startPath, start);
+      await fs.writeFile(stopPath, stop);
+
+      if (platform == "win32") {
+        // vbsStart += `ws.Run ".\\startRly.bat",0\n`;
+        // vbsStop += `ws.Run ".\\stopRly.bat",0\n`;
+      } else {
+        // vbsStart += `./startRly.sh\n`;
+        // vbsStop += `./stopRly.sh\n`;
         await fs.chmod(startPath, 0o777);
         await fs.chmod(stopPath, 0o777);
       }
