@@ -70,13 +70,15 @@ const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
 const evmosd = platform == "win32" ? "evmosd.exe" : "evmosd";
-const gaiad = "gaiad";
+const gaiad = platform == "win32" ? "gaiad.exe" : "gaiad";
+const gaiadCmd = platform == "win32" ? "gaiad.exe" : "./gaiad";
 const gaiaHome = "./nodes/gaia";
 const gaiaChainId = "cosmoshub-test";
 const gaiaP2pPort = 16656;
 const gaiaRpcPort = 16657;
 const evmosChainId = "evmos_20191205-1";
-const rly = "rly";
+const rly = platform == "win32" ? "rly.exe" : "rly";
+const rlyCmd = platform == "win32" ? "rly.exe" : "./rly";
 const rlyHome = "./nodes/relayer";
 const rlyCft = `
 global:
@@ -144,11 +146,6 @@ let init = async function () {
     }
     const { govCoin, preMinePerAccount, fixedFirstValidator, preMineAccounts, ibc } = config;
 
-    if (ibc && platform == "win32") {
-      console.warn("relayer is not support windows system");
-      return;
-    }
-
     if (ibc && !fs.existsSync(rly)) {
       try {
         console.log("begin download relayer.....");
@@ -212,15 +209,15 @@ let init = async function () {
 
     // begin init gaia
     if (ibc) {
-      await execPromis(`./${gaiad} init gaia --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
-      await execPromis(`./${gaiad} keys add validator --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/validator_seed.json 2>&1`, { cwd: curDir });
-      await execPromis(`./${gaiad} keys add user --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/key_seed.json 2>&1`, { cwd: curDir });
+      await execPromis(`${gaiadCmd} init gaia --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
+      await execPromis(`${gaiadCmd} keys add validator --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/validator_seed.json 2>&1`, { cwd: curDir });
+      await execPromis(`${gaiadCmd} keys add user --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/key_seed.json 2>&1`, { cwd: curDir });
       const validatorAddress = (await fs.readJSON(`${gaiaHome}/validator_seed.json`)).address;
       const userAddress = (await fs.readJSON(`${gaiaHome}/key_seed.json`)).address;
-      await execPromis(`./${gaiad} add-genesis-account ${validatorAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
-      await execPromis(`./${gaiad} add-genesis-account ${userAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
-      await execPromis(`./${gaiad} gentx validator 1000000000000000000uatom --keyring-backend=test --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
-      await execPromis(`./${gaiad} collect-gentxs --home ${gaiaHome}`, { cwd: curDir });
+      await execPromis(`${gaiadCmd} add-genesis-account ${validatorAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
+      await execPromis(`${gaiadCmd} add-genesis-account ${userAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
+      await execPromis(`${gaiadCmd} gentx validator 1000000000000000000uatom --keyring-backend=test --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
+      await execPromis(`${gaiadCmd} collect-gentxs --home ${gaiaHome}`, { cwd: curDir });
 
       let data;
       const appConfigPath = `${gaiaHome}/config/app.toml`;
@@ -427,9 +424,9 @@ let init = async function () {
 
       let keySeed;
       keySeed = await fs.readJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`));
-      await execPromis(`./${rly} keys restore ibc-0 testkey "${keySeed.secret}" --coin-type 60 --home ${rlyHome}`, { cwd: curDir });
+      await execPromis(`${rlyCmd} keys restore ibc-0 testkey "${keySeed.secret}" --coin-type 60 --home ${rlyHome}`, { cwd: curDir });
       keySeed = await fs.readJSON(`${gaiaHome}/key_seed.json`);
-      await execPromis(`./${rly} keys restore ibc-1 testkey "${keySeed.mnemonic}" --home ${rlyHome}`, { cwd: curDir });
+      await execPromis(`${rlyCmd} keys restore ibc-1 testkey "${keySeed.mnemonic}" --home ${rlyHome}`, { cwd: curDir });
     }
 
     // 生成启动命令脚本
@@ -465,7 +462,7 @@ taskkill /F /PID %PID%`
     }
 
     if (ibc) {
-      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${gaiad} start --home ./gaia` + (isNohup && platform !== "win32" ? ` >./gaia.log 2>&1 &` : "");
+      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + `${gaiadCmd} start --home ./gaia` + (isNohup && platform !== "win32" ? ` >./gaia.log 2>&1 &` : "");
       let stop =
         platform == "win32"
           ? `@echo off
@@ -492,7 +489,7 @@ taskkill /F /PID %PID%`
       }
     }
     if (ibc) {
-      let start = (platform == "win32" ? "TIMEOUT /T 3 /NOBREAK\nrly tx link demo -d -t 3s --home ./relayer\n" : "#!/bin/bash\nsleep 3\n./rly tx link demo -d -t 3s --home ./relayer\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${rly} start --home ./relayer` + (isNohup && platform !== "win32" ? ` >./relayer.log 2>&1 &` : "");
+      let start = (platform == "win32" ? `TIMEOUT /T 3 /NOBREAK\n${rlyCmd} tx link demo -d -t 3s --home ./relayer\n` : `#!/bin/bash\nsleep 3\n${rlyCmd} tx link demo -d -t 3s --home ./relayer\n`) + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${rly} start --home ./relayer` + (isNohup && platform !== "win32" ? ` >./relayer.log 2>&1 &` : "");
       let stop =
         platform == "win32"
           ? `@echo off
