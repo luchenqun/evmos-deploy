@@ -72,6 +72,9 @@ const nodesDir = path.join(curDir, "nodes");
 const evmosd = platform == "win32" ? "evmosd.exe" : "evmosd";
 const rly = "rly";
 const gaiad = "gaiad";
+const gaiaHome = "./nodes/gaia";
+const gaiaChainId = "ibc-1";
+const gaiaP2pPort = 16656;
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
 const tenderKeys = new TenderKeys();
@@ -156,6 +159,48 @@ let init = async function () {
     await fs.emptyDir(nodesDir);
     await fs.ensureDir(nodesDir);
     console.log("Folder nodes has been cleaned up");
+
+    // begin init gaia
+    if (ibc) {
+      await execPromis(`./${gaiad} init gaia --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
+      await execPromis(`./${gaiad} keys add validator --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/validator_seed.json 2>&1`, { cwd: curDir });
+      await execPromis(`./${gaiad} keys add user --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/user_seed.json 2>&1`, { cwd: curDir });
+      const validatorAddress = (await fs.readJSON(`${gaiaHome}/validator_seed.json`)).address;
+      const userAddress = (await fs.readJSON(`${gaiaHome}/user_seed.json`)).address;
+      await execPromis(`./${gaiad} add-genesis-account ${validatorAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
+      await execPromis(`./${gaiad} add-genesis-account ${userAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
+      await execPromis(`./${gaiad} gentx validator 1000000000000000000uatom --keyring-backend=test --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
+      await execPromis(`./${gaiad} collect-gentxs --home ${gaiaHome}`, { cwd: curDir });
+
+      let data;
+      const appConfigPath = `${gaiaHome}/config/app.toml`;
+      data = await fs.readFile(appConfigPath, "utf8");
+      data = data.replace("tcp://0.0.0.0:1317", `tcp://0.0.0.0:11317`);
+      data = data.replace("swagger = false", `swagger = true`);
+      data = data.replaceAll("enabled-unsafe-cors = false", `enabled-unsafe-cors = true`);
+      data = data.replaceAll("enable = false", `enable = true`); // on rosetta enable is false, and we need is false
+      data = data.replace(":8080", `:18080`);
+      data = data.replace("0.0.0.0:9090", `0.0.0.0:19090`);
+      data = data.replace("0.0.0.0:9091", `0.0.0.0:19091`);
+      config.pruning && (data = data.replace(`pruning = "default"`, `pruning = "${config.pruning}"`));
+      await fs.writeFile(appConfigPath, data);
+
+      const configPath = `${gaiaHome}/config/config.toml`;
+      data = await fs.readFile(configPath, "utf8");
+      data = data.replace("127.0.0.1:26657", `0.0.0.0:16657`);
+      data = data.replaceAll("cors_allowed_origins = []", `cors_allowed_origins = ["*"]`);
+      data = data.replaceAll("allow_duplicate_ip = false", `allow_duplicate_ip = true`);
+      // data = data.replaceAll("prometheus = false", `prometheus = true`);
+      data = data.replace("tcp://0.0.0.0:26656", `tcp://0.0.0.0:${gaiaP2pPort}`);
+      data = data.replace("localhost:6060", `localhost:16060`);
+      await fs.writeFile(configPath, data);
+
+      const genesisPath = `${gaiaHome}/config/genesis.json`;
+      data = await fs.readFile(genesisPath, "utf8");
+      data = data.replaceAll("stake", `uatom`);
+      await fs.writeFile(genesisPath, data);
+    }
+
     {
       const initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
       const initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id evmos_20191205-1 --keyring-backend test`;
@@ -189,6 +234,7 @@ let init = async function () {
     }
 
     await fs.copy(evmosd, `./nodes/${evmosd}`);
+    await fs.copy(gaiad, `./nodes/${gaiad}`);
 
     let nodeIds = [];
     for (let i = 0; i < nodesCount; i++) {
@@ -355,6 +401,35 @@ taskkill /F /PID %PID%`
         await fs.chmod(stopPath, 0o777);
       }
     }
+
+    {
+      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${gaiad} start --home ./gaia` + (isNohup && platform !== "win32" ? ` >./gaia.log 2>&1 &` : "");
+      let stop =
+        platform == "win32"
+          ? `@echo off
+for /f "tokens=5" %%i in ('netstat -ano ^| findstr 0.0.0.0:${gaiaP2pPort}') do set PID=%%i
+taskkill /F /PID %PID%`
+          : platform == "linux"
+          ? `pid=\`netstat -anp | grep :::${gaiaP2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
+    kill -15 $pid`
+          : `pid=\`lsof -i :${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
+    if [ "$pid" != "" ]; then kill -15 $pid; fi`;
+      let startPath = path.join(nodesDir, platform == "win32" ? "gaiaStart.bat" : "gaiaStart.sh");
+      let stopPath = path.join(nodesDir, platform == "win32" ? "gaiaStop.bat" : "gaiaStop.sh");
+      await fs.writeFile(startPath, start);
+      await fs.writeFile(stopPath, stop);
+
+      if (platform == "win32") {
+        vbsStart += `ws.Run ".\\gaiaStart.bat",0\n`;
+        vbsStop += `ws.Run ".\\gaiaStop.bat",0\n`;
+      } else {
+        vbsStart += `./gaiaStart.sh\n`;
+        vbsStop += `./gaiaStop.sh\n`;
+        await fs.chmod(startPath, 0o777);
+        await fs.chmod(stopPath, 0o777);
+      }
+    }
+
     // 生成总的启动脚本
     let startAllPath = path.join(nodesDir, `startAll.` + (platform == "win32" ? "vbs" : "sh"));
     let stopAllPath = path.join(nodesDir, `stopAll.` + (platform == "win32" ? "vbs" : "sh"));
