@@ -274,6 +274,8 @@ let init = async function () {
       // data = data.replaceAll("prometheus = false", `prometheus = true`);
       data = data.replace("tcp://0.0.0.0:26656", `tcp://0.0.0.0:${gaiaP2pPort}`);
       data = data.replace("localhost:6060", `localhost:16060`);
+      data = data.replace(`timeout_propose = "3s"`, `timeout_propose = "1s"`);
+      data = data.replace(`timeout_commit = "5s"`, `timeout_commit = "1s"`);
       await fs.writeFile(configPath, data);
 
       const genesisPath = `${gaiaHome}/config/genesis.json`;
