@@ -127,6 +127,40 @@ paths:
             rule: ""
             channel-list: []
 `;
+
+const ibcTransfer = `
+#!/bin/bash
+
+./rly tx link demo --client-tp 500s -d -t 3s --home ./relayer
+sleep 5
+
+echo "==================>before transfer"
+./rly q bal ibc-0 --home ./relayer
+./rly q bal ibc-1 --home ./relayer
+
+./rly tx transfer ibc-0 ibc-1 5000000000000000000agov "$(./rly keys show ibc-1 --home ./relayer)" channel-0 -d --home ./relayer
+sleep 5
+./rly tx relay-packets demo channel-0 -d --home ./relayer
+sleep 5
+./rly tx relay-acknowledgements demo channel-0 -d --home ./relayer
+sleep 5
+
+echo "==================>after transfer"
+./rly q bal ibc-0 --home ./relayer
+./rly q bal ibc-1 --home ./relayer
+
+
+./rly tx transfer ibc-1 ibc-0 2000000000000000000transfer/channel-0/agov "$(rly keys show ibc-0 --home ./relayer)" channel-0 -d --home ./relayer
+sleep 5
+./rly tx relay-packets demo channel-0 -d --home ./relayer
+sleep 5
+./rly tx relay-acknowledgements demo channel-0 -d --home ./relayer
+sleep 5
+
+echo "==================>back transfer"
+./rly q bal ibc-0 --home ./relayer
+./rly q bal ibc-1 --home ./relayer
+`;
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
 const tenderKeys = new TenderKeys();
@@ -471,7 +505,7 @@ taskkill /F /PID %PID%`
           : platform == "linux"
           ? `pid=\`netstat -anp | grep :::${gaiaP2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
     kill -15 $pid`
-          : `pid=\`lsof -i :${gaiaP2pPort} | grep localhost | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
+          : `pid=\`lsof -i :${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
     if [ "$pid" != "" ]; then kill -15 $pid; fi`;
       let startPath = path.join(nodesDir, platform == "win32" ? "startGaia.bat" : "startGaia.sh");
       let stopPath = path.join(nodesDir, platform == "win32" ? "stopGaia.bat" : "stopGaia.sh");
@@ -502,8 +536,10 @@ taskkill /F /PID %PID%`
     if [ "$pid" != "" ]; then kill -15 $pid; fi`;
       let startPath = path.join(nodesDir, platform == "win32" ? "startRly.bat" : "startRly.sh");
       let stopPath = path.join(nodesDir, platform == "win32" ? "stopRly.bat" : "stopRly.sh");
+      let ibcTransrerPath = path.join(nodesDir, platform == "win32" ? "ibcTransrer.bat" : "ibcTransrer.sh");
       await fs.writeFile(startPath, start);
       await fs.writeFile(stopPath, stop);
+      await fs.writeFile(ibcTransrerPath, ibcTransfer);
 
       if (platform == "win32") {
         // vbsStart += `ws.Run ".\\startRly.bat",0\n`;
@@ -513,6 +549,7 @@ taskkill /F /PID %PID%`
         // vbsStop += `./stopRly.sh\n`;
         await fs.chmod(startPath, 0o777);
         await fs.chmod(stopPath, 0o777);
+        await fs.chmod(ibcTransrerPath, 0o777);
       }
     }
 
