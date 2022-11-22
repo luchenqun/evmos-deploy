@@ -317,8 +317,10 @@ let init = async function () {
     }
 
     await fs.copy(evmosd, `./nodes/${evmosd}`);
-    await fs.copy(gaiad, `./nodes/${gaiad}`);
-    await fs.copy(rly, `./nodes/${rly}`);
+    if (ibc) {
+      await fs.copy(gaiad, `./nodes/${gaiad}`);
+      await fs.copy(rly, `./nodes/${rly}`);
+    }
 
     let nodeIds = [];
     for (let i = 0; i < nodesCount; i++) {
