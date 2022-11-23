@@ -160,6 +160,13 @@ sleep 5
 echo "==================>back transfer"
 ./rly q bal ibc-0 --home ./relayer
 ./rly q bal ibc-1 --home ./relayer
+
+./rly tx transfer ibc-1 ibc-0 1000000000000000000uatom "$(./rly keys show ibc-0 --home ./relayer)" channel-0 -d --home ./relayer
+sleep 5
+./rly tx relay-packets demo channel-0 -d --home ./relayer
+sleep 5
+./rly tx relay-acknowledgements demo channel-0 -d --home ./relayer
+sleep 5
 `;
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
