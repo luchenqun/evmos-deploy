@@ -301,10 +301,9 @@ const accountInfo = async (node) => {
   // ibc transfer
   const ibcTransfer = async (_ibcSrc, _ibcDst, _denom, _amount) => {
     while (loading) {
-      await sleep(100);
+      await sleep(10);
     }
     loading = true;
-    console.log("ibcTransfer", _ibcSrc, _ibcDst, _denom, _amount, loading);
     const nodesDir = path.join(process.cwd(), "../nodes");
     // evmos ibc0, gaia ibc1
     const r = Math.random() >= 0.5;
@@ -312,6 +311,7 @@ const accountInfo = async (node) => {
     const ibcDst = _ibcDst || (r ? "ibc-1" : "ibc-0");
     const denom = _denom || (r ? getRandomArrayElements(["aevmos", "transfer/channel-0/uatom"], 1) : getRandomArrayElements(["uatom", "transfer/channel-0/aevmos"], 1));
     const randWei = _amount || toWei(String(Math.random().toFixed(2)));
+    console.log("ibcTransfer", ibcSrc, ibcDst, denom, randWei)
 
     try {
       const cmd1 = `./rly tx transfer ${ibcSrc} ${ibcDst} ${randWei}${denom} "$(./rly keys show ${ibcDst} --home ./relayer)" channel-0 -d --home ./relayer`;
@@ -320,7 +320,7 @@ const accountInfo = async (node) => {
       const cmds = [cmd1, cmd2, cmd3];
       for (const cmd of cmds) {
         await execPromis(cmd, { cwd: nodesDir });
-        await sleep(5000);
+        await sleep(3000);
       }
     } catch (error) {
       console.log(error);
@@ -329,20 +329,26 @@ const accountInfo = async (node) => {
   };
 
   try {
+    const nodesDir = path.join(process.cwd(), "../nodes");
     let out;
     out = await execPromis(`./rly q bal ibc-0 --home ./relayer`, { cwd: nodesDir });
-    if (!(typeof out.stdout && out.stdout.indexOf("uatom") >= 0)) {
-      await ibcTransfer("ibc-0", "ibc-1", "aevmos", toWei(10));
-    }
-    out = await execPromis(`./rly q bal ibc-1 --home ./relayer`, { cwd: nodesDir });
-    if (!(typeof out.stdout && out.stdout.indexOf("aevmos") >= 0)) {
+    if (!(typeof out.stdout == 'string' && out.stdout.indexOf("uatom") >= 0)) {
+      console.log("ibcTransfer1")
       await ibcTransfer("ibc-1", "ibc-0", "uatom", toWei(10));
     }
-  } catch (error) {}
+   
+    out = await execPromis(`./rly q bal ibc-1 --home ./relayer`, { cwd: nodesDir });
+    if (!(typeof out.stdout == 'string' && out.stdout.indexOf("aevmos") >= 0)) {
+      console.log("ibcTransfer2")
+      await ibcTransfer("ibc-0", "ibc-1", "aevmos", toWei(10));
+    }
+  } catch (error) {
+    console.log(error)
+  }
 
   setInterval(async () => {
     await ibcTransfer();
-  }, 1000 * 60 * 10); // 10分钟
+  }, 1000 * 60 * 15); // 15分钟 
 
   setInterval(async () => {
     if (loading) return;
