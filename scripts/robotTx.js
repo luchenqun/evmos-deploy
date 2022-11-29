@@ -1,3 +1,5 @@
+import util from "util";
+import { exec } from "child_process";
 import { Wallet } from "@ethersproject/wallet";
 import signUtil from "@metamask/eth-sig-util";
 import { ethToEvmos } from "@tharsis/address-converter";
@@ -5,13 +7,14 @@ import { generatePostBodyBroadcast } from "@tharsis/provider";
 import { createMessageSend, createTxMsgDelegate, createTxMsgUndelegate, createTxMsgWithdrawDelegatorReward, createTxMsgVote, createTxRawEIP712, signatureToWeb3Extension } from "@tharsis/transactions";
 import bech32 from "bech32-buffer";
 import fs from "fs-extra";
+import path from "path";
 import Web3 from "web3";
 import API from "../api/index.js";
 import Uniswap from "./uniswap.js";
 import gov from "../msg/gov.js";
 import slashing from "../msg/slashing.js";
 
-const randomInt = (min, max) => ((Math.random() * (max - min + 1)) | 0) + min;
+const execPromis = util.promisify(exec);
 
 const sleep = (time) => {
   return new Promise((resolve) => setTimeout(resolve, time));
@@ -294,6 +297,53 @@ const accountInfo = async (node) => {
   }
 
   let loading = false;
+
+  // ibc transfer
+  const ibcTransfer = async (_ibcSrc, _ibcDst, _denom, _amount) => {
+    while (loading) {
+      await sleep(100);
+    }
+    loading = true;
+    console.log("ibcTransfer", _ibcSrc, _ibcDst, _denom, _amount, loading);
+    const nodesDir = path.join(process.cwd(), "../nodes");
+    // evmos ibc0, gaia ibc1
+    const r = Math.random() >= 0.5;
+    const ibcSrc = _ibcSrc || (r ? "ibc-0" : "ibc-1");
+    const ibcDst = _ibcDst || (r ? "ibc-1" : "ibc-0");
+    const denom = _denom || (r ? getRandomArrayElements(["aevmos", "transfer/channel-0/uatom"], 1) : getRandomArrayElements(["uatom", "transfer/channel-0/aevmos"], 1));
+    const randWei = _amount || toWei(String(Math.random().toFixed(2)));
+
+    try {
+      const cmd1 = `./rly tx transfer ${ibcSrc} ${ibcDst} ${randWei}${denom} "$(./rly keys show ${ibcDst} --home ./relayer)" channel-0 -d --home ./relayer`;
+      const cmd2 = `./rly tx relay-packets demo channel-0 -d --home ./relayer`;
+      const cmd3 = `./rly tx relay-acknowledgements demo channel-0 -d --home ./relayer`;
+      const cmds = [cmd1, cmd2, cmd3];
+      for (const cmd of cmds) {
+        await execPromis(cmd, { cwd: nodesDir });
+        await sleep(5000);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    loading = false;
+  };
+
+  try {
+    let out;
+    out = await execPromis(`./rly q bal ibc-0 --home ./relayer`, { cwd: nodesDir });
+    if (!(typeof out.stdout && out.stdout.indexOf("uatom") >= 0)) {
+      await ibcTransfer("ibc-0", "ibc-1", "aevmos", toWei(10));
+    }
+    out = await execPromis(`./rly q bal ibc-1 --home ./relayer`, { cwd: nodesDir });
+    if (!(typeof out.stdout && out.stdout.indexOf("aevmos") >= 0)) {
+      await ibcTransfer("ibc-1", "ibc-0", "uatom", toWei(10));
+    }
+  } catch (error) {}
+
+  setInterval(async () => {
+    await ibcTransfer();
+  }, 1000 * 60 * 10); // 10分钟
+
   setInterval(async () => {
     if (loading) return;
     loading = true;

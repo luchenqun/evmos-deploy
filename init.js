@@ -534,7 +534,11 @@ taskkill /F /PID %PID%`
       }
     }
     if (ibc) {
-      let start = (platform == "win32" ? `TIMEOUT /T 3 /NOBREAK\n${rlyCmd} tx link demo -d -t 3s --home ./relayer\n` : `#!/bin/bash\nsleep 3\n${rlyCmd} tx link demo -d -t 3s --home ./relayer\n`) + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${rly} start --home ./relayer` + (isNohup && platform !== "win32" ? ` >./relayer.log 2>&1 &` : "");
+      const sleep3s = platform == "win32" ? `TIMEOUT /T 3 /NOBREAK` : `#!/bin/bash\nsleep 3`;
+      const nohubStr = isNohup && platform !== "win32" ? "nohup" : "";
+      const nohubLog = isNohup && platform !== "win32" ? `>./relayer.log 2>&1 &` : "";
+      let start = `${sleep3s}\n${nohubStr} ${rlyCmd} tx link demo -d -t 3s --client-tp 500s --home ./relayer ${nohubLog}`;
+      // start = `${start}\n${nohubStr} ${rlyCmd} start --home ./relayer ${nohubLog}`;
       let stop =
         platform == "win32"
           ? `@echo off
@@ -553,10 +557,10 @@ taskkill /F /PID %PID%`
       await fs.writeFile(ibcTransrerPath, ibcTransfer);
 
       if (platform == "win32") {
-        // vbsStart += `ws.Run ".\\startRly.bat",0\n`;
+        vbsStart += `ws.Run ".\\startRly.bat",0\n`;
         // vbsStop += `ws.Run ".\\stopRly.bat",0\n`;
       } else {
-        // vbsStart += `./startRly.sh\n`;
+        vbsStart += `./startRly.sh\n`;
         // vbsStop += `./stopRly.sh\n`;
         await fs.chmod(startPath, 0o777);
         await fs.chmod(stopPath, 0o777);
