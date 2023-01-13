@@ -263,6 +263,7 @@ let init = async function () {
       let data;
       const appConfigPath = `${gaiaHome}/config/app.toml`;
       data = await fs.readFile(appConfigPath, "utf8");
+      data = data.replace(`minimum-gas-prices = ""`, `minimum-gas-prices = "0uatom"`);
       data = data.replace("tcp://0.0.0.0:1317", `tcp://0.0.0.0:11317`);
       data = data.replace("swagger = false", `swagger = true`);
       data = data.replaceAll("enabled-unsafe-cors = false", `enabled-unsafe-cors = true`);
@@ -427,7 +428,7 @@ let init = async function () {
       data = data.replace("0.0.0.0:8545", `0.0.0.0:${jsonRpcPort - i}`);
       data = data.replace("0.0.0.0:8546", `0.0.0.0:${wsRpcPort + i}`);
       data = data.replace("eth,net,web3", `eth,txpool,personal,net,debug,web3`);
-      data = data.replace(`minimum-gas-prices = "0aevmos"`, `minimum-gas-prices = "${config.minimumGasPrices}"`);
+      data = data.replace(`minimum-gas-prices = ""`, `minimum-gas-prices = "${config.minimumGasPrices}"`);
       config.pruning && (data = data.replace(`pruning = "default"`, `pruning = "${config.pruning}"`));
       await fs.writeFile(appConfigPath, data);
 
