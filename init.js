@@ -84,7 +84,7 @@ const rlyCft = `
 global:
     api-listen-addr: :5183
     timeout: 10s
-    memo: ""
+    memo: "rly"
     light-cache-size: 20
 chains:
     ibc-0:
