@@ -74,7 +74,7 @@ const gaiad = platform == "win32" ? "gaiad.exe" : "gaiad";
 const gaiadCmd = platform == "win32" ? "gaiad.exe" : "./gaiad";
 const gaiaHome = "./nodes/gaia";
 const gaiaChainId = "cosmoshub-test";
-const gaiaP2pPort = 16656;
+let gaiaP2pPort = 16656;
 const evmosChainId = "evmos_20191205-1";
 const rly = platform == "win32" ? "rly.exe" : "rly";
 const rlyCmd = platform == "win32" ? "rly.exe" : "./rly";
