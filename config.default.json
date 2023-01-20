@@ -1,21 +1,71 @@
 {
-  "swaggerPort": 1317,
-  "rosettaPort": 8080,
-  "grpcPort": 9090,
-  "grpcWebPort": 9091,
-  "jsonRpcPort": 8545,
-  "wsRpcPort": 8546,
-  "rpcServerPort": 26657,
-  "p2pPort": 10000,
-  "pprofPort": 6060,
+  "app": {
+    "port": {
+      "api.address": 1317,
+      "rosetta.address": 8080,
+      "grpc.address": 9090,
+      "grpc-web.address": 7070,
+      "json-rpc.address": 8545,
+      "json-rpc.ws-address": 7545,
+      "json-rpc.metrics-address": 6065
+    },
+    "cfg": {
+      "minimum-gas-prices": "\"0aevmos\"",
+      "pruning": "\"nothing\"",
+      "api.swagger": "true",
+      "api.enabled-unsafe-cors": "true",
+      "rosetta.enable": "true",
+      "rosetta.denom-to-suggest": "\"aevmos\"",
+      "grpc.enable": "true",
+      "grpc-web.enable": "true",
+      "grpc-web.enable-unsafe-cors": "true",
+      "json-rpc.enable": "true",
+      "json-rpc.api": "\"eth,txpool,personal,net,debug,web3\""
+    }
+  },
+  "tendermint": {
+    "port": {
+      "rpc.laddr": 26657,
+      "rpc.pprof_laddr": 5050,
+      "p2p.laddr": 10000,
+      "instrumentation.prometheus_listen_addr": 16660
+    },
+    "cfg": {
+      "instrumentation.prometheus": "true",
+      "p2p.allow_duplicate_ip": "true",
+      "p2p.seeds": "\"\""
+    }
+  },
   "preMineAccounts": [
     "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583"
   ],
-  "preMinePerAccount": "5000000000000000000000",
-  "minimumGasPrices": "0aevmos",
+  "preMinePerAccount": "10000000000000000000000000",
   "govCoin": false,
   "fixedFirstValidator": true,
-  "ibc": false,
+  "ibc": {
+    "enable": true,
+    "app": {
+      "minimum-gas-prices": "\"0uatom\"",
+      "pruning": "\"nothing\"",
+      "api.enable": "true",
+      "api.swagger": "true",
+      "api.enabled-unsafe-cors": "true",
+      "api.address": "\"tcp://0.0.0.0:11317\"",
+      "rosetta.address": "\":18080\"",
+      "grpc.enable": "true",
+      "grpc.address": "\"0.0.0.0:19090\"",
+      "grpc-web.enable": "true",
+      "grpc-web.enable-unsafe-cors": "true",
+      "grpc-web.address": "\"0.0.0.0:19091\""
+    },
+    "tendermint": {
+      "rpc.laddr": "\"tcp://0.0.0.0:16657\"",
+      "rpc.cors_allowed_origins": "[\"*\"]",
+      "rpc.pprof_laddr": "\"localhost:16060\"",
+      "p2p.laddr": "\"tcp://0.0.0.0:16656\"",
+      "instrumentation.prometheus_listen_addr": "\":26660\""
+    }
+  },
   "genesisCfg": [
     "app_state.inflation.params.mint_denom='aevmos'"
   ]

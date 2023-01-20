@@ -75,12 +75,11 @@ const gaiadCmd = platform == "win32" ? "gaiad.exe" : "./gaiad";
 const gaiaHome = "./nodes/gaia";
 const gaiaChainId = "cosmoshub-test";
 const gaiaP2pPort = 16656;
-const gaiaRpcPort = 16657;
 const evmosChainId = "evmos_20191205-1";
 const rly = platform == "win32" ? "rly.exe" : "rly";
 const rlyCmd = platform == "win32" ? "rly.exe" : "./rly";
 const rlyHome = "./nodes/relayer";
-const rlyCft = `
+const rlyCfg = `
 global:
     api-listen-addr: :5183
     timeout: 10s
@@ -175,6 +174,55 @@ const sleep = (time) => {
   return new Promise((resolve) => setTimeout(resolve, time));
 };
 
+const updatePorts = (data, ports, index) => {
+  let lines = data.split(/\r?\n/);
+  for (const key in ports) {
+    let [k1, k2] = key.split("."); // key for example "api.address"
+    let port = ports[key];
+    let find = false;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      //  for example: [json-rpc]
+      if (line.startsWith(`[${k1}]`)) {
+        find = true;
+      }
+      //for example: "tcp://0.0.0.0:1317"
+      if (find && line.startsWith(`${k2} = `)) {
+        const oldPort = line.split(":").pop().split(`"`)[0];
+        const newPort = String(port + index);
+        // console.log(line, oldPort, newPort);
+        lines[i] = line.replace(oldPort, newPort).replace("localhost", "0.0.0.0").replace("127.0.0.1", "0.0.0.0");
+        break;
+      }
+    }
+  }
+  return lines.join("\n");
+};
+
+const updateCfg = (data, cfg) => {
+  let lines = data.split(/\r?\n/);
+  for (const key in cfg) {
+    let find = true;
+    let k1;
+    let k2 = key;
+    if (key.indexOf(".") > 0) {
+      [k1, k2] = key.split(".");
+      find = false;
+    }
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!find && line.startsWith(`[${k1}]`)) {
+        find = true;
+      }
+      if (find && line.startsWith(`${k2} = `)) {
+        lines[i] = `${k2} = ${cfg[key]}`;
+        break;
+      }
+    }
+  }
+  return lines.join("\n");
+};
+
 let init = async function () {
   console.log("argv:", JSON.stringify(argv), "platform:", platform, "arch:", arch);
   try {
@@ -185,9 +233,10 @@ let init = async function () {
     } catch (error) {
       config = await fs.readJson("./config.default.json");
     }
-    const { govCoin, preMinePerAccount, fixedFirstValidator, preMineAccounts, ibc } = config;
+    const { app, tendermint, govCoin, preMinePerAccount, fixedFirstValidator, preMineAccounts, ibc } = config;
+    gaiaP2pPort = ibc.tendermint["p2p.laddr"].split(":").pop().split(`"`)[0];
 
-    if (ibc && !fs.existsSync(rly)) {
+    if (ibc.enable && !fs.existsSync(rly)) {
       try {
         console.log("begin download relayer.....");
         const rlyUrl = `https://github.com/cosmos/relayer/releases/download/v2.1.2/Cosmos.Relayer_2.1.2_${platform}_${arch}.tar.gz`;
@@ -196,14 +245,14 @@ let init = async function () {
       } catch (error) {}
     }
 
-    if (ibc && !fs.existsSync(rly)) {
+    if (ibc.enable && !fs.existsSync(rly)) {
       console.warn("relayer is not exist, please go to https://github.com/cosmos/relayer/releases download and extract rename executable program to rly");
       return;
     } else {
       await fs.chmod(rly, 0o777);
     }
 
-    if (ibc && !fs.existsSync(gaiad)) {
+    if (ibc.enable && !fs.existsSync(gaiad)) {
       try {
         console.log("begin download gaiad.....");
         const gaiadUrl = `https://github.com/cosmos/gaia/releases/download/v7.1.0/gaiad-v7.1.0-${platform}-${arch}`;
@@ -211,7 +260,7 @@ let init = async function () {
       } catch (error) {}
     }
 
-    if (ibc && !fs.existsSync(gaiad)) {
+    if (ibc.enable && !fs.existsSync(gaiad)) {
       console.warn("gaiad is not exist, please go to https://github.com/cosmos/gaia/releases download and extract rename executable program to gaiad");
       return;
     } else {
@@ -249,7 +298,7 @@ let init = async function () {
     console.log("Folder nodes has been cleaned up");
 
     // begin init gaia
-    if (ibc) {
+    if (ibc.enable) {
       await execPromis(`${gaiadCmd} init gaia --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
       await execPromis(`${gaiadCmd} keys add validator --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/validator_seed.json 2>&1`, { cwd: curDir });
       await execPromis(`${gaiadCmd} keys add user --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/key_seed.json 2>&1`, { cwd: curDir });
@@ -263,27 +312,12 @@ let init = async function () {
       let data;
       const appConfigPath = `${gaiaHome}/config/app.toml`;
       data = await fs.readFile(appConfigPath, "utf8");
-      data = data.replace(`minimum-gas-prices = ""`, `minimum-gas-prices = "0uatom"`);
-      data = data.replace("tcp://0.0.0.0:1317", `tcp://0.0.0.0:11317`);
-      data = data.replace("swagger = false", `swagger = true`);
-      data = data.replaceAll("enabled-unsafe-cors = false", `enabled-unsafe-cors = true`);
-      data = data.replaceAll("enable = false", `enable = true`);
-      data = data.replace(":8080", `:18080`);
-      data = data.replace("0.0.0.0:9090", `0.0.0.0:19090`);
-      data = data.replace("0.0.0.0:9091", `0.0.0.0:19091`);
-      config.pruning && (data = data.replace(`pruning = "default"`, `pruning = "${config.pruning}"`));
+      data = updateCfg(data, ibc.app);
       await fs.writeFile(appConfigPath, data);
 
       const configPath = `${gaiaHome}/config/config.toml`;
       data = await fs.readFile(configPath, "utf8");
-      data = data.replace("127.0.0.1:26657", `0.0.0.0:${gaiaRpcPort}`);
-      data = data.replaceAll("cors_allowed_origins = []", `cors_allowed_origins = ["*"]`);
-      data = data.replaceAll("allow_duplicate_ip = false", `allow_duplicate_ip = true`);
-      // data = data.replaceAll("prometheus = false", `prometheus = true`);
-      data = data.replace("tcp://0.0.0.0:26656", `tcp://0.0.0.0:${gaiaP2pPort}`);
-      data = data.replace("localhost:6060", `localhost:16060`);
-      data = data.replace(`timeout_propose = "3s"`, `timeout_propose = "1s"`);
-      data = data.replace(`timeout_commit = "5s"`, `timeout_commit = "1s"`);
+      data = updateCfg(data, ibc.tendermint);
       await fs.writeFile(configPath, data);
 
       const genesisPath = `${gaiaHome}/config/genesis.json`;
@@ -325,7 +359,7 @@ let init = async function () {
     }
 
     await fs.copy(evmosd, `./nodes/${evmosd}`);
-    if (ibc) {
+    if (ibc.enable) {
       await fs.copy(gaiad, `./nodes/${gaiad}`);
       await fs.copy(rly, `./nodes/${rly}`);
     }
@@ -408,65 +442,34 @@ let init = async function () {
       await fs.outputJson(genesisPath, genesis, { spaces: 2 });
     }
 
+    // update app.toml and config.toml
     for (let i = 0; i < nodesCount; i++) {
       let data;
       const appConfigPath = path.join(nodesDir, `node${i}/evmosd/config/app.toml`);
-      const swaggerPort = config.swaggerPort || 1317;
-      const rosettaPort = config.rosettaPort || 8080;
-      const grpcPort = config.grpcPort || 9090;
-      const grpcWebPort = config.grpcWebPort || 9091;
-      const jsonRpcPort = config.jsonRpcPort || 8545;
-      const wsRpcPort = config.wsRpcPort || 8546;
       data = await fs.readFile(appConfigPath, "utf8");
-      data = data.replace("tcp://0.0.0.0:1317", `tcp://0.0.0.0:${swaggerPort + i}`);
-      data = data.replace("swagger = false", `swagger = true`);
-      data = data.replaceAll("enabled-unsafe-cors = false", `enabled-unsafe-cors = true`);
-      // data = data.replaceAll("enable = false", `enable = true`) // on rosetta enable is false, and we need is false
-      data = data.replace(":8080", `:${rosettaPort + i}`);
-      data = data.replace("0.0.0.0:9090", `0.0.0.0:${grpcPort - i}`);
-      data = data.replace("0.0.0.0:9091", `0.0.0.0:${grpcWebPort + i}`);
-      data = data.replace("0.0.0.0:8545", `0.0.0.0:${jsonRpcPort - i}`);
-      data = data.replace("0.0.0.0:8546", `0.0.0.0:${wsRpcPort + i}`);
-      data = data.replace("eth,net,web3", `eth,txpool,personal,net,debug,web3`);
-      data = data.replace(`minimum-gas-prices = ""`, `minimum-gas-prices = "${config.minimumGasPrices}"`);
-      config.pruning && (data = data.replace(`pruning = "default"`, `pruning = "${config.pruning}"`));
+      data = updatePorts(data, app.port, i);
+      data = updateCfg(data, app.cfg);
       await fs.writeFile(appConfigPath, data);
 
       const configPath = path.join(nodesDir, `node${i}/evmosd/config/config.toml`);
-      const rpcServerPort = config.rpcServerPort || 26657;
-      const p2pPort = config.p2pPort || 10000;
-      const pprofPort = config.pprofPort || 6060;
       data = await fs.readFile(configPath, "utf8");
-      data = data.replace("0.0.0.0:26657", `0.0.0.0:${rpcServerPort + i}`);
-      data = data.replaceAll("cors_allowed_origins = []", `cors_allowed_origins = ["*"]`);
-      data = data.replaceAll("allow_duplicate_ip = false", `allow_duplicate_ip = true`);
-      // data = data.replaceAll("prometheus = false", `prometheus = true`);
-      data = data.replace("tcp://0.0.0.0:26656", `tcp://0.0.0.0:${p2pPort + i}`);
-      data = data.replace("localhost:6060", `localhost:${pprofPort + i}`);
-      data = data.replace("40f4fac63da8b1ce8f850b0fa0f79b2699d2ce72@seed.evmos.jerrychong.com:26656,e3e11fca4ecf4035a751f3fea90e3a821e274487@bd-evmos-mainnet-seed-node-01.bdnodes.net:26656,fc86e7e75c5d2e4699535e1b1bec98ae55b16826@bd-evmos-mainnet-seed-node-02.bdnodes.net:26656", ``);
-
+      data = updatePorts(data, tendermint.port, i);
       // replace persistent_peers
       let peers = [];
-      const str = `persistent_peers = "`;
-      const indexStart = data.indexOf(str);
-      const indexEnd = data.indexOf(`"`, indexStart + str.length);
-      let oldPeers = data.substring(indexStart + str.length, indexEnd);
+      const p2pPort = tendermint.port["p2p.laddr"];
       for (let j = 0; j < nodesCount && nodesCount > 1; j++) {
         if (i != j) {
           peers.push(`${nodeIds[j]}@127.0.0.1:${p2pPort + j}`);
         }
       }
-      if (oldPeers.length > 0) {
-        data = data.replace(oldPeers, peers.join());
-      } else {
-        data = data.replace(`persistent_peers = ""`, `persistent_peers = "${peers.join()}"`); // if validator == 1 && common node >= 1
-      }
+      tendermint.cfg["p2p.persistent_peers"] = `"${peers.join()}"`;
+      data = updateCfg(data, tendermint.cfg);
       await fs.writeFile(configPath, data);
     }
 
-    if (ibc) {
+    if (ibc.enable) {
       await fs.ensureFile(path.join(rlyHome, "config/config.yaml"));
-      await fs.writeFile(path.join(rlyHome, "config/config.yaml"), rlyCft);
+      await fs.writeFile(path.join(rlyHome, "config/config.yaml"), rlyCfg);
 
       let keySeed;
       keySeed = await fs.readJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`));
@@ -479,7 +482,7 @@ let init = async function () {
     let vbsStart = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
     let vbsStop = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
     for (let i = 0; i < nodesCount; i++) {
-      let p2pPort = config.p2pPort + i;
+      let p2pPort = tendermint.port["p2p.laddr"] + i;
       let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${evmosd} start --keyring-backend test --home ./node${i}/evmosd/` + (isNohup && platform !== "win32" ? ` >./evmos${i}.log 2>&1 &` : "");
       let stop =
         platform == "win32"
@@ -507,7 +510,7 @@ taskkill /F /PID %PID%`
       }
     }
 
-    if (ibc) {
+    if (ibc.enable) {
       let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + `${gaiadCmd} start --home ./gaia` + (isNohup && platform !== "win32" ? ` >./gaia.log 2>&1 &` : "");
       let stop =
         platform == "win32"
@@ -534,7 +537,7 @@ taskkill /F /PID %PID%`
         await fs.chmod(stopPath, 0o777);
       }
     }
-    if (ibc) {
+    if (ibc.enable) {
       const sleep3s = platform == "win32" ? `TIMEOUT /T 3 /NOBREAK` : `#!/bin/bash\nsleep 3`;
       const nohubStr = isNohup && platform !== "win32" ? "nohup" : "";
       const nohubLog = isNohup && platform !== "win32" ? `>./relayer.log 2>&1 &` : "";
