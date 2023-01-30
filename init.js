@@ -219,12 +219,15 @@ let init = async function () {
       const grpcWebPort = config.grpcWebPort || 9091;
       data = await fs.readFile(appConfigPath, "utf8");
       data = data.replace("tcp://localhost:1317", `tcp://0.0.0.0:${swaggerPort + i}`);
+      data = data.replace("tcp://0.0.0.0:1317", `tcp://0.0.0.0:${swaggerPort + i}`);
       data = data.replace("swagger = false", `swagger = true`);
       data = data.replaceAll("enabled-unsafe-cors = false", `enabled-unsafe-cors = true`);
       // data = data.replaceAll("enable = false", `enable = true`) // on rosetta enable is false, and we need is false
       data = data.replace(":8080", `:${rosettaPort + i}`);
       data = data.replace("localhost:9090", `0.0.0.0:${grpcPort - i}`);
+      data = data.replace("0.0.0.0:9090", `0.0.0.0:${grpcPort - i}`);
       data = data.replace("localhost:9091", `0.0.0.0:${grpcWebPort + i}`);
+      data = data.replace("0.0.0.0:9091", `0.0.0.0:${grpcWebPort + i}`);
       data = data.replace(`minimum-gas-prices = "0stake"`, `minimum-gas-prices = "${config.minimumGasPrices}"`);
       await fs.writeFile(appConfigPath, data);
 
@@ -238,6 +241,7 @@ let init = async function () {
       data = data.replaceAll("allow_duplicate_ip = false", `allow_duplicate_ip = true`);
       data = data.replace("tcp://0.0.0.0:26656", `tcp://0.0.0.0:${p2pPort + i}`);
       data = data.replace("localhost:6060", `localhost:${pprofPort + i}`);
+      data = data.replace("0.0.0.0:6060", `localhost:${pprofPort + i}`);
 
       // replace persistent_peers
       let peers = [];
