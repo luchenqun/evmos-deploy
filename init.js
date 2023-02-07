@@ -248,7 +248,7 @@ let init = async function () {
     if (ibc.enable && !fs.existsSync(rly)) {
       console.warn("relayer is not exist, please go to https://github.com/cosmos/relayer/releases download and extract rename executable program to rly");
       return;
-    } else {
+    } else if (fs.existsSync(rly)) {
       await fs.chmod(rly, 0o777);
     }
 
@@ -263,7 +263,7 @@ let init = async function () {
     if (ibc.enable && !fs.existsSync(gaiad)) {
       console.warn("gaiad is not exist, please go to https://github.com/cosmos/gaia/releases download and extract rename executable program to gaiad");
       return;
-    } else {
+    } else if (fs.existsSync(gaiad)) {
       await fs.chmod(gaiad, 0o777);
     }
 
