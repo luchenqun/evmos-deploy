@@ -75,11 +75,11 @@ const gaiadCmd = platform == "win32" ? "gaiad.exe" : "./gaiad";
 const gaiaHome = "./nodes/gaia";
 const gaiaChainId = "cosmoshub-test";
 let gaiaP2pPort = 16656;
-const evmosChainId = "evmos_20191205-1";
+let evmosChainId = "evmos_20191205-1";
 const rly = platform == "win32" ? "rly.exe" : "rly";
 const rlyCmd = platform == "win32" ? "rly.exe" : "./rly";
 const rlyHome = "./nodes/relayer";
-const rlyCfg = `
+let rlyCfg = `
 global:
     api-listen-addr: :5183
     timeout: 10s
@@ -235,6 +235,11 @@ let init = async function () {
     }
     const { app, tendermint, govCoin, preMinePerAccount, fixedFirstValidator, preMineAccounts, ibc } = config;
     gaiaP2pPort = ibc.tendermint["p2p.laddr"].split(":").pop().split(`"`)[0];
+    if(app.chain_id) {
+      evmosChainId = app.chain_id
+      rlyCfg = rlyCfg.replaceAll("evmos_20191205-1", app.chain_id)
+    }
+
 
     if (ibc.enable && !fs.existsSync(rly)) {
       try {

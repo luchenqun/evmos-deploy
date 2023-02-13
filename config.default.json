@@ -1,5 +1,6 @@
 {
   "app": {
+    "chain_id": "evmos_20191205-1",
     "port": {
       "api.address": 1317,
       "rosetta.address": 8080,
