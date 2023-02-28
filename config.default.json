@@ -1,6 +1,6 @@
 {
   "app": {
-    "chain_id": "evmos_20191205-1",
+    "chain_id": "quarix_88888888-1",
     "port": {
       "api.address": 1317,
       "rosetta.address": 8080,
@@ -15,7 +15,7 @@
       "pruning": "\"nothing\"",
       "api.swagger": "true",
       "api.enabled-unsafe-cors": "true",
-      "rosetta.enable": "true",
+      "rosetta.enable": "false",
       "rosetta.denom-to-suggest": "\"aevmos\"",
       "grpc.enable": "true",
       "grpc-web.enable": "true",
@@ -32,17 +32,17 @@
       "instrumentation.prometheus_listen_addr": 16660
     },
     "cfg": {
-      "rpc.cors_allowed_origins": "[\"*\"]",
       "instrumentation.prometheus": "true",
       "p2p.allow_duplicate_ip": "true",
-      "p2p.seeds": "\"\""
+      "p2p.seeds": "\"\"",
+      "consensus.timeout_commit": "\"1s\"",
+      "mempool.version": "\"v1\""
     }
   },
   "preMineAccounts": [
-    "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583"
+    "quarix1qqqqhe5pnaq5qq39wqkn957aydnrm45sywg476"
   ],
-  "preMinePerAccount": "10000000000000000000000000",
-  "govCoin": false,
+  "preMinePerAccount": "1000000000000000000000",
   "fixedFirstValidator": true,
   "ibc": {
     "enable": false,
@@ -69,6 +69,26 @@
     }
   },
   "genesisCfg": [
-    "app_state.inflation.params.mint_denom='aevmos'"
+    "consensus_params.block.max_gas='210000000000'",
+    "app_state.gov.deposit_params.max_deposit_period='60s'",
+    "app_state.gov.voting_params.voting_period='90s'",
+    "app_state.staking.params.max_validators=100",
+    "app_state.staking.params.unbonding_time='600s'",
+    "app_state.distribution.params.community_tax='0.000000000000000000'",
+    "app_state.distribution.params.base_proposer_reward='0.000000000000000000'",
+    "app_state.distribution.params.bonus_proposer_reward='0.000000000000000000'",
+    "app_state.inflation.params.mint_denom='aevmos'",
+    "app_state.inflation.params.inflation_distribution.staking_rewards='1.000000000000000000'",
+    "app_state.inflation.params.inflation_distribution.usage_incentives='0.000000000000000000'",
+    "app_state.inflation.params.inflation_distribution.community_pool='0.000000000000000000'",
+    "app_state.inflation.epoch_identifier='day'",
+    "app_state.inflation.epochs_per_period='10'",
+    "app_state.epochs.epochs[1].identifier='day'",
+    "app_state.epochs.epochs[1].duration='30s'",
+    "app_state.slashing.params.signed_blocks_window='10'",
+    "app_state.slashing.params.downtime_jail_duration='30s'",
+    "app_state.inflation.params.enable_inflation=false",
+    "app_state.feemarket.params.no_base_fee=false",
+    "app_state.feemarket.params.base_fee='0'"
   ]
 }
