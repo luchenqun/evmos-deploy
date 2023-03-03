@@ -76,7 +76,7 @@ const gaiadCmd = platform == "win32" ? "gaiad.exe" : "./gaiad";
 const gaiaHome = "./nodes/gaia";
 const gaiaChainId = "cosmoshub-test";
 let gaiaP2pPort = 16656;
-let evmosChainId = "evmos_20191205-1";
+let quarixChainId = "quarix_88888888-1";
 const rly = platform == "win32" ? "rly.exe" : "rly";
 const rlyCmd = platform == "win32" ? "rly.exe" : "./rly";
 const rlyHome = "./nodes/relayer";
@@ -91,7 +91,7 @@ chains:
         type: cosmos
         value:
             key: testkey
-            chain-id: evmos_20191205-1
+            chain-id: ${quarixChainId}
             rpc-addr: http://localhost:26657
             account-prefix: evmos
             keyring-backend: test
@@ -120,7 +120,7 @@ chains:
 paths:
     demo:
         src:
-            chain-id: evmos_20191205-1
+            chain-id: ${quarixChainId}
         dst:
             chain-id: cosmoshub-test
         src-channel-filter:
@@ -167,6 +167,19 @@ sleep 5
 sleep 5
 ./rly tx relay-acknowledgements demo channel-0 -d --home ./relayer
 sleep 5
+`;
+
+let clientCfg = `
+# The network chain ID
+chain-id = "${quarixChainId}"
+# The keyring's backend, where the keys are stored (os|file|kwallet|pass|test|memory)
+keyring-backend = "test"
+# CLI output format (text|json)
+output = "text"
+# <host>:<port> to Tendermint RPC interface for this chain
+node = "tcp://localhost:26657"
+# Transaction broadcasting mode (sync|async|block)
+broadcast-mode = "sync"
 `;
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
@@ -237,8 +250,9 @@ let init = async function () {
     const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, ibc } = config;
     gaiaP2pPort = ibc.tendermint["p2p.laddr"].split(":").pop().split(`"`)[0];
     if (app.chain_id) {
-      evmosChainId = app.chain_id;
-      rlyCfg = rlyCfg.replaceAll("evmos_20191205-1", app.chain_id);
+      rlyCfg = rlyCfg.replaceAll(quarixChainId, app.chain_id);
+      clientCfg = clientCfg.replaceAll(quarixChainId, app.chain_id);
+      quarixChainId = app.chain_id;
     }
 
     if (ibc.enable && !fs.existsSync(rly)) {
@@ -332,8 +346,8 @@ let init = async function () {
     }
 
     {
-      const initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${evmosChainId} --keyring-backend test`;
-      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${evmosChainId} --keyring-backend test`;
+      const initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
+      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
       console.log(`Exec cmd: ${initFiles}`);
       const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
       console.log(`init-files ${stdout}${stderr}\n`);
@@ -446,7 +460,7 @@ let init = async function () {
       await fs.outputJson(genesisPath, genesis, { spaces: 2 });
     }
 
-    // update app.toml and config.toml
+    // update app.toml and config.toml and client.toml
     for (let i = 0; i < nodesCount; i++) {
       let data;
       const appConfigPath = path.join(nodesDir, `node${i}/evmosd/config/app.toml`);
@@ -469,6 +483,11 @@ let init = async function () {
       tendermint.cfg["p2p.persistent_peers"] = `"${peers.join()}"`;
       data = updateCfg(data, tendermint.cfg);
       await fs.writeFile(configPath, data);
+
+      const clientConfigPath = path.join(nodesDir, `node${i}/evmosd/config/client.toml`);
+      data = clientCfg;
+      data = data.replace("26657", tendermint.port["rpc.laddr"] + i + "");
+      await fs.writeFile(clientConfigPath, data);
     }
 
     if (ibc.enable) {

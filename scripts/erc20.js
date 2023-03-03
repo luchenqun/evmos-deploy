@@ -1,4 +1,4 @@
-import { ethToEvmos } from "@tharsis/address-converter";
+import { ethToBech32 } from "../utils.js";
 import path from "path";
 import Web3 from "web3";
 import { decodeReply, execPromis, sleep } from "../utils.js";
@@ -16,6 +16,7 @@ let run = async function () {
     const chainId = await web3.eth.getChainId();
     const gasPrice = await web3.eth.getGasPrice();
     const gas = 5000000;
+    const prefix = "quarix";
 
     async function sendTransaction(data, to, value) {
       let nonce = await web3.eth.getTransactionCount(from);
@@ -45,14 +46,14 @@ let run = async function () {
 
     // you should use cmd `node init.js --v=1 --s=true` to run 1 nodes
     const cwd = path.join(process.cwd(), "..");
-    const fixed = `--from=node0 --home=./nodes/node0/evmosd/ --keyring-backend=test --chain-id=evmos_20191205-1 --gas="auto" -y`;
+    const fixed = `--from=node0 --home=./nodes/node0/evmosd/ --keyring-backend=test --chain-id=quarix_88888888-1 --gas="auto" -y`;
     const erc20Address = matic.address;
-    const evmAddress = ethToEvmos(from);
+    const evmAddress = ethToBech32(from, prefix);
     let cmd;
     let reply;
 
     {
-      cmd = `./evmosd tx gov submit-proposal register-erc20 ${erc20Address} --title="Test register erc20" --description="Register erc20 MANTIC" --deposit="10000000agov" ${fixed}`;
+      cmd = `./evmosd tx gov submit-legacy-proposal register-erc20 ${erc20Address} --title="Test register erc20" --description="Register erc20 MANTIC" --deposit="10000000akgov" ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
 
