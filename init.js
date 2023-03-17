@@ -235,6 +235,7 @@ let init = async function () {
       const rpcServerPort = config.rpcServerPort || 26657;
       const p2pPort = config.p2pPort || 10000;
       const pprofPort = config.pprofPort || 6060;
+      const timeoutCommit = config.timeoutCommit || "3s"
       data = await fs.readFile(configPath, "utf8");
       data = data.replace("0.0.0.0:26657", `0.0.0.0:${rpcServerPort + i}`);
       data = data.replaceAll("cors_allowed_origins = []", `cors_allowed_origins = ["*"]`);
@@ -242,6 +243,7 @@ let init = async function () {
       data = data.replace("tcp://0.0.0.0:26656", `tcp://0.0.0.0:${p2pPort + i}`);
       data = data.replace("localhost:6060", `localhost:${pprofPort + i}`);
       data = data.replace("0.0.0.0:6060", `localhost:${pprofPort + i}`);
+      data = data.replaceAll(`timeout_commit = "5s"`, `timeout_commit = "${timeoutCommit}"`);
 
       // replace persistent_peers
       let peers = [];
