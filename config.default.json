@@ -32,6 +32,7 @@
       "instrumentation.prometheus_listen_addr": 16660
     },
     "cfg": {
+      "rpc.cors_allowed_origins": "[\"*\"]",
       "instrumentation.prometheus": "true",
       "p2p.allow_duplicate_ip": "true",
       "p2p.seeds": "\"\"",
