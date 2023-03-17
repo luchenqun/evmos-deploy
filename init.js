@@ -96,7 +96,7 @@ chains:
             account-prefix: evmos
             keyring-backend: test
             gas-adjustment: 1.5
-            gas-prices: 1akgas
+            gas-prices: 1aqare
             min-gas-amount: 0
             debug: true
             timeout: 10s
@@ -138,7 +138,7 @@ echo "==================>before transfer"
 ./rly q bal ibc-0 --home ./relayer
 ./rly q bal ibc-1 --home ./relayer
 
-./rly tx transfer ibc-0 ibc-1 5000000000000000000akgov "$(./rly keys show ibc-1 --home ./relayer)" channel-0 -d --home ./relayer
+./rly tx transfer ibc-0 ibc-1 5000000000000000000aqrx "$(./rly keys show ibc-1 --home ./relayer)" channel-0 -d --home ./relayer
 sleep 5
 ./rly tx relay-packets demo channel-0 -d --home ./relayer
 sleep 5
@@ -150,7 +150,7 @@ echo "==================>after transfer"
 ./rly q bal ibc-1 --home ./relayer
 
 
-./rly tx transfer ibc-1 ibc-0 2000000000000000000transfer/channel-0/akgov "$(rly keys show ibc-0 --home ./relayer)" channel-0 -d --home ./relayer
+./rly tx transfer ibc-1 ibc-0 2000000000000000000transfer/channel-0/aqrx "$(rly keys show ibc-0 --home ./relayer)" channel-0 -d --home ./relayer
 sleep 5
 ./rly tx relay-packets demo channel-0 -d --home ./relayer
 sleep 5
@@ -286,9 +286,9 @@ let init = async function () {
       await fs.chmod(gaiad, 0o777);
     }
 
-    const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "TbxbG++2jqiXy+AeM2OGzKfV1ZyTIPGrF5lSQQbfmZIFlGgxIvA8XOPYiaof1fMLpOCW+Jawm6xJzvZIgq9B/g==" } };
-    const privValidatorKey = { address: "2DFA4082F0B93D32CEDB55358D99E359FEA7042A", pub_key: { type: "tendermint/PubKeyEd25519", value: "rzpeRX+IiTeO9jQzlu6KmMLNCKSRCXcRk4Q7UXJ+Ffo=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "RCGwFQ40lR0Vf0Twgok++xjEaxSbtLJP4Z6/7/FXb5KvOl5Ff4iJN472NDOW7oqYws0IpJEJdxGThDtRcn4V+g==" } };
-    const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "0.100000000000000000", max_rate: "1.000000000000000000", max_change_rate: "1.000000000000000000" }, min_self_delegation: "1", delegator_address: "quarix1hajh6rhhkjqkwet6wqld3lgx8ur4y3khmpfhlu", validator_address: "quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "rzpeRX+IiTeO9jQzlu6KmMLNCKSRCXcRk4Q7UXJ+Ffo=" }, value: { denom: "akgov", amount: "100000000000000000000" } }], memo: "294c280ccfaa8514aec3a01c9bc819cbe6a85e57@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" }, tip: null }, signatures: ["vKMwRna4ij/47kVUvHGLeIpO/bVcxiVnN/tOh4ug5+hhZMWD36rhjS2hhG7Kw1QtxgH1wMirfR5x0zLaC0lqhQA="] };
+    const nodeKey = {"priv_key":{"type":"tendermint/PrivKeyEd25519","value":"yfEOXMcgXl5yJuoKivAwxGIv2v1tUnfoUHBfCs0/4qUL320vAqBfLYQtdypUzbC65diel5MfXxTGHeSl+8Bw0w=="}}
+    const privValidatorKey = {"address":"A09CCE4AEF842057E158DB409ADB4B8170349DBE","pub_key":{"type":"tendermint/PubKeyEd25519","value":"GfZD1neiZ1tWC1P+YM9ElRVaFlmR2hFtFgDl/yVXa9Q="},"priv_key":{"type":"tendermint/PrivKeyEd25519","value":"CkJ7pDSsMNwZOUn74EO62Nl+UD6TXSGLHDY3n00PzbQZ9kPWd6JnW1YLU/5gz0SVFVoWWZHaEW0WAOX/JVdr1A=="}}
+    const createValidator = {"body":{"messages":[{"@type":"/cosmos.staking.v1beta1.MsgCreateValidator","description":{"moniker":"node0","identity":"","website":"","security_contact":"","details":""},"commission":{"rate":"0.100000000000000000","max_rate":"1.000000000000000000","max_change_rate":"1.000000000000000000"},"min_self_delegation":"1","delegator_address":"quarix1hajh6rhhkjqkwet6wqld3lgx8ur4y3khmpfhlu","validator_address":"quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7","pubkey":{"@type":"/cosmos.crypto.ed25519.PubKey","key":"GfZD1neiZ1tWC1P+YM9ElRVaFlmR2hFtFgDl/yVXa9Q="},"value":{"denom":"aqrx","amount":"100000000000000000000"}}],"memo":"c4fb387f4d19c86cf44a2e0a5eb3554d4c743cb0@192.168.0.1:26656","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[{"public_key":{"@type":"/ethermint.crypto.v1.ethsecp256k1.PubKey","key":"A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc"},"mode_info":{"single":{"mode":"SIGN_MODE_DIRECT"}},"sequence":"0"}],"fee":{"amount":[],"gas_limit":"0","payer":"","granter":""},"tip":null},"signatures":["fJCDaYA/ALPC58QEOSXzV4nx1aqLL9rK4RgMI87rWrpJcOQu/xwnyNFZvugcY8jLVAeechcdntQ36ICzlfMATwA="]}
     const keySeed = { secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft", privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2", publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b", compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c", address: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7", bip39Address: "quarix1hajh6rhhkjqkwet6wqld3lgx8ur4y3khmpfhlu" };
     if (await fs.pathExists(scriptStop)) {
       console.log("Try to stop the evmosd under the nodes directory");
@@ -372,8 +372,8 @@ let init = async function () {
         await fs.outputJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`), keySeed);
         const keyringPath = path.join(nodesDir, `node0/evmosd/keyring-test`);
         await fs.emptyDir(keyringPath);
-        await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMi0yOCAxMDo0NzozNy40NTg3OTIgKzA4MDAgQ1NUIG09KzAuMDkxNzIxMjEwIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiOVZpd19DYVJ3Q3pDLWRacCJ9.BAhbfdC-jKLcjge_OUk3lFBu8se1Hd9U64i2mtyREu6VWe8ziMTS3w.lFVcRtSjI5Zmuo6Y.CZOtd0xis0pVFQ_TK5OjtivnA2dSxR7vrgehEgkmIQW01dC5vfR_E-WOvD_gZwHhr-P_a4KmD0Bc2mug13HD-JLWgJ4XQF2_2u_i-yUy78C1EalB-xip78rlIbTaNgVWAB-rOfpZ3hPg9IYXTX3ljOE-Fk9cGXxnX4hdnb4L5aM0tKc9VgF-A89_IjDUVWanfxeGBS0Vc3A-_PTOq87oaOEIMmD-dn1TmGZqY4-5qRRrJ1dBwJE.c9Ts1ddVXsGel2W-PdVLRg");
-        await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMi0yOCAxMDo0NzozNy40NTczODUgKzA4MDAgQ1NUIG09KzAuMDkwMzE1MDAxIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiOTRUY1YyWHJUTjNpX0F5biJ9.Dr_KgdaI6RIk5eTuinQCoZAQdY1BAOA38fI68Z01yPmp3rwaUk7Eaw.kJJlSQMtovL92uIt.s0CT-DsyuJzMSLyTdU6DXy-SWctxD-lOMNcW88MmHbrejCzA51_u4v652n8hA0c6e27OVZZU0ScR9XhVpY2okWAzYACxKn17X5cStHj0LLwjAt2uCgz9g8ufoWsLxWX403SD6fpjL7J_URY1c8VbYiwDbXOT3_90NWTyPh_5U3THgAxXZ0t_hLEMAQzXU5xiFwsLPB3hH4ZI6YCzCMnapLYRgp0OSDP8YWTv8F7vUeOftPZkSW2dVIGfDukrAd7GqOjSdu_J9iVeL1ahot1LBRxlRLSBW2EkOrJRAjjOlW9tX4CLU8ZRm6CQjTmSsnO_sdrGZloluh0MPVRHIrQJuWB9TN7HoDmRwtylaDmN6c2uYVWk_1bW21wNaR4U9To5njVA_KF_c_45zvlRlvsi5O7wbJkoOtW5aCxYRMvf2srtLggpNQ_XNIXezsv7kNmjR_4WuXGu-fe2hC5POTpLIPQvFp4.kdqMWwmrRgflkRXmVcBAww");
+        await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMTA4NjkgKzA4MDAgQ1NUIG09KzAuMDkwODExMTI2IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiaE1GUk1GS3VmWG1MN3JqTCJ9.7BAWENEQQIuPQgTpU4KndAzJehSmrfpmCB3QjetS-aDxkCQi4eKS9g.0Yqfk_vOloLdfMu4.BLT_MDoICsIXwiFVQkHfSwva025Ys6T1vEIgucHj31E8_2LImXjE9E7SF2MayogN9nTr_TRw_rlPy6AJ79Bi3hscunNZHNA46WxsncNJodp5iBMTRt2KG2JeMiCEHRUIh1OATVqc_nKqnkR0ZgPHFKxCQY5xUoPB_Ix_fqARrFcSQEk_sLceRpRMRVWj3yOpg6YzFi47x7IGoIg1OsvhsKj1sOYqCTgTzcRDSzEG3ROZgzbpBuM.u-hKqVwDVyujqCQCMaQzzw");
+        await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMDkzODEgKzA4MDAgQ1NUIG09KzAuMDg5MzIzNDE4IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiUDBPUkJVczJ1eWRYR3RUZyJ9.XaNXPomwcd9zfFaazm6QP3XeFQPY4Qm4zFh12YO3GDyOykBdB_RxiA.VR3S0G6Cm081EtOJ.oq8vBlNiOIJRSfkL3FKTHRClIW5IzVh4yQy-Drh2NnyCRbIKu41arpFq9UggKfm3i2kukscRqX2UN4Fi5KHlc3sS4Vq4d2aMlP_2vp7S3xVeLMEaVqZN-WuMG_FHOJiWxAFgzJn5uV5G-6WxOAK3CsxPzbc0k7VlkV705tSsCmPbWf4jNeuRQjdK6fjppx3jcipmX4M6I5xTO1Rv9imRuMP3prCF_XYgEd86OG3l_HrCTjI-TCaCmhtONaCpenmBzbB-4hDokDSslvxyDbYnoTPnWxDmVLRmm5vH1POVSna7kUXX3UB8uQyDQ_BA2oc6X27r7Ov5S1Jw3cRj-rL9MbpUVe7QftG_FV0CiRsAbEjc1z3iVrbP_uWHk2wGJzKF02GNlsFiLvIDjDAGDN6R1Ku2pNdsoyHllkUZ2P_3masJUR4KXNmPW5w7EePkvl-VegMRzBjS65Qtc-veGtp1VmFIi2o.1FZA0sSwiFUphL4cuXJHog");
       }
     }
 
@@ -401,7 +401,7 @@ let init = async function () {
     }
 
     const account = { "@type": "/ethermint.types.v1.EthAccount", base_account: { address: "", pub_key: null, account_number: "0", sequence: "0" }, code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" };
-    const balance = { address: "", coins: [{ denom: "akgov", amount: "0" }] };
+    const balance = { address: "", coins: [{ denom: "aqrx", amount: "0" }] };
     for (let i = 0; i < nodesCount; i++) {
       let accounts = [];
       let balances = [];
@@ -433,7 +433,7 @@ let init = async function () {
       for (let balances of appState.bank.balances) {
         // use balances.coins.unshift(evmosCoin) will modify appState.bank.balances[0].coins[1]
         balances.coins.unshift({
-          denom: "akgas",
+          denom: "aqare",
           amount: "0",
         });
       }

@@ -11,12 +11,12 @@
       "json-rpc.metrics-address": 6065
     },
     "cfg": {
-      "minimum-gas-prices": "\"0aevmos\"",
+      "minimum-gas-prices": "\"0aqare\"",
       "pruning": "\"nothing\"",
       "api.swagger": "true",
       "api.enabled-unsafe-cors": "true",
       "rosetta.enable": "false",
-      "rosetta.denom-to-suggest": "\"aevmos\"",
+      "rosetta.denom-to-suggest": "\"aqare\"",
       "grpc.enable": "true",
       "grpc-web.enable": "true",
       "grpc-web.enable-unsafe-cors": "true",
@@ -71,13 +71,13 @@
   "genesisCfg": [
     "consensus_params.block.max_gas='210000000000'",
     "app_state.gov.deposit_params.max_deposit_period='60s'",
-    "app_state.gov.voting_params.voting_period='90s'",
+    "app_state.gov.voting_params.voting_period='6s'",
     "app_state.staking.params.max_validators=100",
     "app_state.staking.params.unbonding_time='600s'",
     "app_state.distribution.params.community_tax='0.000000000000000000'",
     "app_state.distribution.params.base_proposer_reward='0.000000000000000000'",
     "app_state.distribution.params.bonus_proposer_reward='0.000000000000000000'",
-    "app_state.inflation.params.mint_denom='aevmos'",
+    "app_state.inflation.params.mint_denom='aqare'",
     "app_state.inflation.params.inflation_distribution.staking_rewards='1.000000000000000000'",
     "app_state.inflation.params.inflation_distribution.usage_incentives='0.000000000000000000'",
     "app_state.inflation.params.inflation_distribution.community_pool='0.000000000000000000'",
@@ -88,7 +88,7 @@
     "app_state.slashing.params.signed_blocks_window='10'",
     "app_state.slashing.params.downtime_jail_duration='30s'",
     "app_state.inflation.params.enable_inflation=false",
-    "app_state.feemarket.params.no_base_fee=false",
+    "app_state.feemarket.params.no_base_fee=true",
     "app_state.feemarket.params.base_fee='0'"
   ]
 }
