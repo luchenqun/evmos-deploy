@@ -15,6 +15,7 @@
   ],
   "preMinePerAccount": "8000000000000000000000",
   "minimumGasPrices": "0stake",
+  "timeoutCommit": "1s",
   "genesisCfg": [
     "app_state.gov.deposit_params.max_deposit_period='60s'",
     "app_state.gov.voting_params.voting_period='60s'",
