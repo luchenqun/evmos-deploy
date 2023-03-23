@@ -6,6 +6,13 @@
   "rpcServerPort": 26657,
   "p2pPort": 10000,
   "pprofPort": 6060,
+  "preMineAccounts": [
+    "cosmos1gfg9ucc7rrzc207y9qfmf58erftzf8z8ww5lr7",
+    "cosmos1lh6pmahlkytz7lmrs25a42j6kxlmztyt204kyq",
+    "cosmos18v3mjs2pmssd03v0qz80fr0u2j5p7lxw8nchxg",
+    "cosmos1xkd6c7z0f8vcwaqm5l4rggvhlxnakc6wcrspw0",
+    "cosmos1t0md6jpwlkuufv7c5sttwdlqcajyan4252epk8"
+  ],
   "preMinePerAccount": "8000000000000000000000",
   "minimumGasPrices": "0stake",
   "genesisCfg": [

@@ -84,7 +84,7 @@ let init = async function () {
     } catch (error) {
       config = await fs.readJson("./config.default.json");
     }
-    const { preMinePerAccount } = config;
+    const { preMinePerAccount, preMineAccounts } = config;
     if (await fs.pathExists(scriptStop)) {
       console.log("Try to stop the simd under the nodes directory");
       await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
@@ -152,16 +152,12 @@ let init = async function () {
     }
 
     for (let i = 0; i < nodesCount; i++) {
-      const address = "cosmos1gfg9ucc7rrzc207y9qfmf58erftzf8z8ww5lr7"; // f78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769 0x00000be6819f41400225702d32d3dd23663dd690
       const account = {
         "@type": "/cosmos.auth.v1beta1.BaseAccount",
-        address,
-        pub_key: null,
-        account_number: "0",
-        sequence: "0",
+        address:"",
       };
       const balance = {
-        address,
+        address:"",
         coins: [
           {
             denom: "stake",
@@ -173,12 +169,20 @@ let init = async function () {
           },
         ],
       };
+      let accounts = [];
+      let balances = [];
+      if (Array.isArray(preMineAccounts)) {
+        for (const address of preMineAccounts) {
+          accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { address }));
+          balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
+        }
+      }
 
       const genesisPath = path.join(nodesDir, `node${i}/simd/config/genesis.json`);
       let genesis = await fs.readJSON(genesisPath);
       let appState = genesis.app_state;
-      appState.auth.accounts.push(account);
-      appState.bank.balances.push(balance);
+      appState.auth.accounts.push(...accounts);
+      appState.bank.balances.push(...balances);
       if (commonNode > 0) {
         for (let i = nodesCount - commonNode; i < nodesCount; i++) {
           const keySeedPath = path.join(nodesDir, `node${i}/simd/key_seed.json`);
