@@ -286,9 +286,9 @@ let init = async function () {
       await fs.chmod(gaiad, 0o777);
     }
 
-    const nodeKey = {"priv_key":{"type":"tendermint/PrivKeyEd25519","value":"yfEOXMcgXl5yJuoKivAwxGIv2v1tUnfoUHBfCs0/4qUL320vAqBfLYQtdypUzbC65diel5MfXxTGHeSl+8Bw0w=="}}
-    const privValidatorKey = {"address":"A09CCE4AEF842057E158DB409ADB4B8170349DBE","pub_key":{"type":"tendermint/PubKeyEd25519","value":"GfZD1neiZ1tWC1P+YM9ElRVaFlmR2hFtFgDl/yVXa9Q="},"priv_key":{"type":"tendermint/PrivKeyEd25519","value":"CkJ7pDSsMNwZOUn74EO62Nl+UD6TXSGLHDY3n00PzbQZ9kPWd6JnW1YLU/5gz0SVFVoWWZHaEW0WAOX/JVdr1A=="}}
-    const createValidator = {"body":{"messages":[{"@type":"/cosmos.staking.v1beta1.MsgCreateValidator","description":{"moniker":"node0","identity":"","website":"","security_contact":"","details":""},"commission":{"rate":"0.100000000000000000","max_rate":"1.000000000000000000","max_change_rate":"1.000000000000000000"},"min_self_delegation":"1","delegator_address":"quarix1hajh6rhhkjqkwet6wqld3lgx8ur4y3khmpfhlu","validator_address":"quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7","pubkey":{"@type":"/cosmos.crypto.ed25519.PubKey","key":"GfZD1neiZ1tWC1P+YM9ElRVaFlmR2hFtFgDl/yVXa9Q="},"value":{"denom":"aqrx","amount":"100000000000000000000"}}],"memo":"c4fb387f4d19c86cf44a2e0a5eb3554d4c743cb0@192.168.0.1:26656","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[{"public_key":{"@type":"/ethermint.crypto.v1.ethsecp256k1.PubKey","key":"A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc"},"mode_info":{"single":{"mode":"SIGN_MODE_DIRECT"}},"sequence":"0"}],"fee":{"amount":[],"gas_limit":"0","payer":"","granter":""},"tip":null},"signatures":["fJCDaYA/ALPC58QEOSXzV4nx1aqLL9rK4RgMI87rWrpJcOQu/xwnyNFZvugcY8jLVAeechcdntQ36ICzlfMATwA="]}
+    const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "yfEOXMcgXl5yJuoKivAwxGIv2v1tUnfoUHBfCs0/4qUL320vAqBfLYQtdypUzbC65diel5MfXxTGHeSl+8Bw0w==" } };
+    const privValidatorKey = { address: "A09CCE4AEF842057E158DB409ADB4B8170349DBE", pub_key: { type: "tendermint/PubKeyEd25519", value: "GfZD1neiZ1tWC1P+YM9ElRVaFlmR2hFtFgDl/yVXa9Q=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "CkJ7pDSsMNwZOUn74EO62Nl+UD6TXSGLHDY3n00PzbQZ9kPWd6JnW1YLU/5gz0SVFVoWWZHaEW0WAOX/JVdr1A==" } };
+    const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "0.100000000000000000", max_rate: "1.000000000000000000", max_change_rate: "1.000000000000000000" }, min_self_delegation: "1", delegator_address: "quarix1hajh6rhhkjqkwet6wqld3lgx8ur4y3khmpfhlu", validator_address: "quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "GfZD1neiZ1tWC1P+YM9ElRVaFlmR2hFtFgDl/yVXa9Q=" }, value: { denom: "aqrx", amount: "100000000000000000000" } }], memo: "c4fb387f4d19c86cf44a2e0a5eb3554d4c743cb0@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" }, tip: null }, signatures: ["fJCDaYA/ALPC58QEOSXzV4nx1aqLL9rK4RgMI87rWrpJcOQu/xwnyNFZvugcY8jLVAeechcdntQ36ICzlfMATwA="] };
     const keySeed = { secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft", privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2", publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b", compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c", address: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7", bip39Address: "quarix1hajh6rhhkjqkwet6wqld3lgx8ur4y3khmpfhlu" };
     if (await fs.pathExists(scriptStop)) {
       console.log("Try to stop the evmosd under the nodes directory");
@@ -397,11 +397,24 @@ let init = async function () {
       curKeySeed.compressedPublicKey = wallet._signingKey().compressedPublicKey.toLowerCase().replace("0x", "");
       curKeySeed.address = wallet.address;
       curKeySeed.bip39Address = ethToBech32(wallet.address, "quarix");
+      curKeySeed.valAddress = ethToBech32(wallet.address, "quarixvaloper");
       await fs.outputJson(keySeedPath, curKeySeed, { spaces: 2 });
     }
 
     const account = { "@type": "/ethermint.types.v1.EthAccount", base_account: { address: "", pub_key: null, account_number: "0", sequence: "0" }, code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" };
     const balance = { address: "", coins: [{ denom: "aqrx", amount: "0" }] };
+
+    let investmentProgramPools = [
+      { current_staking: Math.ceil(validators / 2) + "0".repeat(20), details: "For Test IPP1", id: "0", max_staking: "1000000000000000000000", name: "IPP1", royalty_fee: "0.100000000000000000", voting_weight: "2.000000000000000000" },
+      { current_staking: Math.floor(validators / 2) + "0".repeat(20), details: "For Test IPP2", id: "1", max_staking: "1000000000000000000000", name: "IPP2", royalty_fee: "0.200000000000000000", voting_weight: "1.000000000000000000" },
+    ];
+    const ippId = String(investmentProgramPools.length);
+    let allocateInvestmentProgramPools = [];
+    for (let i = 0; i < validators; i++) {
+      const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
+      let curKeySeed = await fs.readJSON(keySeedPath);
+      allocateInvestmentProgramPools.push({ ipp_id: String(i % 2), validator_address: curKeySeed.valAddress });
+    }
     for (let i = 0; i < nodesCount; i++) {
       let accounts = [];
       let balances = [];
@@ -449,6 +462,10 @@ let init = async function () {
         appState.bank.balances[0].address = keySeed.bip39Address;
         appState.genutil.gen_txs[0] = createValidator;
       }
+
+      appState.staking.investment_program_pools = investmentProgramPools;
+      appState.staking.allocate_investment_program_pools = allocateInvestmentProgramPools;
+      appState.staking.ipp_id = ippId;
 
       const genesisCfg = config.genesisCfg;
       if (Array.isArray(genesisCfg)) {
