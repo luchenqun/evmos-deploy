@@ -405,8 +405,8 @@ let init = async function () {
     const balance = { address: "", coins: [{ denom: "aqrx", amount: "0" }] };
 
     let investmentProgramPools = [
-      { current_staking: Math.ceil(validators / 2) + "0".repeat(20), details: "For Test IPP1", id: "0", max_staking: "1000000000000000000000", name: "IPP1", royalty_fee: "0.100000000000000000", voting_weight: "2.000000000000000000" },
-      { current_staking: Math.floor(validators / 2) + "0".repeat(20), details: "For Test IPP2", id: "1", max_staking: "1000000000000000000000", name: "IPP2", royalty_fee: "0.200000000000000000", voting_weight: "1.000000000000000000" },
+      { current_staking: "0", details: "For Test IPP1", id: "0", max_staking: "1000000000000000000000", name: "IPP1", royalty_fee: "0.100000000000000000", voting_weight: "2.000000000000000000" },
+      { current_staking: "0", details: "For Test IPP2", id: "1", max_staking: "1000000000000000000000", name: "IPP2", royalty_fee: "0.200000000000000000", voting_weight: "1.000000000000000000" },
     ];
     const ippId = String(investmentProgramPools.length);
     let allocateInvestmentProgramPools = [];
