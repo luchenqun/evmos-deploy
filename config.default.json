@@ -1,6 +1,6 @@
 {
   "app": {
-    "chain_id": "quarix_88888888-1",
+    "chain_id": "quarix_8888888-1",
     "port": {
       "api.address": 1317,
       "rosetta.address": 8080,
