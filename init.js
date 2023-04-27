@@ -233,7 +233,7 @@ let init = async function () {
     } catch (error) {
       config = await fs.readJson("./config.default.json");
     }
-    const { app, tendermint, govCoin, preMinePerAccount, fixedFirstValidator, preMineAccounts, ibc, govTransferDemo } = config;
+    const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, ibc } = config;
     gaiaP2pPort = ibc.tendermint["p2p.laddr"].split(":").pop().split(`"`)[0];
     if(app.chain_id) {
       evmosChainId = app.chain_id
@@ -274,7 +274,7 @@ let init = async function () {
 
     const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "bq6XFN3gT1s5TR4uvEZo71VK2XrKdaQ1ecXKXOPEr8q0wRHFwEwP97pmwewLjtHDTYok5rS4T9751MaSIlS6Vg==" } };
     const privValidatorKey = { address: "A8BF37F9C6EAE0E808319460EDD5A3D714613D7A", pub_key: { type: "tendermint/PubKeyEd25519", value: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "jH2WRl02s7AIhqCJqYmnBl+atc7aXZnhb5DQCk3FbR1xov0F/syeuifLgc5iAqjklIJgvI3JNTK36nD69uaN3A==" } };
-    const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "0.100000000000000000", max_rate: "1.000000000000000000", max_change_rate: "0.100000000000000000" }, min_self_delegation: "1", delegator_address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh", validator_address: "evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, value: { denom: govCoin ? "agov" : "aevmos", amount: "100000000000000000000" } }], memo: "90d5c044ed4938cfeac4f41635db3b88c894c21f@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" } }, signatures: [govCoin ? "T1TtcdJol2tNFXIjilXZiP3qHWHcUTEURKZ0PMYp7pJr0Y12aJX320EFVenNUbje2Mt/VPoiIu2tQbgx1ZXi4wA=" : "HApoRLTw6JHNj+813tn1aQb3JG5wJWV1MMDbKFPUdxRpp1eEnMI3VcK7qm+bhXT/U8RO738si4ww6x0lnVeCggA="] };
+    const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "0.100000000000000000", max_rate: "1.000000000000000000", max_change_rate: "0.100000000000000000" }, min_self_delegation: "1", delegator_address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh", validator_address: "evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "caL9Bf7Mnrony4HOYgKo5JSCYLyNyTUyt+pw+vbmjdw=" }, value: { denom: "aevmos", amount: "100000000000000000000" } }], memo: "90d5c044ed4938cfeac4f41635db3b88c894c21f@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" } }, signatures: ["HApoRLTw6JHNj+813tn1aQb3JG5wJWV1MMDbKFPUdxRpp1eEnMI3VcK7qm+bhXT/U8RO738si4ww6x0lnVeCggA="] };
     const keySeed = { secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft", privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2", publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b", compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c", address: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7", bip39Address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh" };
     if (await fs.pathExists(scriptStop)) {
       console.log("Try to stop the evmosd under the nodes directory");
@@ -387,7 +387,7 @@ let init = async function () {
     }
 
     const account = { "@type": "/ethermint.types.v1.EthAccount", base_account: { address: "", pub_key: null, account_number: "0", sequence: "0" }, code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" };
-    const balance = { address: "", coins: [{ denom: govCoin ? "agov" : "aevmos", amount: "0" }] };
+    const balance = { address: "", coins: [{ denom: "aevmos", amount: "0" }] };
     for (let i = 0; i < nodesCount; i++) {
       let accounts = [];
       let balances = [];
@@ -416,40 +416,11 @@ let init = async function () {
           appState.bank.balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
         }
       }
-      for (let balances of appState.bank.balances) {
-        // use balances.coins.unshift(evmosCoin) will modify appState.bank.balances[0].coins[1]
-        if (govCoin) {
-          balances.coins.unshift({
-            denom: "aevmos",
-            amount: "0",
-          });
-        }
-      }
 
       for (let balances of appState.bank.balances) {
         for (let coin of balances.coins) {
           coin.amount = preMinePerAccount;
         }
-      }
-
-      if(govTransferDemo) {
-        for (let balances of appState.bank.balances) {
-          balances.coins.push({
-            "denom": "kgov",
-            "amount": "10000000000000000000000"
-          })
-        }
-        appState.auth.accounts.push({
-          "@type": "/ethermint.types.v1.EthAccount",
-          "base_account": {
-            "address": "evmos13zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygzucpu3"
-          },
-          "code_hash": "0x0fc88b051e495211deb97d048d772e99e00d1cdbd0d571f9002b218b16e3f29f"
-        })
-        appState.evm.accounts.push({
-          "address": "8888888888888888888888888888888888888888",
-          "code": "6080604052600436106100985763ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166306fdde03811461009d578063095ea7b31461012757806318160ddd1461016c57806323b872dd14610193578063313ce567146101ca57806370a08231146101f557806395d89b4114610223578063a9059cbb14610127578063dd62ed3e14610238575b600080fd5b3480156100a957600080fd5b506100b261026c565b6040805160208082528351818301528351919283929083019185019080838360005b838110156100ec5781810151838201526020016100d4565b50505050905090810190601f1680156101195780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b34801561013357600080fd5b5061015873ffffffffffffffffffffffffffffffffffffffff600435166024356102a3565b604080519115158252519081900360200190f35b34801561017857600080fd5b506101816102ab565b60408051918252519081900360200190f35b34801561019f57600080fd5b5061015873ffffffffffffffffffffffffffffffffffffffff600435811690602435166044356102b9565b3480156101d657600080fd5b506101df6102c2565b6040805160ff9092168252519081900360200190f35b34801561020157600080fd5b5061018173ffffffffffffffffffffffffffffffffffffffff600435166102c7565b34801561022f57600080fd5b506100b26102cd565b34801561024457600080fd5b5061018173ffffffffffffffffffffffffffffffffffffffff60043581169060243516610304565b60408051808201909152600981527f57726170204b474f560000000000000000000000000000000000000000000000602082015290565b600192915050565b69043c33c193756480000090565b60019392505050565b601290565b50600090565b60408051808201909152600481527f4b474f5600000000000000000000000000000000000000000000000000000000602082015290565b6000929150505600a165627a7a723058206ae65f5e8ca73a90bc7d7e41ac0264c638c3f393b4b4a577eef3685c188594d70029"
-        })
       }
 
       if (fixedFirstValidator) {
@@ -464,6 +435,9 @@ let init = async function () {
           eval("genesis." + cfg);
         }
       }
+
+      // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
+      appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "evmos1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3z33a4" } }));
 
       await fs.outputJson(genesisPath, genesis, { spaces: 2 });
     }

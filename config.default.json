@@ -42,7 +42,6 @@
     "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583"
   ],
   "preMinePerAccount": "10000000000000000000000000",
-  "govCoin": false,
   "fixedFirstValidator": true,
   "ibc": {
     "enable": false,
