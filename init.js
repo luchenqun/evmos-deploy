@@ -248,7 +248,7 @@ let init = async function () {
     } catch (error) {
       config = await fs.readJson("./config.default.json");
     }
-    const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, ibc, evmAccounts } = config;
+    const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, privateKeys, ibc, evmAccounts } = config;
     gaiaP2pPort = ibc.tendermint["p2p.laddr"].split(":").pop().split(`"`)[0];
     if (app.chain_id) {
       rlyCfg = rlyCfg.replaceAll(quarixChainId, app.chain_id);
@@ -406,15 +406,15 @@ let init = async function () {
     const balance = { address: "", coins: [{ denom: "aqrx", amount: "0" }] };
 
     let investmentProgramPools = [
-      { current_staking: "0", details: "For Test IPP1", id: "0", max_staking: "1000000000000000000000", name: "IPP1", royalty_fee: "0.100000000000000000", voting_weight: "2.000000000000000000" },
-      { current_staking: "0", details: "For Test IPP2", id: "1", max_staking: "1000000000000000000000", name: "IPP2", royalty_fee: "0.200000000000000000", voting_weight: "1.000000000000000000" },
+      { current_staking: "0", details: "For Test IPP1", id: "1", max_staking: "1000000000000000000000", name: "IPP1", royalty_fee: "0.100000000000000000", voting_weight: "2.000000000000000000" },
+      { current_staking: "0", details: "For Test IPP2", id: "2", max_staking: "1000000000000000000000", name: "IPP2", royalty_fee: "0.200000000000000000", voting_weight: "1.000000000000000000" },
     ];
-    const ippId = String(investmentProgramPools.length);
+    const ippId = String(investmentProgramPools.length + 1);
     let allocateInvestmentProgramPools = [];
     for (let i = 0; i < validators; i++) {
       const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
       let curKeySeed = await fs.readJSON(keySeedPath);
-      allocateInvestmentProgramPools.push({ ipp_id: String(i % 2), validator_address: curKeySeed.valAddress });
+      allocateInvestmentProgramPools.push({ ipp_id: String(i % 2 + 1), validator_address: curKeySeed.valAddress });
     }
 
     for (let i = 0; i < nodesCount; i++) {
@@ -528,7 +528,13 @@ let init = async function () {
       keySeed = await fs.readJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`));
       await execPromis(`${rlyCmd} keys restore ibc-0 testkey "${keySeed.secret}" --coin-type 60 --home ${rlyHome}`, { cwd: curDir });
       keySeed = await fs.readJSON(`${gaiaHome}/key_seed.json`);
-      await execPromis(`${rlyCmd} keys restore ibc-1 testkey "${keySeed.mnemonic}" --home ${rlyHome}`, { cwd: curDir });
+
+    }
+
+    if(Array.isArray(privateKeys)) {
+      for (const privateKey of privateKeys) {
+        await execPromis(`echo -n "your-password" | evmosd keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/evmosd --keyring-backend test`, { cwd: curDir });
+      }
     }
 
     // 生成启动命令脚本
