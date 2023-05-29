@@ -405,17 +405,17 @@ let init = async function () {
     const account = { "@type": "/ethermint.types.v1.EthAccount", base_account: { address: ""}, code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" };
     const balance = { address: "", coins: [{ denom: "aqrx", amount: "0" }] };
 
-    let investmentProgramPools = [
-      { current_staking: "0", details: "For Test IPP1", id: "1", max_staking: "1000000000000000000000", name: "IPP1", royalty_fee: "0.100000000000000000", voting_weight: "2.000000000000000000" },
-      { current_staking: "0", details: "For Test IPP2", id: "2", max_staking: "1000000000000000000000", name: "IPP2", royalty_fee: "0.200000000000000000", voting_weight: "1.000000000000000000" },
-    ];
-    const ippId = String(investmentProgramPools.length + 1);
-    let allocateInvestmentProgramPools = [];
-    for (let i = 0; i < validators; i++) {
-      const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
-      let curKeySeed = await fs.readJSON(keySeedPath);
-      allocateInvestmentProgramPools.push({ ipp_id: String(i % 2 + 1), validator_address: curKeySeed.valAddress });
-    }
+    // let investmentProgramPools = [
+    //   { current_staking: "0", details: "For Test IPP1", id: "1", max_staking: "1000000000000000000000", name: "IPP1", royalty_fee: "0.100000000000000000", voting_weight: "2.000000000000000000" },
+    //   { current_staking: "0", details: "For Test IPP2", id: "2", max_staking: "1000000000000000000000", name: "IPP2", royalty_fee: "0.200000000000000000", voting_weight: "1.000000000000000000" },
+    // ];
+    // const ippId = String(investmentProgramPools.length + 1);
+    // let allocateInvestmentProgramPools = [];
+    // for (let i = 0; i < validators; i++) {
+    //   const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
+    //   let curKeySeed = await fs.readJSON(keySeedPath);
+    //   allocateInvestmentProgramPools.push({ ipp_id: String(i % 2 + 1), validator_address: curKeySeed.valAddress });
+    // }
 
     for (let i = 0; i < nodesCount; i++) {
       let accounts = [];
@@ -469,9 +469,9 @@ let init = async function () {
       // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
       appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "quarix1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcl7sy7" } }));
 
-      appState.staking.investment_program_pools = investmentProgramPools;
-      appState.staking.allocate_investment_program_pools = allocateInvestmentProgramPools;
-      appState.staking.ipp_id = ippId;
+      // appState.staking.investment_program_pools = investmentProgramPools;
+      appState.staking.allocate_investment_program_pools.push({ ipp_id: "1", validator_address: "quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7" })
+      // appState.staking.ipp_id = ippId;
       appState.evm.accounts.push(...evmAccounts);
       for (const evmAccount of evmAccounts) {
         const address = ethToBech32(evmAccount.address, "quarix")
