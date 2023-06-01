@@ -248,7 +248,7 @@ let init = async function () {
     } catch (error) {
       config = await fs.readJson("./config.default.json");
     }
-    const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, privateKeys, ibc, evmAccounts } = config;
+    const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, privateKeys, ibc } = config;
     gaiaP2pPort = ibc.tendermint["p2p.laddr"].split(":").pop().split(`"`)[0];
     if (app.chain_id) {
       rlyCfg = rlyCfg.replaceAll(quarixChainId, app.chain_id);
@@ -287,10 +287,76 @@ let init = async function () {
       await fs.chmod(gaiad, 0o777);
     }
 
-    const nodeKey = {"priv_key":{"type":"tendermint/PrivKeyEd25519","value":"jawXThUVHDQQflxSXHYMDDtSx5vc9XsD0Eb4zoygQvjCk1UX3ePJ3xPuTUlsJBUjEJV8hB4wfflrZ8sl+kZasQ=="}};
-    const privValidatorKey = {"address":"62382679430420F0987AD892B1D52B80F6E306DB","pub_key":{"type":"tendermint/PubKeyEd25519","value":"/PnMg/MEeXAUsmAsV2QpV2PDH/PAn3fSskPza5mXR/4="},"priv_key":{"type":"tendermint/PrivKeyEd25519","value":"MRm4JzYL7BGrsRzD7deY3wT09Hjs0m2VJKSUG0i3Vrz8+cyD8wR5cBSyYCxXZClXY8Mf88Cfd9KyQ/NrmZdH/g=="}}
-    const createValidator = {"body":{"messages":[{"@type":"/cosmos.staking.v1beta1.MsgCreateValidator","description":{"moniker":"node0","identity":"","website":"","security_contact":"","details":""},"commission":{"rate":"0.100000000000000000","max_rate":"1.000000000000000000","max_change_rate":"1.000000000000000000"},"min_self_delegation":"1","delegator_address":"quarix1hajh6rhhkjqkwet6wqld3lgx8ur4y3khmpfhlu","validator_address":"quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7","pubkey":{"@type":"/cosmos.crypto.ed25519.PubKey","key":"/PnMg/MEeXAUsmAsV2QpV2PDH/PAn3fSskPza5mXR/4="},"value":{"denom":"aqrx","amount":"100000000000000000000"}}],"memo":"d53fe9351b94fd03be1fa219f39e3b77e4b23e2b@192.168.0.1:26656","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[{"public_key":{"@type":"/ethermint.crypto.v1.ethsecp256k1.PubKey","key":"A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc"},"mode_info":{"single":{"mode":"SIGN_MODE_DIRECT"}},"sequence":"0"}],"fee":{"amount":[],"gas_limit":"0","payer":"","granter":""},"tip":null},"signatures":["RjghsgehZak8VRmereMlEtymEc1usLsBH9hlxhqYjxsu/AKy+v520TSOuq/sXizSPYJqW/GDFaeYl3dtXGcE+wE="]}
-    const keySeed = { secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft", privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2", publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b", compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c", address: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7", bip39Address: "quarix1hajh6rhhkjqkwet6wqld3lgx8ur4y3khmpfhlu" };
+    const nodeKey = {
+      priv_key: {
+        type: "tendermint/PrivKeyEd25519",
+        value: "jawXThUVHDQQflxSXHYMDDtSx5vc9XsD0Eb4zoygQvjCk1UX3ePJ3xPuTUlsJBUjEJV8hB4wfflrZ8sl+kZasQ==",
+      },
+    };
+    const privValidatorKey = {
+      address: "62382679430420F0987AD892B1D52B80F6E306DB",
+      pub_key: { type: "tendermint/PubKeyEd25519", value: "/PnMg/MEeXAUsmAsV2QpV2PDH/PAn3fSskPza5mXR/4=" },
+      priv_key: {
+        type: "tendermint/PrivKeyEd25519",
+        value: "MRm4JzYL7BGrsRzD7deY3wT09Hjs0m2VJKSUG0i3Vrz8+cyD8wR5cBSyYCxXZClXY8Mf88Cfd9KyQ/NrmZdH/g==",
+      },
+    };
+    const createValidator = {
+      body: {
+        messages: [
+          {
+            "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+            description: {
+              moniker: "node0",
+              identity: "",
+              website: "",
+              security_contact: "",
+              details: "",
+            },
+            commission: {
+              rate: "0.100000000000000000",
+              max_rate: "1.000000000000000000",
+              max_change_rate: "1.000000000000000000",
+            },
+            min_self_delegation: "1",
+            delegator_address: "quarix1hajh6rhhkjqkwet6wqld3lgx8ur4y3khmpfhlu",
+            validator_address: "quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7",
+            pubkey: {
+              "@type": "/cosmos.crypto.ed25519.PubKey",
+              key: "/PnMg/MEeXAUsmAsV2QpV2PDH/PAn3fSskPza5mXR/4=",
+            },
+            value: { denom: "aqrx", amount: "100000000000000000000" },
+          },
+        ],
+        memo: "d53fe9351b94fd03be1fa219f39e3b77e4b23e2b@192.168.0.1:26656",
+        timeout_height: "0",
+        extension_options: [],
+        non_critical_extension_options: [],
+      },
+      auth_info: {
+        signer_infos: [
+          {
+            public_key: {
+              "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey",
+              key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc",
+            },
+            mode_info: { single: { mode: "SIGN_MODE_DIRECT" } },
+            sequence: "0",
+          },
+        ],
+        fee: { amount: [], gas_limit: "0", payer: "", granter: "" },
+        tip: null,
+      },
+      signatures: ["RjghsgehZak8VRmereMlEtymEc1usLsBH9hlxhqYjxsu/AKy+v520TSOuq/sXizSPYJqW/GDFaeYl3dtXGcE+wE="],
+    };
+    const keySeed = {
+      secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft",
+      privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2",
+      publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b",
+      compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c",
+      address: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7",
+      bip39Address: "quarix1hajh6rhhkjqkwet6wqld3lgx8ur4y3khmpfhlu",
+    };
     if (await fs.pathExists(scriptStop)) {
       console.log("Try to stop the evmosd under the nodes directory");
       await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
@@ -402,20 +468,12 @@ let init = async function () {
       await fs.outputJson(keySeedPath, curKeySeed, { spaces: 2 });
     }
 
-    const account = { "@type": "/ethermint.types.v1.EthAccount", base_account: { address: ""}, code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" };
+    const account = {
+      "@type": "/ethermint.types.v1.EthAccount",
+      base_account: { address: "" },
+      code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+    };
     const balance = { address: "", coins: [{ denom: "aqrx", amount: "0" }] };
-
-    // let investmentProgramPools = [
-    //   { current_staking: "0", details: "For Test IPP1", id: "1", max_staking: "1000000000000000000000", name: "IPP1", royalty_fee: "0.100000000000000000", voting_weight: "2.000000000000000000" },
-    //   { current_staking: "0", details: "For Test IPP2", id: "2", max_staking: "1000000000000000000000", name: "IPP2", royalty_fee: "0.200000000000000000", voting_weight: "1.000000000000000000" },
-    // ];
-    // const ippId = String(investmentProgramPools.length + 1);
-    // let allocateInvestmentProgramPools = [];
-    // for (let i = 0; i < validators; i++) {
-    //   const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
-    //   let curKeySeed = await fs.readJSON(keySeedPath);
-    //   allocateInvestmentProgramPools.push({ ipp_id: String(i % 2 + 1), validator_address: curKeySeed.valAddress });
-    // }
 
     for (let i = 0; i < nodesCount; i++) {
       let accounts = [];
@@ -464,21 +522,13 @@ let init = async function () {
         appState.auth.accounts[0].base_account.address = keySeed.bip39Address;
         appState.bank.balances[0].address = keySeed.bip39Address;
         appState.genutil.gen_txs[0] = createValidator;
+        appState.staking.allocate_investment_program_pools.push({
+          ipp_id: "1",
+          validator_address: "quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7",
+        });
       }
-
       // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
       appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "quarix1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcl7sy7" } }));
-
-      // appState.staking.investment_program_pools = investmentProgramPools;
-      appState.staking.allocate_investment_program_pools.push({ ipp_id: "1", validator_address: "quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7" })
-      // appState.staking.ipp_id = ippId;
-      appState.evm.accounts.push(...evmAccounts);
-      for (const evmAccount of evmAccounts) {
-        const address = ethToBech32(evmAccount.address, "quarix")
-        const code_hash = ethers.keccak256("0x" + evmAccount.code )
-        const acc = { base_account: { address }, code_hash }
-        appState.auth.accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), acc))
-      }
 
       const genesisCfg = config.genesisCfg;
       if (Array.isArray(genesisCfg)) {
@@ -528,10 +578,9 @@ let init = async function () {
       keySeed = await fs.readJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`));
       await execPromis(`${rlyCmd} keys restore ibc-0 testkey "${keySeed.secret}" --coin-type 60 --home ${rlyHome}`, { cwd: curDir });
       keySeed = await fs.readJSON(`${gaiaHome}/key_seed.json`);
-
     }
 
-    if(Array.isArray(privateKeys)) {
+    if (Array.isArray(privateKeys)) {
       for (const privateKey of privateKeys) {
         await execPromis(`echo -n "your-password" | evmosd keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/evmosd --keyring-backend test`, { cwd: curDir });
       }
