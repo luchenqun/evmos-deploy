@@ -413,8 +413,13 @@ let init = async function () {
     }
 
     {
-      const initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
-      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
+      let initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
+      let initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
+      if(fixedFirstValidator) {
+        initFiles += " --role-validators 0xbf657D0ef7b48167657A703Ed8Fd063F075246D7"
+        initFilesValidator += " --role-validators 0xbf657D0ef7b48167657A703Ed8Fd063F075246D7"
+      }
+
       console.log(`Exec cmd: ${initFiles}`);
       const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
       console.log(`init-files ${stdout}${stderr}\n`);
@@ -473,7 +478,13 @@ let init = async function () {
       base_account: { address: "" },
       code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
     };
-    const balance = { address: "", coins: [{ denom: "aqrx", amount: "0" }] };
+    const balance = {
+      address: "",
+      coins: [
+        { denom: "aqare", amount: "0" },
+        { denom: "aqrx", amount: "0" },
+      ],
+    };
 
     for (let i = 0; i < nodesCount; i++) {
       let accounts = [];
@@ -484,10 +495,6 @@ let init = async function () {
           balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
         }
       }
-      // const evmosCoin = {
-      //   denom: "akgas",
-      //   amount: "0",
-      // };
 
       const genesisPath = path.join(nodesDir, `node${i}/evmosd/config/genesis.json`);
       let genesis = await fs.readJSON(genesisPath);
@@ -502,14 +509,6 @@ let init = async function () {
           appState.auth.accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
           appState.bank.balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
         }
-      }
-
-      for (let balances of appState.bank.balances) {
-        // use balances.coins.unshift(evmosCoin) will modify appState.bank.balances[0].coins[1]
-        balances.coins.unshift({
-          denom: "aqare",
-          amount: "0",
-        });
       }
 
       for (let balances of appState.bank.balances) {
