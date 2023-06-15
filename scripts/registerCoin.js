@@ -8,7 +8,8 @@ let run = async function () {
     const cwd = path.join(process.cwd(), "..");
     const fixed = `--from=node0 --home=./nodes/node0/quarixd/ --keyring-backend=test --chain-id=quarix_8888888-1 --gas="auto" -y`;
     const erc20Address = "0x80b5a32E4F032B2a058b4F29EC95EEfEEB87aDcd";
-    const receiver = "quarix1qqqqhe5pnaq5qq39wqkn957aydnrm45sywg476"; // "0x00000Be6819f41400225702D32d3dd23663Dd690";
+    const sender = "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7";
+    const receiver = "quarix1qqqqhe5pnaq5qq39wqkn957aydnrm45sywg476"; // "quarix1qqqqhe5pnaq5qq39wqkn957aydnrm45sywg476"; // "0x00000Be6819f41400225702D32d3dd23663Dd690";
     let cmd;
     let reply;
 
@@ -28,7 +29,7 @@ let run = async function () {
 
     {
       // native coin => erc20 tokon
-      cmd = `./quarixd tx erc20 convert-coin ${web3.utils.toWei("8")}aqrx ${erc20Address} ${fixed}`;
+      cmd = `./quarixd tx erc20 convert-coin ${web3.utils.toWei("8")}aqrx ${sender} ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
       await sleep(1500);
