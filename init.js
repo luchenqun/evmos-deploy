@@ -1,7 +1,5 @@
 import { Wallet } from "@ethersproject/wallet";
-import { ethToEvmos } from "@tharsis/address-converter";
 import { exec } from "child_process";
-import { ethers } from "ethers";
 import download from "download";
 import fs from "fs-extra";
 import path from "path";
@@ -71,7 +69,7 @@ const arch = os.arch();
 const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
-const evmosd = platform == "win32" ? "evmosd.exe" : "evmosd";
+const quarixd = platform == "win32" ? "quarixd.exe" : "quarixd";
 const gaiad = platform == "win32" ? "gaiad.exe" : "gaiad";
 const gaiadCmd = platform == "win32" ? "gaiad.exe" : "./gaiad";
 const gaiaHome = "./nodes/gaia";
@@ -94,7 +92,7 @@ chains:
             key: testkey
             chain-id: ${quarixChainId}
             rpc-addr: http://localhost:26657
-            account-prefix: evmos
+            account-prefix: quarix
             keyring-backend: test
             gas-adjustment: 1.5
             gas-prices: 1aqare
@@ -358,18 +356,18 @@ let init = async function () {
       bip39Address: "quarix1hajh6rhhkjqkwet6wqld3lgx8ur4y3khmpfhlu",
     };
     if (await fs.pathExists(scriptStop)) {
-      console.log("Try to stop the evmosd under the nodes directory");
+      console.log("Try to stop the quarixd under the nodes directory");
       await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
       await sleep(platform == "win32" ? 600 : 300);
     }
-    if (!fs.existsSync(evmosd) || isCompile) {
-      console.log("Start recompiling evmosd...");
-      let make = await execPromis("go build ../cmd/evmosd", { cwd: curDir });
-      console.log("evmosd compile finished", make);
+    if (!fs.existsSync(quarixd) || isCompile) {
+      console.log("Start recompiling quarixd...");
+      let make = await execPromis("go build -o quarixd ../cmd/evmosd", { cwd: curDir });
+      console.log("quarixd compile finished", make);
     }
 
-    if (!fs.existsSync(evmosd)) {
-      console.log("evmosd Executable file does not exist");
+    if (!fs.existsSync(quarixd)) {
+      console.log("quarixd Executable file does not exist");
       return;
     }
 
@@ -413,11 +411,11 @@ let init = async function () {
     }
 
     {
-      let initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
-      let initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
-      if(fixedFirstValidator) {
-        initFiles += " --role-validators 0xbf657D0ef7b48167657A703Ed8Fd063F075246D7"
-        initFilesValidator += " --role-validators 0xbf657D0ef7b48167657A703Ed8Fd063F075246D7"
+      let initFiles = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
+      let initFilesValidator = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
+      if (fixedFirstValidator) {
+        initFiles += " --role-validators 0xbf657D0ef7b48167657A703Ed8Fd063F075246D7";
+        initFilesValidator += " --role-validators 0xbf657D0ef7b48167657A703Ed8Fd063F075246D7";
       }
 
       console.log(`Exec cmd: ${initFiles}`);
@@ -432,24 +430,24 @@ let init = async function () {
 
         // re init validator, and turn a validator node into a common node
         await execPromis(initFilesValidator, { cwd: curDir });
-        const genesisPath = path.join(nodesDir, `node0/evmosd/config/genesis.json`);
+        const genesisPath = path.join(nodesDir, `node0/quarixd/config/genesis.json`);
         for (let i = validators; i < nodesCount; i++) {
-          await fs.copy(genesisPath, path.join(nodesDir, `node${i}/evmosd/config/genesis.json`));
+          await fs.copy(genesisPath, path.join(nodesDir, `node${i}/quarixd/config/genesis.json`));
         }
       }
 
       if (fixedFirstValidator) {
-        await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/node_key.json`), nodeKey);
-        await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/priv_validator_key.json`), privValidatorKey);
-        await fs.outputJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`), keySeed);
-        const keyringPath = path.join(nodesDir, `node0/evmosd/keyring-test`);
+        await fs.writeJSON(path.join(nodesDir, `node0/quarixd/config/node_key.json`), nodeKey);
+        await fs.writeJSON(path.join(nodesDir, `node0/quarixd/config/priv_validator_key.json`), privValidatorKey);
+        await fs.outputJSON(path.join(nodesDir, `node0/quarixd/key_seed.json`), keySeed);
+        const keyringPath = path.join(nodesDir, `node0/quarixd/keyring-test`);
         await fs.emptyDir(keyringPath);
         await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMTA4NjkgKzA4MDAgQ1NUIG09KzAuMDkwODExMTI2IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiaE1GUk1GS3VmWG1MN3JqTCJ9.7BAWENEQQIuPQgTpU4KndAzJehSmrfpmCB3QjetS-aDxkCQi4eKS9g.0Yqfk_vOloLdfMu4.BLT_MDoICsIXwiFVQkHfSwva025Ys6T1vEIgucHj31E8_2LImXjE9E7SF2MayogN9nTr_TRw_rlPy6AJ79Bi3hscunNZHNA46WxsncNJodp5iBMTRt2KG2JeMiCEHRUIh1OATVqc_nKqnkR0ZgPHFKxCQY5xUoPB_Ix_fqARrFcSQEk_sLceRpRMRVWj3yOpg6YzFi47x7IGoIg1OsvhsKj1sOYqCTgTzcRDSzEG3ROZgzbpBuM.u-hKqVwDVyujqCQCMaQzzw");
         await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMDkzODEgKzA4MDAgQ1NUIG09KzAuMDg5MzIzNDE4IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiUDBPUkJVczJ1eWRYR3RUZyJ9.XaNXPomwcd9zfFaazm6QP3XeFQPY4Qm4zFh12YO3GDyOykBdB_RxiA.VR3S0G6Cm081EtOJ.oq8vBlNiOIJRSfkL3FKTHRClIW5IzVh4yQy-Drh2NnyCRbIKu41arpFq9UggKfm3i2kukscRqX2UN4Fi5KHlc3sS4Vq4d2aMlP_2vp7S3xVeLMEaVqZN-WuMG_FHOJiWxAFgzJn5uV5G-6WxOAK3CsxPzbc0k7VlkV705tSsCmPbWf4jNeuRQjdK6fjppx3jcipmX4M6I5xTO1Rv9imRuMP3prCF_XYgEd86OG3l_HrCTjI-TCaCmhtONaCpenmBzbB-4hDokDSslvxyDbYnoTPnWxDmVLRmm5vH1POVSna7kUXX3UB8uQyDQ_BA2oc6X27r7Ov5S1Jw3cRj-rL9MbpUVe7QftG_FV0CiRsAbEjc1z3iVrbP_uWHk2wGJzKF02GNlsFiLvIDjDAGDN6R1Ku2pNdsoyHllkUZ2P_3masJUR4KXNmPW5w7EePkvl-VegMRzBjS65Qtc-veGtp1VmFIi2o.1FZA0sSwiFUphL4cuXJHog");
       }
     }
 
-    await fs.copy(evmosd, `./nodes/${evmosd}`);
+    await fs.copy(quarixd, `./nodes/${quarixd}`);
     if (ibc.enable) {
       await fs.copy(gaiad, `./nodes/${gaiad}`);
       await fs.copy(rly, `./nodes/${rly}`);
@@ -457,11 +455,11 @@ let init = async function () {
 
     let nodeIds = [];
     for (let i = 0; i < nodesCount; i++) {
-      const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/evmosd/config/node_key.json`));
+      const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/quarixd/config/node_key.json`));
       const nodeId = tenderKeys.getBurrowAddressFromPrivKey(Buffer.from(nodeKey.priv_key.value, "base64").toString("hex"));
       nodeIds.push(nodeId);
 
-      const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
+      const keySeedPath = path.join(nodesDir, `node${i}/quarixd/key_seed.json`);
       let curKeySeed = await fs.readJSON(keySeedPath);
       const wallet = Wallet.fromMnemonic(curKeySeed.secret);
       curKeySeed.privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
@@ -496,14 +494,14 @@ let init = async function () {
         }
       }
 
-      const genesisPath = path.join(nodesDir, `node${i}/evmosd/config/genesis.json`);
+      const genesisPath = path.join(nodesDir, `node${i}/quarixd/config/genesis.json`);
       let genesis = await fs.readJSON(genesisPath);
       let appState = genesis.app_state;
       appState.auth.accounts.push(...accounts);
       appState.bank.balances.push(...balances);
       if (commonNode > 0) {
         for (let i = nodesCount - commonNode; i < nodesCount; i++) {
-          const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
+          const keySeedPath = path.join(nodesDir, `node${i}/quarixd/key_seed.json`);
           const curKeySeed = await fs.readJSON(keySeedPath);
           const address = curKeySeed.bip39Address;
           appState.auth.accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
@@ -542,13 +540,13 @@ let init = async function () {
     // update app.toml and config.toml and client.toml
     for (let i = 0; i < nodesCount; i++) {
       let data;
-      const appConfigPath = path.join(nodesDir, `node${i}/evmosd/config/app.toml`);
+      const appConfigPath = path.join(nodesDir, `node${i}/quarixd/config/app.toml`);
       data = await fs.readFile(appConfigPath, "utf8");
       data = updatePorts(data, app.port, i);
       data = updateCfg(data, app.cfg);
       await fs.writeFile(appConfigPath, data);
 
-      const configPath = path.join(nodesDir, `node${i}/evmosd/config/config.toml`);
+      const configPath = path.join(nodesDir, `node${i}/quarixd/config/config.toml`);
       data = await fs.readFile(configPath, "utf8");
       data = updatePorts(data, tendermint.port, i);
       // replace persistent_peers
@@ -563,7 +561,7 @@ let init = async function () {
       data = updateCfg(data, tendermint.cfg);
       await fs.writeFile(configPath, data);
 
-      const clientConfigPath = path.join(nodesDir, `node${i}/evmosd/config/client.toml`);
+      const clientConfigPath = path.join(nodesDir, `node${i}/quarixd/config/client.toml`);
       data = clientCfg;
       data = data.replace("26657", tendermint.port["rpc.laddr"] + i + "");
       await fs.writeFile(clientConfigPath, data);
@@ -574,14 +572,15 @@ let init = async function () {
       await fs.writeFile(path.join(rlyHome, "config/config.yaml"), rlyCfg);
 
       let keySeed;
-      keySeed = await fs.readJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`));
+      keySeed = await fs.readJSON(path.join(nodesDir, `node0/quarixd/key_seed.json`));
       await execPromis(`${rlyCmd} keys restore ibc-0 testkey "${keySeed.secret}" --coin-type 60 --home ${rlyHome}`, { cwd: curDir });
       keySeed = await fs.readJSON(`${gaiaHome}/key_seed.json`);
     }
 
     if (Array.isArray(privateKeys)) {
       for (const privateKey of privateKeys) {
-        await execPromis(`echo -n "your-password" | evmosd keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/evmosd --keyring-backend test`, { cwd: curDir });
+        const cmd = `echo -n "your-password" | ./quarixd keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/quarixd --keyring-backend test`;
+        await execPromis(cmd, { cwd: curDir });
       }
     }
 
@@ -590,7 +589,7 @@ let init = async function () {
     let vbsStop = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
     for (let i = 0; i < nodesCount; i++) {
       let p2pPort = tendermint.port["p2p.laddr"] + i;
-      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${evmosd} start --keyring-backend test --home ./node${i}/evmosd/` + (isNohup && platform !== "win32" ? ` >./evmos${i}.log 2>&1 &` : "");
+      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${quarixd} start --keyring-backend test --home ./node${i}/quarixd/` + (isNohup && platform !== "win32" ? ` >./quarix${i}.log 2>&1 &` : "");
       let stop =
         platform == "win32"
           ? `@echo off
@@ -599,7 +598,7 @@ taskkill /F /PID %PID%`
           : platform == "linux"
           ? `pid=\`netstat -anp | grep :::${p2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
     kill -15 $pid`
-          : `pid=\`lsof -i :${p2pPort} | grep evmosd | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
+          : `pid=\`lsof -i :${p2pPort} | grep quarixd | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
     if [ "$pid" != "" ]; then kill -15 $pid; fi`;
       let startPath = path.join(nodesDir, `start${i}.` + (platform == "win32" ? "bat" : "sh"));
       let stopPath = path.join(nodesDir, `stop${i}.` + (platform == "win32" ? "bat" : "sh"));
@@ -690,7 +689,7 @@ taskkill /F /PID %PID%`
     }
 
     if (isStart) {
-      console.log("Start all evmosd node under the folder nodes");
+      console.log("Start all quarixd node under the folder nodes");
       await execPromis(scriptStart, { cwd: nodesDir }); // 不管怎样先执行一下停止
     }
   } catch (error) {
