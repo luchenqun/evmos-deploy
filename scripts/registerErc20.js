@@ -46,20 +46,20 @@ let run = async function () {
 
     // you should use cmd `node init.js --v=1 --s=true` to run 1 nodes
     const cwd = path.join(process.cwd(), "..");
-    const fixed = `--from=node0 --home=./nodes/node0/evmosd/ --keyring-backend=test --chain-id=quarix_88888888-1 --gas="auto" -y`;
+    const fixed = `--from=node0 --home=./nodes/node0/quarixd/ --keyring-backend=test --chain-id=quarix_88888888-1 --gas="auto" -y`;
     const erc20Address = matic.address;
     const evmAddress = ethToBech32(from, prefix);
     let cmd;
     let reply;
 
     {
-      cmd = `./evmosd tx gov submit-legacy-proposal register-erc20 ${erc20Address} --title="Test register erc20" --description="Register erc20 MANTIC" --deposit="10000000akgov" ${fixed}`;
+      cmd = `./quarixd tx gov submit-legacy-proposal register-erc20 ${erc20Address} --title="Test register erc20" --description="Register erc20 MANTIC" --deposit="10000000akgov" ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
 
       await sleep(3000);
 
-      cmd = `./evmosd tx gov vote 1 yes ${fixed}`;
+      cmd = `./quarixd tx gov vote 1 yes ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
     }
@@ -67,7 +67,7 @@ let run = async function () {
     {
       // erc20 tokon => native coin
       await sleep(7000); // must sleep voting_period time
-      cmd = `./evmosd tx erc20 convert-erc20 ${erc20Address} ${web3.utils.toWei("10")} ${evmAddress} ${fixed}`;
+      cmd = `./quarixd tx erc20 convert-erc20 ${erc20Address} ${web3.utils.toWei("10")} ${evmAddress} ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
     }
@@ -75,7 +75,7 @@ let run = async function () {
     {
       // native coin => erc20 tokon
       await sleep(3000);
-      cmd = `./evmosd tx erc20 convert-coin ${web3.utils.toWei("2")}erc20/${erc20Address} ${from} ${fixed}`;
+      cmd = `./quarixd tx erc20 convert-coin ${web3.utils.toWei("2")}erc20/${erc20Address} ${from} ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
     }
