@@ -5,7 +5,7 @@ import { decodeReply, execPromis, sleep } from "../utils.js";
 import MyToken from "./v2-core/MyToken.json" assert { type: "json" };
 
 const endpoint = "http://127.0.0.1:8545";
-const hexPrivateKey = "0xe54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2";
+const hexPrivateKey = "0xf78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769"; // 0x00000Be6819f41400225702D32d3dd23663Dd690
 
 let run = async function () {
   try {
@@ -40,44 +40,46 @@ let run = async function () {
     }
 
     // deploy Matic Token contract
-    let matic = new web3.eth.Contract(MyToken.abi);
-    await deploy(matic, MyToken.bytecode, ["Matic Token For Test", "MATIC", 18, web3.utils.toWei("100")]);
-    console.log("ERC20 Address", matic.address);
+    let thbs = new web3.eth.Contract(MyToken.abi);
+    await deploy(thbs, MyToken.bytecode, ["THB Stable", "THBS", 18, "10000"]);
+    console.log("ERC20 Address", thbs.address);
 
     // you should use cmd `node init.js --v=1 --s=true` to run 1 nodes
     const cwd = path.join(process.cwd(), "..");
-    const fixed = `--from=node0 --home=./nodes/node0/quarixd/ --keyring-backend=test --chain-id=quarix_88888888-1 --gas="auto" -y`;
-    const erc20Address = matic.address;
+    const fixed = `--from=qoe --home=./nodes/node0/quarixd/ --keyring-backend=test --chain-id=quarix_8888888-1 --gas="auto" -y`;
+    const erc20Address = thbs.address;
     const evmAddress = ethToBech32(from, prefix);
     let cmd;
     let reply;
 
     {
-      cmd = `./quarixd tx gov submit-legacy-proposal register-erc20 ${erc20Address} --title="Test register erc20" --description="Register erc20 MANTIC" --deposit="10000000akgov" ${fixed}`;
+      cmd = `./quarixd tx gov submit-legacy-proposal register-erc20 ${erc20Address} --title="register erc20 token thbs" --description="register erc20 token thbs to native token" --deposit="10000000aqrx" ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
+      await sleep(1500);
+    }
 
-      await sleep(3000);
-
-      cmd = `./quarixd tx gov vote 1 yes ${fixed}`;
+    {
+      cmd = `./quarixd tx gov vote 1 yes ${fixed.replace("qoe", "node0")}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
+      await sleep(9000); // must sleep voting_period time
     }
 
     {
       // erc20 tokon => native coin
-      await sleep(7000); // must sleep voting_period time
       cmd = `./quarixd tx erc20 convert-erc20 ${erc20Address} ${web3.utils.toWei("10")} ${evmAddress} ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
+      await sleep(1500);
     }
 
     {
       // native coin => erc20 tokon
-      await sleep(3000);
       cmd = `./quarixd tx erc20 convert-coin ${web3.utils.toWei("2")}erc20/${erc20Address} ${from} ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
+      await sleep(1500);
     }
   } catch (error) {
     console.log("error", error);

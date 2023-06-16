@@ -75,7 +75,7 @@ const gaiadCmd = platform == "win32" ? "gaiad.exe" : "./gaiad";
 const gaiaHome = "./nodes/gaia";
 const gaiaChainId = "cosmoshub-test";
 let gaiaP2pPort = 16656;
-let quarixChainId = "quarix_88888888-1";
+let quarixChainId = "quarix_8888888-1";
 const rly = platform == "win32" ? "rly.exe" : "rly";
 const rlyCmd = platform == "win32" ? "rly.exe" : "./rly";
 const rlyHome = "./nodes/relayer";
