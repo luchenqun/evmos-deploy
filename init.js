@@ -362,7 +362,7 @@ let init = async function () {
     }
     if (!fs.existsSync(quarixd) || isCompile) {
       console.log("Start recompiling quarixd...");
-      let make = await execPromis("go build -o quarixd ../cmd/evmosd", { cwd: curDir });
+      let make = await execPromis("go build -o quarixd ../cmd/quarixd", { cwd: curDir });
       console.log("quarixd compile finished", make);
     }
 
