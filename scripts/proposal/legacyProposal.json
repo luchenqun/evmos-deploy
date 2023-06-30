@@ -3,10 +3,10 @@
   "description": "Param Change MaxValidators",
   "changes": [
     {
-      "subspace": "staking",
-      "key": "MaxValidators",
-      "value": 128
+      "subspace": "bank",
+      "key": "DefaultSendEnabled",
+      "value": true
     }
   ],
-  "deposit": "10000000agov"
+  "deposit": "10000000aqrx"
 }

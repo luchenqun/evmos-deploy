@@ -1,0 +1,21 @@
+{
+  "title": "Test Proposal Param Change",
+  "description": "Param Change MaxValidators",
+  "messages": [
+    {
+      "@type": "/ethermint.feemarket.v1.MsgUpdateParams",
+      "authority": "quarix10d07y265gmmuvt4z0w9aw880jnsr700j37d24s",
+      "params": {
+        "no_base_fee": true,
+        "base_fee_change_denominator": 8,
+        "elasticity_multiplier": 2,
+        "enable_height": "0",
+        "base_fee": "2000000000",
+        "min_gas_price": "1000000000.000000000000000000",
+        "min_gas_multiplier": "0.500000000000000000"
+      }
+    }
+  ],
+  "metadata": "AQ==",
+  "deposit": "10000000aqrx"
+}
