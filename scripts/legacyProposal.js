@@ -18,7 +18,7 @@ let run = async function () {
       await sleep(3000);
 
       // vote yes ./scripts/proposal.json
-      cmd = `./quarixd tx gov vote 5 yes ${fixed}`;
+      cmd = `./quarixd tx gov vote 1 yes ${fixed}`;
       reply = await execPromis(cmd, { cwd });
       console.log(cmd, "\n", decodeReply(reply));
     }

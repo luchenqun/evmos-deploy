@@ -1,11 +1,11 @@
 {
   "title": "Test Proposal Param Change",
-  "description": "Param Change MaxValidators",
+  "description": "Param Change MaxCommissionRateFrequency",
   "changes": [
     {
-      "subspace": "bank",
-      "key": "DefaultSendEnabled",
-      "value": true
+      "subspace": "staking",
+      "key": "MaxCommissionRateFrequency",
+      "value": 88888
     }
   ],
   "deposit": "10000000aqrx"
