@@ -54,13 +54,21 @@ let argv = yargs
     describe: "Whether after initialize immediate start",
     type: "bool",
   })
+  .option("k", {
+    alias: "keep",
+    demandOption: false,
+    default: false,
+    describe: "Whether keep the data",
+    type: "bool",
+  })
   .number(["v"])
   .number(["cn"])
-  .boolean(["n", "c", "s"]).argv;
+  .boolean(["n", "c", "s", "k"]).argv;
 
 const isNohup = argv.nohup;
 const isStart = argv.start;
 const isCompile = argv.compile;
+const isKeep = argv.keep;
 const commonNode = argv.commonNode;
 const validators = argv.validators;
 const nodesCount = validators + commonNode;
@@ -376,316 +384,320 @@ let init = async function () {
       return;
     }
 
-    console.log("Start cleaning up folder nodes");
-    await fs.emptyDir(nodesDir);
-    await fs.ensureDir(nodesDir);
-    console.log("Folder nodes has been cleaned up");
+    if (!isKeep) {
+      console.log("Start cleaning up folder nodes");
+      await fs.emptyDir(nodesDir);
+      await fs.ensureDir(nodesDir);
+      console.log("Folder nodes has been cleaned up");
 
-    // begin init gaia
-    if (ibc.enable) {
-      await execPromis(`${gaiadCmd} init gaia --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
-      await execPromis(`${gaiadCmd} keys add validator --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/validator_seed.json 2>&1`, { cwd: curDir });
-      await execPromis(`${gaiadCmd} keys add user --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/key_seed.json 2>&1`, { cwd: curDir });
-      const validatorAddress = (await fs.readJSON(`${gaiaHome}/validator_seed.json`)).address;
-      const userAddress = (await fs.readJSON(`${gaiaHome}/key_seed.json`)).address;
-      await execPromis(`${gaiadCmd} add-genesis-account ${validatorAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
-      await execPromis(`${gaiadCmd} add-genesis-account ${userAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
-      await execPromis(`${gaiadCmd} gentx validator 1000000000000000000uatom --keyring-backend=test --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
-      await execPromis(`${gaiadCmd} collect-gentxs --home ${gaiaHome}`, { cwd: curDir });
+      // begin init gaia
+      if (ibc.enable) {
+        await execPromis(`${gaiadCmd} init gaia --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
+        await execPromis(`${gaiadCmd} keys add validator --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/validator_seed.json 2>&1`, { cwd: curDir });
+        await execPromis(`${gaiadCmd} keys add user --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/key_seed.json 2>&1`, { cwd: curDir });
+        const validatorAddress = (await fs.readJSON(`${gaiaHome}/validator_seed.json`)).address;
+        const userAddress = (await fs.readJSON(`${gaiaHome}/key_seed.json`)).address;
+        await execPromis(`${gaiadCmd} add-genesis-account ${validatorAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
+        await execPromis(`${gaiadCmd} add-genesis-account ${userAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
+        await execPromis(`${gaiadCmd} gentx validator 1000000000000000000uatom --keyring-backend=test --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
+        await execPromis(`${gaiadCmd} collect-gentxs --home ${gaiaHome}`, { cwd: curDir });
 
-      let data;
-      const appConfigPath = `${gaiaHome}/config/app.toml`;
-      data = await fs.readFile(appConfigPath, "utf8");
-      data = updateCfg(data, ibc.app);
-      await fs.writeFile(appConfigPath, data);
+        let data;
+        const appConfigPath = `${gaiaHome}/config/app.toml`;
+        data = await fs.readFile(appConfigPath, "utf8");
+        data = updateCfg(data, ibc.app);
+        await fs.writeFile(appConfigPath, data);
 
-      const configPath = `${gaiaHome}/config/config.toml`;
-      data = await fs.readFile(configPath, "utf8");
-      data = updateCfg(data, ibc.tendermint);
-      await fs.writeFile(configPath, data);
+        const configPath = `${gaiaHome}/config/config.toml`;
+        data = await fs.readFile(configPath, "utf8");
+        data = updateCfg(data, ibc.tendermint);
+        await fs.writeFile(configPath, data);
 
-      const genesisPath = `${gaiaHome}/config/genesis.json`;
-      data = await fs.readFile(genesisPath, "utf8");
-      data = data.replaceAll("stake", `uatom`);
-      await fs.writeFile(genesisPath, data);
-    }
-
-    {
-      let initFiles = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
-      let initFilesValidator = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
-      if (fixedFirstValidator) {
-        initFiles += " --role-validators 0xbf657D0ef7b48167657A703Ed8Fd063F075246D7";
-        initFilesValidator += " --role-validators 0xbf657D0ef7b48167657A703Ed8Fd063F075246D7";
+        const genesisPath = `${gaiaHome}/config/genesis.json`;
+        data = await fs.readFile(genesisPath, "utf8");
+        data = data.replaceAll("stake", `uatom`);
+        await fs.writeFile(genesisPath, data);
       }
 
-      console.log(`Exec cmd: ${initFiles}`);
-      const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
-      console.log(`init-files ${stdout}${stderr}\n`);
-
-      if (commonNode > 0) {
-        for (let i = 0; i < validators; i++) {
-          await fs.remove(path.join(nodesDir, `node${i}`));
+      {
+        let initFiles = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
+        let initFilesValidator = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
+        if (fixedFirstValidator) {
+          initFiles += " --role-validators 0xbf657D0ef7b48167657A703Ed8Fd063F075246D7";
+          initFilesValidator += " --role-validators 0xbf657D0ef7b48167657A703Ed8Fd063F075246D7";
         }
-        await fs.remove(path.join(nodesDir, `gentxs`));
 
-        // re init validator, and turn a validator node into a common node
-        await execPromis(initFilesValidator, { cwd: curDir });
-        const genesisPath = path.join(nodesDir, `node0/quarixd/config/genesis.json`);
-        for (let i = validators; i < nodesCount; i++) {
-          await fs.copy(genesisPath, path.join(nodesDir, `node${i}/quarixd/config/genesis.json`));
+        console.log(`Exec cmd: ${initFiles}`);
+        const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
+        console.log(`init-files ${stdout}${stderr}\n`);
+
+        if (commonNode > 0) {
+          for (let i = 0; i < validators; i++) {
+            await fs.remove(path.join(nodesDir, `node${i}`));
+          }
+          await fs.remove(path.join(nodesDir, `gentxs`));
+
+          // re init validator, and turn a validator node into a common node
+          await execPromis(initFilesValidator, { cwd: curDir });
+          const genesisPath = path.join(nodesDir, `node0/quarixd/config/genesis.json`);
+          for (let i = validators; i < nodesCount; i++) {
+            await fs.copy(genesisPath, path.join(nodesDir, `node${i}/quarixd/config/genesis.json`));
+          }
         }
-      }
 
-      if (fixedFirstValidator) {
-        await fs.writeJSON(path.join(nodesDir, `node0/quarixd/config/node_key.json`), nodeKey);
-        await fs.writeJSON(path.join(nodesDir, `node0/quarixd/config/priv_validator_key.json`), privValidatorKey);
-        await fs.outputJSON(path.join(nodesDir, `node0/quarixd/key_seed.json`), keySeed);
-        const keyringPath = path.join(nodesDir, `node0/quarixd/keyring-test`);
-        await fs.emptyDir(keyringPath);
-        await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMTA4NjkgKzA4MDAgQ1NUIG09KzAuMDkwODExMTI2IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiaE1GUk1GS3VmWG1MN3JqTCJ9.7BAWENEQQIuPQgTpU4KndAzJehSmrfpmCB3QjetS-aDxkCQi4eKS9g.0Yqfk_vOloLdfMu4.BLT_MDoICsIXwiFVQkHfSwva025Ys6T1vEIgucHj31E8_2LImXjE9E7SF2MayogN9nTr_TRw_rlPy6AJ79Bi3hscunNZHNA46WxsncNJodp5iBMTRt2KG2JeMiCEHRUIh1OATVqc_nKqnkR0ZgPHFKxCQY5xUoPB_Ix_fqARrFcSQEk_sLceRpRMRVWj3yOpg6YzFi47x7IGoIg1OsvhsKj1sOYqCTgTzcRDSzEG3ROZgzbpBuM.u-hKqVwDVyujqCQCMaQzzw");
-        await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMDkzODEgKzA4MDAgQ1NUIG09KzAuMDg5MzIzNDE4IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiUDBPUkJVczJ1eWRYR3RUZyJ9.XaNXPomwcd9zfFaazm6QP3XeFQPY4Qm4zFh12YO3GDyOykBdB_RxiA.VR3S0G6Cm081EtOJ.oq8vBlNiOIJRSfkL3FKTHRClIW5IzVh4yQy-Drh2NnyCRbIKu41arpFq9UggKfm3i2kukscRqX2UN4Fi5KHlc3sS4Vq4d2aMlP_2vp7S3xVeLMEaVqZN-WuMG_FHOJiWxAFgzJn5uV5G-6WxOAK3CsxPzbc0k7VlkV705tSsCmPbWf4jNeuRQjdK6fjppx3jcipmX4M6I5xTO1Rv9imRuMP3prCF_XYgEd86OG3l_HrCTjI-TCaCmhtONaCpenmBzbB-4hDokDSslvxyDbYnoTPnWxDmVLRmm5vH1POVSna7kUXX3UB8uQyDQ_BA2oc6X27r7Ov5S1Jw3cRj-rL9MbpUVe7QftG_FV0CiRsAbEjc1z3iVrbP_uWHk2wGJzKF02GNlsFiLvIDjDAGDN6R1Ku2pNdsoyHllkUZ2P_3masJUR4KXNmPW5w7EePkvl-VegMRzBjS65Qtc-veGtp1VmFIi2o.1FZA0sSwiFUphL4cuXJHog");
-      }
-    }
-
-    await fs.copy(quarixd, `./nodes/${quarixd}`);
-    if (ibc.enable) {
-      await fs.copy(gaiad, `./nodes/${gaiad}`);
-      await fs.copy(rly, `./nodes/${rly}`);
-    }
-
-    let nodeIds = [];
-    for (let i = 0; i < nodesCount; i++) {
-      const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/quarixd/config/node_key.json`));
-      const nodeId = tenderKeys.getBurrowAddressFromPrivKey(Buffer.from(nodeKey.priv_key.value, "base64").toString("hex"));
-      nodeIds.push(nodeId);
-
-      const keySeedPath = path.join(nodesDir, `node${i}/quarixd/key_seed.json`);
-      let curKeySeed = await fs.readJSON(keySeedPath);
-      const wallet = Wallet.fromMnemonic(curKeySeed.secret);
-      curKeySeed.privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
-      curKeySeed.publicKey = wallet._signingKey().publicKey.toLowerCase().replace("0x", "");
-      curKeySeed.compressedPublicKey = wallet._signingKey().compressedPublicKey.toLowerCase().replace("0x", "");
-      curKeySeed.address = wallet.address;
-      curKeySeed.bip39Address = ethToBech32(wallet.address, "quarix");
-      curKeySeed.valAddress = ethToBech32(wallet.address, "quarixvaloper");
-      await fs.outputJson(keySeedPath, curKeySeed, { spaces: 2 });
-    }
-
-    const account = {
-      "@type": "/ethermint.types.v1.EthAccount",
-      base_account: { address: "" },
-      code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
-    };
-    const balance = {
-      address: "",
-      coins: [
-        { denom: "aqare", amount: "0" },
-        { denom: "aqrx", amount: "0" },
-      ],
-    };
-
-    for (let i = 0; i < nodesCount; i++) {
-      let accounts = [];
-      let balances = [];
-      if (Array.isArray(preMineAccounts)) {
-        for (const address of preMineAccounts) {
-          accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
-          balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
+        if (fixedFirstValidator) {
+          await fs.writeJSON(path.join(nodesDir, `node0/quarixd/config/node_key.json`), nodeKey);
+          await fs.writeJSON(path.join(nodesDir, `node0/quarixd/config/priv_validator_key.json`), privValidatorKey);
+          await fs.outputJSON(path.join(nodesDir, `node0/quarixd/key_seed.json`), keySeed);
+          const keyringPath = path.join(nodesDir, `node0/quarixd/keyring-test`);
+          await fs.emptyDir(keyringPath);
+          await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMTA4NjkgKzA4MDAgQ1NUIG09KzAuMDkwODExMTI2IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiaE1GUk1GS3VmWG1MN3JqTCJ9.7BAWENEQQIuPQgTpU4KndAzJehSmrfpmCB3QjetS-aDxkCQi4eKS9g.0Yqfk_vOloLdfMu4.BLT_MDoICsIXwiFVQkHfSwva025Ys6T1vEIgucHj31E8_2LImXjE9E7SF2MayogN9nTr_TRw_rlPy6AJ79Bi3hscunNZHNA46WxsncNJodp5iBMTRt2KG2JeMiCEHRUIh1OATVqc_nKqnkR0ZgPHFKxCQY5xUoPB_Ix_fqARrFcSQEk_sLceRpRMRVWj3yOpg6YzFi47x7IGoIg1OsvhsKj1sOYqCTgTzcRDSzEG3ROZgzbpBuM.u-hKqVwDVyujqCQCMaQzzw");
+          await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMDkzODEgKzA4MDAgQ1NUIG09KzAuMDg5MzIzNDE4IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiUDBPUkJVczJ1eWRYR3RUZyJ9.XaNXPomwcd9zfFaazm6QP3XeFQPY4Qm4zFh12YO3GDyOykBdB_RxiA.VR3S0G6Cm081EtOJ.oq8vBlNiOIJRSfkL3FKTHRClIW5IzVh4yQy-Drh2NnyCRbIKu41arpFq9UggKfm3i2kukscRqX2UN4Fi5KHlc3sS4Vq4d2aMlP_2vp7S3xVeLMEaVqZN-WuMG_FHOJiWxAFgzJn5uV5G-6WxOAK3CsxPzbc0k7VlkV705tSsCmPbWf4jNeuRQjdK6fjppx3jcipmX4M6I5xTO1Rv9imRuMP3prCF_XYgEd86OG3l_HrCTjI-TCaCmhtONaCpenmBzbB-4hDokDSslvxyDbYnoTPnWxDmVLRmm5vH1POVSna7kUXX3UB8uQyDQ_BA2oc6X27r7Ov5S1Jw3cRj-rL9MbpUVe7QftG_FV0CiRsAbEjc1z3iVrbP_uWHk2wGJzKF02GNlsFiLvIDjDAGDN6R1Ku2pNdsoyHllkUZ2P_3masJUR4KXNmPW5w7EePkvl-VegMRzBjS65Qtc-veGtp1VmFIi2o.1FZA0sSwiFUphL4cuXJHog");
         }
       }
 
-      const genesisPath = path.join(nodesDir, `node${i}/quarixd/config/genesis.json`);
-      let genesis = await fs.readJSON(genesisPath);
-      let appState = genesis.app_state;
-      appState.auth.accounts.push(...accounts);
-      appState.bank.balances.push(...balances);
-      if (commonNode > 0) {
-        for (let i = nodesCount - commonNode; i < nodesCount; i++) {
-          const keySeedPath = path.join(nodesDir, `node${i}/quarixd/key_seed.json`);
-          const curKeySeed = await fs.readJSON(keySeedPath);
-          const address = curKeySeed.bip39Address;
-          appState.auth.accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
-          appState.bank.balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
+      await fs.copy(quarixd, `./nodes/${quarixd}`);
+      if (ibc.enable) {
+        await fs.copy(gaiad, `./nodes/${gaiad}`);
+        await fs.copy(rly, `./nodes/${rly}`);
+      }
+
+      let nodeIds = [];
+      for (let i = 0; i < nodesCount; i++) {
+        const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/quarixd/config/node_key.json`));
+        const nodeId = tenderKeys.getBurrowAddressFromPrivKey(Buffer.from(nodeKey.priv_key.value, "base64").toString("hex"));
+        nodeIds.push(nodeId);
+
+        const keySeedPath = path.join(nodesDir, `node${i}/quarixd/key_seed.json`);
+        let curKeySeed = await fs.readJSON(keySeedPath);
+        const wallet = Wallet.fromMnemonic(curKeySeed.secret);
+        curKeySeed.privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
+        curKeySeed.publicKey = wallet._signingKey().publicKey.toLowerCase().replace("0x", "");
+        curKeySeed.compressedPublicKey = wallet._signingKey().compressedPublicKey.toLowerCase().replace("0x", "");
+        curKeySeed.address = wallet.address;
+        curKeySeed.bip39Address = ethToBech32(wallet.address, "quarix");
+        curKeySeed.valAddress = ethToBech32(wallet.address, "quarixvaloper");
+        await fs.outputJson(keySeedPath, curKeySeed, { spaces: 2 });
+      }
+
+      const account = {
+        "@type": "/ethermint.types.v1.EthAccount",
+        base_account: { address: "" },
+        code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+      };
+      const balance = {
+        address: "",
+        coins: [
+          { denom: "aqare", amount: "0" },
+          { denom: "aqrx", amount: "0" },
+        ],
+      };
+
+      for (let i = 0; i < nodesCount; i++) {
+        let accounts = [];
+        let balances = [];
+        if (Array.isArray(preMineAccounts)) {
+          for (const address of preMineAccounts) {
+            accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
+            balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
+          }
+        }
+
+        const genesisPath = path.join(nodesDir, `node${i}/quarixd/config/genesis.json`);
+        let genesis = await fs.readJSON(genesisPath);
+        let appState = genesis.app_state;
+        appState.auth.accounts.push(...accounts);
+        appState.bank.balances.push(...balances);
+        if (commonNode > 0) {
+          for (let i = nodesCount - commonNode; i < nodesCount; i++) {
+            const keySeedPath = path.join(nodesDir, `node${i}/quarixd/key_seed.json`);
+            const curKeySeed = await fs.readJSON(keySeedPath);
+            const address = curKeySeed.bip39Address;
+            appState.auth.accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
+            appState.bank.balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
+          }
+        }
+
+        for (let balances of appState.bank.balances) {
+          for (let coin of balances.coins) {
+            coin.amount = preMinePerAccount;
+          }
+        }
+
+        if (fixedFirstValidator) {
+          appState.auth.accounts[0].base_account.address = keySeed.bip39Address;
+          appState.bank.balances[0].address = keySeed.bip39Address;
+          appState.genutil.gen_txs[0] = createValidator;
+          appState.staking.allocate_investment_program_pools.push({
+            ipp_id: "1",
+            validator_address: "quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7",
+          });
+        }
+        // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
+        appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "quarix1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcl7sy7" } }));
+
+        const genesisCfg = config.genesisCfg;
+        if (Array.isArray(genesisCfg)) {
+          for (const cfg of genesisCfg) {
+            eval("genesis." + cfg);
+          }
+        }
+
+        await fs.outputJson(genesisPath, genesis, { spaces: 2 });
+      }
+
+      // update app.toml and config.toml and client.toml
+      for (let i = 0; i < nodesCount; i++) {
+        let data;
+        const appConfigPath = path.join(nodesDir, `node${i}/quarixd/config/app.toml`);
+        data = await fs.readFile(appConfigPath, "utf8");
+        data = updatePorts(data, app.port, i);
+        data = updateCfg(data, app.cfg);
+        await fs.writeFile(appConfigPath, data);
+
+        const configPath = path.join(nodesDir, `node${i}/quarixd/config/config.toml`);
+        data = await fs.readFile(configPath, "utf8");
+        data = updatePorts(data, tendermint.port, i);
+        // replace persistent_peers
+        let peers = [];
+        const p2pPort = tendermint.port["p2p.laddr"];
+        for (let j = 0; j < nodesCount && nodesCount > 1; j++) {
+          if (i != j) {
+            peers.push(`${nodeIds[j]}@127.0.0.1:${p2pPort + j}`);
+          }
+        }
+        tendermint.cfg["p2p.persistent_peers"] = `"${peers.join()}"`;
+        data = updateCfg(data, tendermint.cfg);
+        await fs.writeFile(configPath, data);
+
+        const clientConfigPath = path.join(nodesDir, `node${i}/quarixd/config/client.toml`);
+        data = clientCfg;
+        data = data.replace("26657", tendermint.port["rpc.laddr"] + i + "");
+        await fs.writeFile(clientConfigPath, data);
+      }
+
+      if (ibc.enable) {
+        await fs.ensureFile(path.join(rlyHome, "config/config.yaml"));
+        await fs.writeFile(path.join(rlyHome, "config/config.yaml"), rlyCfg);
+
+        let keySeed;
+        keySeed = await fs.readJSON(path.join(nodesDir, `node0/quarixd/key_seed.json`));
+        await execPromis(`${rlyCmd} keys restore ibc-0 testkey "${keySeed.secret}" --coin-type 60 --home ${rlyHome}`, { cwd: curDir });
+        keySeed = await fs.readJSON(`${gaiaHome}/key_seed.json`);
+      }
+
+      if (Array.isArray(privateKeys)) {
+        for (const privateKey of privateKeys) {
+          const cmd = `echo -n "your-password" | ./quarixd keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/quarixd --keyring-backend test`;
+          await execPromis(cmd, { cwd: curDir });
         }
       }
 
-      for (let balances of appState.bank.balances) {
-        for (let coin of balances.coins) {
-          coin.amount = preMinePerAccount;
-        }
-      }
-
-      if (fixedFirstValidator) {
-        appState.auth.accounts[0].base_account.address = keySeed.bip39Address;
-        appState.bank.balances[0].address = keySeed.bip39Address;
-        appState.genutil.gen_txs[0] = createValidator;
-        appState.staking.allocate_investment_program_pools.push({
-          ipp_id: "1",
-          validator_address: "quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7",
-        });
-      }
-      // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
-      appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "quarix1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcl7sy7" } }));
-
-      const genesisCfg = config.genesisCfg;
-      if (Array.isArray(genesisCfg)) {
-        for (const cfg of genesisCfg) {
-          eval("genesis." + cfg);
-        }
-      }
-
-      await fs.outputJson(genesisPath, genesis, { spaces: 2 });
-    }
-
-    // update app.toml and config.toml and client.toml
-    for (let i = 0; i < nodesCount; i++) {
-      let data;
-      const appConfigPath = path.join(nodesDir, `node${i}/quarixd/config/app.toml`);
-      data = await fs.readFile(appConfigPath, "utf8");
-      data = updatePorts(data, app.port, i);
-      data = updateCfg(data, app.cfg);
-      await fs.writeFile(appConfigPath, data);
-
-      const configPath = path.join(nodesDir, `node${i}/quarixd/config/config.toml`);
-      data = await fs.readFile(configPath, "utf8");
-      data = updatePorts(data, tendermint.port, i);
-      // replace persistent_peers
-      let peers = [];
-      const p2pPort = tendermint.port["p2p.laddr"];
-      for (let j = 0; j < nodesCount && nodesCount > 1; j++) {
-        if (i != j) {
-          peers.push(`${nodeIds[j]}@127.0.0.1:${p2pPort + j}`);
-        }
-      }
-      tendermint.cfg["p2p.persistent_peers"] = `"${peers.join()}"`;
-      data = updateCfg(data, tendermint.cfg);
-      await fs.writeFile(configPath, data);
-
-      const clientConfigPath = path.join(nodesDir, `node${i}/quarixd/config/client.toml`);
-      data = clientCfg;
-      data = data.replace("26657", tendermint.port["rpc.laddr"] + i + "");
-      await fs.writeFile(clientConfigPath, data);
-    }
-
-    if (ibc.enable) {
-      await fs.ensureFile(path.join(rlyHome, "config/config.yaml"));
-      await fs.writeFile(path.join(rlyHome, "config/config.yaml"), rlyCfg);
-
-      let keySeed;
-      keySeed = await fs.readJSON(path.join(nodesDir, `node0/quarixd/key_seed.json`));
-      await execPromis(`${rlyCmd} keys restore ibc-0 testkey "${keySeed.secret}" --coin-type 60 --home ${rlyHome}`, { cwd: curDir });
-      keySeed = await fs.readJSON(`${gaiaHome}/key_seed.json`);
-    }
-
-    if (Array.isArray(privateKeys)) {
-      for (const privateKey of privateKeys) {
-        const cmd = `echo -n "your-password" | ./quarixd keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/quarixd --keyring-backend test`;
-        await execPromis(cmd, { cwd: curDir });
-      }
-    }
-
-    // 生成启动命令脚本
-    let vbsStart = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
-    let vbsStop = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
-    for (let i = 0; i < nodesCount; i++) {
-      let p2pPort = tendermint.port["p2p.laddr"] + i;
-      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${quarixd} start --keyring-backend test --home ./node${i}/quarixd/` + (isNohup && platform !== "win32" ? ` >./quarix${i}.log 2>&1 &` : "");
-      let stop =
-        platform == "win32"
-          ? `@echo off
+      // 生成启动命令脚本
+      let vbsStart = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
+      let vbsStop = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
+      for (let i = 0; i < nodesCount; i++) {
+        let p2pPort = tendermint.port["p2p.laddr"] + i;
+        let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${quarixd} start --keyring-backend test --home ./node${i}/quarixd/` + (isNohup && platform !== "win32" ? ` >./quarix${i}.log 2>&1 &` : "");
+        let stop =
+          platform == "win32"
+            ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr 0.0.0.0:${p2pPort}') do set PID=%%i
 taskkill /F /PID %PID%`
-          : platform == "linux"
-          ? `pid=\`netstat -anp | grep :::${p2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
+            : platform == "linux"
+            ? `pid=\`netstat -anp | grep :::${p2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
     kill -15 $pid`
-          : `pid=\`lsof -i :${p2pPort} | grep quarixd | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
+            : `pid=\`lsof -i :${p2pPort} | grep quarixd | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
     if [ "$pid" != "" ]; then kill -15 $pid; fi`;
-      let startPath = path.join(nodesDir, `start${i}.` + (platform == "win32" ? "bat" : "sh"));
-      let stopPath = path.join(nodesDir, `stop${i}.` + (platform == "win32" ? "bat" : "sh"));
-      await fs.writeFile(startPath, start);
-      await fs.writeFile(stopPath, stop);
+        let startPath = path.join(nodesDir, `start${i}.` + (platform == "win32" ? "bat" : "sh"));
+        let stopPath = path.join(nodesDir, `stop${i}.` + (platform == "win32" ? "bat" : "sh"));
+        await fs.writeFile(startPath, start);
+        await fs.writeFile(stopPath, stop);
 
-      if (platform == "win32") {
-        vbsStart += `ws.Run ".\\start${i}.bat",0\n`;
-        vbsStop += `ws.Run ".\\stop${i}.bat",0\n`;
-      } else {
-        vbsStart += `./start${i}.sh\n`;
-        vbsStop += `./stop${i}.sh\n`;
-        await fs.chmod(startPath, 0o777);
-        await fs.chmod(stopPath, 0o777);
+        if (platform == "win32") {
+          vbsStart += `ws.Run ".\\start${i}.bat",0\n`;
+          vbsStop += `ws.Run ".\\stop${i}.bat",0\n`;
+        } else {
+          vbsStart += `./start${i}.sh\n`;
+          vbsStop += `./stop${i}.sh\n`;
+          await fs.chmod(startPath, 0o777);
+          await fs.chmod(stopPath, 0o777);
+        }
       }
-    }
 
-    if (ibc.enable) {
-      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + `${gaiadCmd} start --home ./gaia` + (isNohup && platform !== "win32" ? ` >./gaia.log 2>&1 &` : "");
-      let stop =
-        platform == "win32"
-          ? `@echo off
+      if (ibc.enable) {
+        let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + `${gaiadCmd} start --home ./gaia` + (isNohup && platform !== "win32" ? ` >./gaia.log 2>&1 &` : "");
+        let stop =
+          platform == "win32"
+            ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr 0.0.0.0:${gaiaP2pPort}') do set PID=%%i
 taskkill /F /PID %PID%`
-          : platform == "linux"
-          ? `pid=\`netstat -anp | grep :::${gaiaP2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
+            : platform == "linux"
+            ? `pid=\`netstat -anp | grep :::${gaiaP2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
     kill -15 $pid`
-          : `pid=\`lsof -i :${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
+            : `pid=\`lsof -i :${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
     if [ "$pid" != "" ]; then kill -15 $pid; fi`;
-      let startPath = path.join(nodesDir, platform == "win32" ? "startGaia.bat" : "startGaia.sh");
-      let stopPath = path.join(nodesDir, platform == "win32" ? "stopGaia.bat" : "stopGaia.sh");
-      await fs.writeFile(startPath, start);
-      await fs.writeFile(stopPath, stop);
+        let startPath = path.join(nodesDir, platform == "win32" ? "startGaia.bat" : "startGaia.sh");
+        let stopPath = path.join(nodesDir, platform == "win32" ? "stopGaia.bat" : "stopGaia.sh");
+        await fs.writeFile(startPath, start);
+        await fs.writeFile(stopPath, stop);
 
-      if (platform == "win32") {
-        vbsStart += `ws.Run ".\\startGaia.bat",0\n`;
-        vbsStop += `ws.Run ".\\stopGaia.bat",0\n`;
-      } else {
-        vbsStart += `./startGaia.sh\n`;
-        vbsStop += `./stopGaia.sh\n`;
-        await fs.chmod(startPath, 0o777);
-        await fs.chmod(stopPath, 0o777);
+        if (platform == "win32") {
+          vbsStart += `ws.Run ".\\startGaia.bat",0\n`;
+          vbsStop += `ws.Run ".\\stopGaia.bat",0\n`;
+        } else {
+          vbsStart += `./startGaia.sh\n`;
+          vbsStop += `./stopGaia.sh\n`;
+          await fs.chmod(startPath, 0o777);
+          await fs.chmod(stopPath, 0o777);
+        }
       }
-    }
-    if (ibc.enable) {
-      const sleep3s = platform == "win32" ? `TIMEOUT /T 3 /NOBREAK` : `#!/bin/bash\nsleep 3`;
-      const nohubStr = isNohup && platform !== "win32" ? "nohup" : "";
-      const nohubLog = isNohup && platform !== "win32" ? `>./relayer.log 2>&1 &` : "";
-      let start = `${sleep3s}\n${nohubStr} ${rlyCmd} tx link demo -d -t 3s --client-tp 500s --home ./relayer ${nohubLog}`;
-      // start = `${start}\n${nohubStr} ${rlyCmd} start --home ./relayer ${nohubLog}`;
-      let stop =
-        platform == "win32"
-          ? `@echo off
+      if (ibc.enable) {
+        const sleep3s = platform == "win32" ? `TIMEOUT /T 3 /NOBREAK` : `#!/bin/bash\nsleep 3`;
+        const nohubStr = isNohup && platform !== "win32" ? "nohup" : "";
+        const nohubLog = isNohup && platform !== "win32" ? `>./relayer.log 2>&1 &` : "";
+        let start = `${sleep3s}\n${nohubStr} ${rlyCmd} tx link demo -d -t 3s --client-tp 500s --home ./relayer ${nohubLog}`;
+        // start = `${start}\n${nohubStr} ${rlyCmd} start --home ./relayer ${nohubLog}`;
+        let stop =
+          platform == "win32"
+            ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr ${rly}') do set PID=%%i
 taskkill /F /PID %PID%`
-          : platform == "linux"
-          ? `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
+            : platform == "linux"
+            ? `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
     kill -15 $pid`
-          : `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
+            : `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
     if [ "$pid" != "" ]; then kill -15 $pid; fi`;
-      let startPath = path.join(nodesDir, platform == "win32" ? "startRly.bat" : "startRly.sh");
-      let stopPath = path.join(nodesDir, platform == "win32" ? "stopRly.bat" : "stopRly.sh");
-      let ibcTransrerPath = path.join(nodesDir, platform == "win32" ? "ibcTransrer.bat" : "ibcTransrer.sh");
-      await fs.writeFile(startPath, start);
-      await fs.writeFile(stopPath, stop);
-      await fs.writeFile(ibcTransrerPath, ibcTransfer);
+        let startPath = path.join(nodesDir, platform == "win32" ? "startRly.bat" : "startRly.sh");
+        let stopPath = path.join(nodesDir, platform == "win32" ? "stopRly.bat" : "stopRly.sh");
+        let ibcTransrerPath = path.join(nodesDir, platform == "win32" ? "ibcTransrer.bat" : "ibcTransrer.sh");
+        await fs.writeFile(startPath, start);
+        await fs.writeFile(stopPath, stop);
+        await fs.writeFile(ibcTransrerPath, ibcTransfer);
 
-      if (platform == "win32") {
-        vbsStart += `ws.Run ".\\startRly.bat",0\n`;
-        // vbsStop += `ws.Run ".\\stopRly.bat",0\n`;
-      } else {
-        vbsStart += `./startRly.sh\n`;
-        // vbsStop += `./stopRly.sh\n`;
-        await fs.chmod(startPath, 0o777);
-        await fs.chmod(stopPath, 0o777);
-        await fs.chmod(ibcTransrerPath, 0o777);
+        if (platform == "win32") {
+          vbsStart += `ws.Run ".\\startRly.bat",0\n`;
+          // vbsStop += `ws.Run ".\\stopRly.bat",0\n`;
+        } else {
+          vbsStart += `./startRly.sh\n`;
+          // vbsStop += `./stopRly.sh\n`;
+          await fs.chmod(startPath, 0o777);
+          await fs.chmod(stopPath, 0o777);
+          await fs.chmod(ibcTransrerPath, 0o777);
+        }
       }
-    }
 
-    // 生成总的启动脚本
-    let startAllPath = path.join(nodesDir, `startAll.` + (platform == "win32" ? "vbs" : "sh"));
-    let stopAllPath = path.join(nodesDir, `stopAll.` + (platform == "win32" ? "vbs" : "sh"));
-    await fs.writeFile(startAllPath, vbsStart);
-    await fs.writeFile(stopAllPath, vbsStop);
-    if (!(platform == "win32")) {
-      await fs.chmod(startAllPath, 0o777);
-      await fs.chmod(stopAllPath, 0o777);
+      // 生成总的启动脚本
+      let startAllPath = path.join(nodesDir, `startAll.` + (platform == "win32" ? "vbs" : "sh"));
+      let stopAllPath = path.join(nodesDir, `stopAll.` + (platform == "win32" ? "vbs" : "sh"));
+      await fs.writeFile(startAllPath, vbsStart);
+      await fs.writeFile(stopAllPath, vbsStop);
+      if (!(platform == "win32")) {
+        await fs.chmod(startAllPath, 0o777);
+        await fs.chmod(stopAllPath, 0o777);
+      }
+    } else {
+      await fs.copy(quarixd, `./nodes/${quarixd}`, { overwrite: true });
     }
 
     if (isStart) {
