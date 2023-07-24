@@ -252,6 +252,7 @@ let init = async function () {
     try {
       config = await fs.readJson("./config.json");
     } catch (error) {
+      console.error(error);
       config = await fs.readJson("./config.default.json");
     }
     const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, privateKeys, ibc } = config;
@@ -529,13 +530,13 @@ let init = async function () {
             validator_address: "quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7",
           });
           appState.evm.role.roles[0] = {
-            to:   "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7",
+            to: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7",
             type: "Validator",
-          }
+          };
           appState.evm.sbt.kyc_list.push({
-            "to": "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7",
-            "expiry_date": "1849306088"
-          })
+            to: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7",
+            expiry_date: "1849306088",
+          });
         }
         // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
         appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "quarix1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcl7sy7" } }));
