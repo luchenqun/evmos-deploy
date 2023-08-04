@@ -83,7 +83,7 @@ const gaiadCmd = platform == "win32" ? "gaiad.exe" : "./gaiad";
 const gaiaHome = "./nodes/gaia";
 const gaiaChainId = "cosmoshub-test";
 let gaiaP2pPort = 16656;
-let quarixChainId = "quarix_8888888-1";
+let chainId = "quarix_8888888-1";
 const rly = platform == "win32" ? "rly.exe" : "rly";
 const rlyCmd = platform == "win32" ? "rly.exe" : "./rly";
 const rlyHome = "./nodes/relayer";
@@ -98,7 +98,7 @@ chains:
         type: cosmos
         value:
             key: testkey
-            chain-id: ${quarixChainId}
+            chain-id: ${chainId}
             rpc-addr: http://localhost:26657
             account-prefix: quarix
             keyring-backend: test
@@ -127,7 +127,7 @@ chains:
 paths:
     demo:
         src:
-            chain-id: ${quarixChainId}
+            chain-id: ${chainId}
         dst:
             chain-id: cosmoshub-test
         src-channel-filter:
@@ -178,7 +178,7 @@ sleep 5
 
 let clientCfg = `
 # The network chain ID
-chain-id = "${quarixChainId}"
+chain-id = "${chainId}"
 # The keyring's backend, where the keys are stored (os|file|kwallet|pass|test|memory)
 keyring-backend = "test"
 # CLI output format (text|json)
@@ -186,7 +186,7 @@ output = "text"
 # <host>:<port> to Tendermint RPC interface for this chain
 node = "tcp://localhost:26657"
 # Transaction broadcasting mode (sync|async|block)
-broadcast-mode = "sync"
+broadcast-mode = "block"
 `;
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
@@ -258,9 +258,9 @@ let init = async function () {
     const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, privateKeys, ibc } = config;
     gaiaP2pPort = ibc.tendermint["p2p.laddr"].split(":").pop().split(`"`)[0];
     if (app.chain_id) {
-      rlyCfg = rlyCfg.replaceAll(quarixChainId, app.chain_id);
-      clientCfg = clientCfg.replaceAll(quarixChainId, app.chain_id);
-      quarixChainId = app.chain_id;
+      clientCfg = clientCfg.replaceAll(chainId, app.chain_id);
+      rlyCfg = rlyCfg.replaceAll(chainId, app.chain_id);
+      chainId = app.chain_id;
     }
 
     if (ibc.enable && !fs.existsSync(rly)) {
@@ -371,7 +371,7 @@ let init = async function () {
     }
     if (!fs.existsSync(quarixd) || isCompile) {
       console.log("Start recompiling quarixd...");
-      let make = await execPromis("go build -o quarixd ../cmd/quarixd", { cwd: curDir });
+      let make = await execPromis("go build ../cmd/quarixd", { cwd: curDir });
       console.log("quarixd compile finished", make);
     }
 
@@ -421,8 +421,8 @@ let init = async function () {
       }
 
       {
-        let initFiles = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
-        let initFilesValidator = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${quarixChainId} --keyring-backend test`;
+        let initFiles = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
+        let initFilesValidator = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
         try {
           const testnetHelpCmd = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --help`;
           const { stdout } = await execPromis(testnetHelpCmd, { cwd: curDir });
