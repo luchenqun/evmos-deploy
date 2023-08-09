@@ -61,14 +61,22 @@ let argv = yargs
     describe: "Whether keep the data",
     type: "bool",
   })
+  .option("t", {
+    alias: "transaction",
+    demandOption: false,
+    default: false,
+    describe: "Whether run transaction.js",
+    type: "bool",
+  })
   .number(["v"])
   .number(["cn"])
-  .boolean(["n", "c", "s", "k"]).argv;
+  .boolean(["n", "c", "s", "k", "t"]).argv;
 
 const isNohup = argv.nohup;
 const isStart = argv.start;
 const isCompile = argv.compile;
 const isKeep = argv.keep;
+const isTx = argv.transaction;
 const commonNode = argv.commonNode;
 const validators = argv.validators;
 const nodesCount = validators + commonNode;
@@ -248,13 +256,11 @@ let init = async function () {
   console.log("argv:", JSON.stringify(argv), "platform:", platform, "arch:", arch);
   try {
     // 读取配置文件
-    let config;
-    try {
-      config = await fs.readJson("./config.json");
-    } catch (error) {
-      console.error(error);
-      config = await fs.readJson("./config.default.json");
+    if (!fs.existsSync("./config.json")) {
+      await fs.copyFile("./config.default.json", "./config.json");
     }
+
+    let config = await fs.readJson("./config.default.json");
     const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, privateKeys, ibc } = config;
     gaiaP2pPort = ibc.tendermint["p2p.laddr"].split(":").pop().split(`"`)[0];
     if (app.chain_id) {
@@ -720,6 +726,15 @@ taskkill /F /PID %PID%`
     if (isStart) {
       console.log("Start all quarixd node under the folder nodes");
       await execPromis(scriptStart, { cwd: nodesDir }); // 不管怎样先执行一下停止
+
+      if (isTx) {
+        console.log("\nStart call tx.js main function");
+        if (!fs.existsSync("./tx.js")) {
+          await fs.copyFile("./tx.default.js", "./tx.js");
+        }
+        const tx = await import("./tx.js");
+        await tx.main();
+      }
     }
   } catch (error) {
     console.log("error", error);
