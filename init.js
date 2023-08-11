@@ -260,7 +260,7 @@ let init = async function () {
       await fs.copyFile("./config.default.json", "./config.json");
     }
 
-    let config = await fs.readJson("./config.default.json");
+    let config = await fs.readJson("./config.json");
     const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, privateKeys, ibc } = config;
     gaiaP2pPort = ibc.tendermint["p2p.laddr"].split(":").pop().split(`"`)[0];
     if (app.chain_id) {
