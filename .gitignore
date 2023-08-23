@@ -19,5 +19,6 @@ relayer/
 rly
 gaiad
 quarixd*
+tendermint
 tx.js
 txRun.js

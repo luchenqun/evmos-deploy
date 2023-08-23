@@ -1,33 +1,7 @@
 {
-  "app": {
-    "chain_id": "quarix_8888888-1",
-    "port": {
-      "api.address": 1317,
-      "rosetta.address": 8080,
-      "grpc.address": 9090,
-      "grpc-web.address": 7070,
-      "json-rpc.address": 8545,
-      "json-rpc.ws-address": 7545,
-      "json-rpc.metrics-address": 6065
-    },
-    "cfg": {
-      "minimum-gas-prices": "\"0aqare\"",
-      "pruning": "\"nothing\"",
-      "api.swagger": "true",
-      "api.enabled-unsafe-cors": "true",
-      "rosetta.enable": "false",
-      "rosetta.denom-to-suggest": "\"aqare\"",
-      "grpc.enable": "true",
-      "grpc-web.enable": "true",
-      "grpc-web.enable-unsafe-cors": "true",
-      "json-rpc.enable": "true",
-      "json-rpc.api": "\"eth,txpool,personal,net,debug,web3\""
-    }
-  },
   "tendermint": {
     "port": {
       "rpc.laddr": 26657,
-      "rpc.pprof_laddr": 5050,
       "p2p.laddr": 10000,
       "instrumentation.prometheus_listen_addr": 16660
     },
@@ -37,64 +11,12 @@
       "p2p.allow_duplicate_ip": "true",
       "p2p.seeds": "\"\"",
       "consensus.timeout_commit": "\"1s\"",
-      "mempool.version": "\"v1\""
+      "consensus.create_empty_blocks": "false"
     }
   },
-  "preMineAccounts": [
-  ],
-  "privateKeys": [
-    {
-      "name": "qoe",
-      "key": "f78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769"
-    }
-  ],
-  "preMinePerAccount": "1000000000000000000000",
   "fixedFirstValidator": true,
-  "ibc": {
-    "enable": false,
-    "app": {
-      "minimum-gas-prices": "\"0uatom\"",
-      "pruning": "\"nothing\"",
-      "api.enable": "true",
-      "api.swagger": "true",
-      "api.enabled-unsafe-cors": "true",
-      "api.address": "\"tcp://0.0.0.0:11317\"",
-      "rosetta.address": "\":18080\"",
-      "grpc.enable": "true",
-      "grpc.address": "\"0.0.0.0:19090\"",
-      "grpc-web.enable": "true",
-      "grpc-web.enable-unsafe-cors": "true",
-      "grpc-web.address": "\"0.0.0.0:19091\""
-    },
-    "tendermint": {
-      "rpc.laddr": "\"tcp://0.0.0.0:16657\"",
-      "rpc.cors_allowed_origins": "[\"*\"]",
-      "rpc.pprof_laddr": "\"localhost:16060\"",
-      "p2p.laddr": "\"tcp://0.0.0.0:16656\"",
-      "instrumentation.prometheus_listen_addr": "\":26660\""
-    }
-  },
+  "proxyApp": "persistent_kvstore",
   "genesisCfg": [
-    "consensus_params.block.max_gas='210000000000'",
-    "app_state.gov.deposit_params.max_deposit_period='60s'",
-    "app_state.gov.voting_params.voting_period='6s'",
-    "app_state.staking.params.max_validators=100",
-    "app_state.staking.params.unbonding_time='600s'",
-    "app_state.distribution.params.community_tax='0.000000000000000000'",
-    "app_state.distribution.params.base_proposer_reward='0.000000000000000000'",
-    "app_state.distribution.params.bonus_proposer_reward='0.000000000000000000'",
-    "app_state.inflation.params.mint_denom='aqare'",
-    "app_state.inflation.params.inflation_distribution.staking_rewards='1.000000000000000000'",
-    "app_state.inflation.params.inflation_distribution.usage_incentives='0.000000000000000000'",
-    "app_state.inflation.params.inflation_distribution.community_pool='0.000000000000000000'",
-    "app_state.inflation.epoch_identifier='day'",
-    "app_state.inflation.epochs_per_period='10'",
-    "app_state.epochs.epochs[1].identifier='day'",
-    "app_state.epochs.epochs[1].duration='30s'",
-    "app_state.slashing.params.signed_blocks_window='10'",
-    "app_state.slashing.params.downtime_jail_duration='30s'",
-    "app_state.inflation.params.enable_inflation=false",
-    "app_state.feemarket.params.no_base_fee=true",
-    "app_state.feemarket.params.base_fee='0'"
+    "chain_id='tendermint-chain-test'"
   ]
 }

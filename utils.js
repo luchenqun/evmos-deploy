@@ -1,13 +1,5 @@
 import util from "util";
 import { exec } from "child_process";
-import { bech32Chain, ETH } from "@quarix/address-converter";
-
-export const ethToBech32 = (address, prefix) => {
-  const ethAddress = ETH.decoder(address);
-  const chain = bech32Chain(prefix.toUpperCase(), prefix);
-  const data = chain.encoder(ethAddress);
-  return data;
-};
 
 export const execPromis = util.promisify(exec);
 export const sleep = (time) => {
