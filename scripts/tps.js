@@ -13,7 +13,7 @@ const sleep = (time) => {
   let privateKey = ""; // put hex private key with prefix 0x
   if (!privateKey) {
     try {
-      const keySeed = await fs.readJSON("../nodes/node0/evmosd/key_seed.json");
+      const keySeed = await fs.readJSON("../nodes/node0/quarixd/key_seed.json");
       privateKey = Wallet.fromMnemonic(keySeed.secret)._signingKey().privateKey.toLowerCase();
     } catch (error) {
       console.log(error);
@@ -22,7 +22,7 @@ const sleep = (time) => {
   const account = web3.eth.accounts.privateKeyToAccount(privateKey);
   const address = account.address;
 
-  const ws = new WebSocket("ws://127.0.0.1:8546");
+  const ws = new WebSocket("ws://127.0.0.1:7545");
   const unconfirmedTxs = `http://127.0.0.1:26657/num_unconfirmed_txs`;
   const TxPoolId = 0;
   const TxId = 1;
@@ -104,7 +104,7 @@ const sleep = (time) => {
       while (maxPending - pending > 0) {
         const transaction = await account.signTransaction({
           gas: 21000,
-          gasPrice: 875000000,
+          gasPrice: "10000000000",
           from: address,
           to: "0x00000be6819f41400225702d32d3dd23663dd690",
           value: 1,

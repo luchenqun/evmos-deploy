@@ -21,3 +21,7 @@ gaiad
 quarixd*
 tx.js
 txRun.js
+a1sig.json
+a2sig.json
+signedTx.json
+unsignedTx.json
