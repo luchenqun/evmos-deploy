@@ -33,6 +33,14 @@ let run = async function () {
       console.log(cmd, "\n", decodeReply(reply));
     }
 
+    // {
+    //   // add unsign file
+    //   // ./quarixd tx bank mint-coins multi 1aqrx,1aqare --gas=500000 --gas-prices 20000000000aqare --home=./nodes/node0/quarixd/ --generate-only > unsignedTx.json
+    //   cmd = `./quarixd tx bank mint-coins ${multi} 1aqrx,1aqare --gas=500000 --gas-prices 20000000000aqare ${home} --generate-only > ${unsignFile}`;
+    //   reply = await execPromis(cmd, { cwd });
+    //   console.log(cmd, "\n", decodeReply(reply));
+    // }
+
     {
       // a1 sign
       // ./quarixd tx sign unsignedTx.json --multisig=multi --from=a1 --output-document=a1sig.json  --home=./nodes/node0/quarixd/
