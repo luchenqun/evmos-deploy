@@ -79,7 +79,6 @@
     }
   },
   "genesisCfg": [
-    "consensus_params.block.max_gas='40000000'",
-    "app_state.gov.voting_params.voting_period='600s'"
+    "app_state.gov.params.voting_period='600s'"
   ]
 }
