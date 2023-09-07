@@ -61,22 +61,30 @@ let argv = yargs
     describe: "Whether keep the data",
     type: "bool",
   })
-  .option("t", {
-    alias: "transaction",
+  .option("br", {
+    alias: "before-run",
     demandOption: false,
     default: false,
-    describe: "Whether run transaction.js",
+    describe: "before run node, execute beforeRun.js",
+    type: "bool",
+  })
+  .option("ar", {
+    alias: "after-run",
+    demandOption: false,
+    default: false,
+    describe: "before run node, execute afterRun.js",
     type: "bool",
   })
   .number(["v"])
   .number(["cn"])
-  .boolean(["n", "c", "s", "k", "t"]).argv;
+  .boolean(["n", "c", "s", "br", "ar", "k", "t"]).argv;
 
 const isNohup = argv.nohup;
 const isStart = argv.start;
+const isBeforeRun = argv.br;
+const isAfterRun = argv.ar;
 const isCompile = argv.compile;
 const isKeep = argv.keep;
-const isTx = argv.transaction;
 const commonNode = argv.commonNode;
 const validators = argv.validators;
 const nodesCount = validators + commonNode;
@@ -723,18 +731,27 @@ taskkill /F /PID %PID%`
       await fs.copy(quarixd, `./nodes/${quarixd}`, { overwrite: true });
     }
 
+    if (isBeforeRun) {
+      console.log("\nStart call beforeRun.js main function");
+      if (!fs.existsSync("./beforeRun.js")) {
+        await fs.copyFile("./beforeRun.default.js", "./beforeRun.js");
+      }
+      const run = await import("./beforeRun.js");
+      await run.main();
+    }
+
     if (isStart) {
       console.log("Start all quarixd node under the folder nodes");
       await execPromis(scriptStart, { cwd: nodesDir }); // 不管怎样先执行一下停止
+    }
 
-      if (isTx) {
-        console.log("\nStart call tx.js main function");
-        if (!fs.existsSync("./tx.js")) {
-          await fs.copyFile("./tx.default.js", "./tx.js");
-        }
-        const tx = await import("./tx.js");
-        await tx.main();
+    if (isAfterRun) {
+      console.log("\nStart call afterRun.js main function");
+      if (!fs.existsSync("./afterRun.js")) {
+        await fs.copyFile("./afterRun.default.js", "./afterRun.js");
       }
+      const run = await import("./afterRun.js");
+      await run.main();
     }
   } catch (error) {
     console.log("error", error);

@@ -19,7 +19,8 @@ relayer/
 rly
 gaiad
 quarixd*
-tx.js
+beforeRun.js
+afterRun.js
 txRun.js
 a1sig.json
 a2sig.json
