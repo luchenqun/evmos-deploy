@@ -1,4 +1,6 @@
 {
+  "name": "simd",
+  "chainId": "simd-20191205_1",
   "swaggerPort": 1317,
   "rosettaPort": 8080,
   "grpcPort": 9090,

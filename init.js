@@ -10,51 +10,51 @@ import TenderKeys from "./tenderKeys.js";
 
 const yargs = _yargs(hideBin(process.argv)); // https://github.com/yargs/yargs/issues/1854#issuecomment-787509517
 let argv = yargs
-  .option("n", {
-    alias: "nohup",
-    demandOption: false,
-    default: true,
-    describe: "Whether the startup script is nohup",
-    type: "bool",
-  })
-  .option("c", {
-    alias: "compile",
-    demandOption: false,
-    default: false,
-    describe: "Whether compile code",
-    type: "bool",
-  })
-  .option("v", {
-    alias: "validators",
-    demandOption: false,
-    default: 4,
-    describe: "Number of validators to initialize the testnet with (default 4)",
-    type: "number",
-  })
-  .option("cn", {
-    alias: "commonNode",
-    demandOption: false,
-    default: 0,
-    describe: "Number of common node to initialize the testnet with (default 0)",
-    type: "number",
-  })
-  .option("p", {
-    alias: "platform",
-    demandOption: false,
-    default: "",
-    describe: "platform(darwin,linux,win32)",
-    type: "string",
-  })
-  .option("s", {
-    alias: "start",
-    demandOption: false,
-    default: false,
-    describe: "Whether after initialize immediate start",
-    type: "bool",
-  })
-  .number(["v"])
-  .number(["cn"])
-  .boolean(["n", "c", "s"]).argv;
+    .option("n", {
+      alias: "nohup",
+      demandOption: false,
+      default: true,
+      describe: "Whether the startup script is nohup",
+      type: "bool",
+    })
+    .option("c", {
+      alias: "compile",
+      demandOption: false,
+      default: false,
+      describe: "Whether compile code",
+      type: "bool",
+    })
+    .option("v", {
+      alias: "validators",
+      demandOption: false,
+      default: 4,
+      describe: "Number of validators to initialize the testnet with (default 4)",
+      type: "number",
+    })
+    .option("cn", {
+      alias: "commonNode",
+      demandOption: false,
+      default: 0,
+      describe: "Number of common node to initialize the testnet with (default 0)",
+      type: "number",
+    })
+    .option("p", {
+      alias: "platform",
+      demandOption: false,
+      default: "",
+      describe: "platform(darwin,linux,win32)",
+      type: "string",
+    })
+    .option("s", {
+      alias: "start",
+      demandOption: false,
+      default: false,
+      describe: "Whether after initialize immediate start",
+      type: "bool",
+    })
+    .number(["v"])
+    .number(["cn"])
+    .boolean(["n", "c", "s"]).argv;
 
 const isNohup = argv.nohup;
 const isStart = argv.start;
@@ -66,7 +66,7 @@ const platform = argv.platform ? argv.platform : process.platform;
 const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
-const app = platform == "win32" ? "simd.exe" : "simd";
+let app = platform == "win32" ? "simd.exe" : "simd";
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
 const tenderKeys = new TenderKeys();
@@ -84,20 +84,21 @@ let init = async function () {
     } catch (error) {
       config = await fs.readJson("./config.default.json");
     }
-    const { preMinePerAccount, preMineAccounts } = config;
+    const { preMinePerAccount, preMineAccounts, name, chainId } = config;
+    app = platform == "win32" ? `${name}.exe` : name;
     if (await fs.pathExists(scriptStop)) {
-      console.log("Try to stop the simd under the nodes directory");
+      console.log(`Try to stop the ${name} under the nodes directory`);
       await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
       await sleep(platform == "win32" ? 600 : 300);
     }
     if (!fs.existsSync(app) || isCompile) {
-      console.log("Start recompiling simd...");
-      let make = await execPromis("go build ../simapp/simd", { cwd: curDir });
-      console.log("simd compile finished", make);
+      console.log(`Start recompiling ${name}...`);
+      let make = await execPromis(name == "simd" ? `go build ../simapp/${app}` : `go build ../cmd/${app}`, { cwd: curDir });
+      console.log(`${name} compile finished`, make);
     }
 
     if (!fs.existsSync(app)) {
-      console.log("simd Executable file does not exist");
+      console.log(`${name} Executable file does not exist`);
       return;
     }
 
@@ -111,8 +112,8 @@ let init = async function () {
     await fs.ensureDir(nodesDir);
     console.log("Folder nodes has been cleaned up");
     {
-      const initFiles = `${platform !== "win32" ? "./" : ""}${app} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id sim_20191205-1 --keyring-backend test`;
-      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${app} testnet init-files --v ${validators} --output-dir ./nodes --chain-id sim_20191205-1 --keyring-backend test`;
+      const initFiles = `${platform !== "win32" ? "./" : ""}${app} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
+      const initFilesValidator = `${platform !== "win32" ? "./" : ""}${app} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
       console.log(`Exec cmd: ${initFiles}`);
       const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
       console.log(`init-files ${stdout}${stderr}\n`);
@@ -125,9 +126,9 @@ let init = async function () {
 
         // re init validator, and turn a validator node into a common node
         await execPromis(initFilesValidator, { cwd: curDir });
-        const genesisPath = path.join(nodesDir, `node0/simd/config/genesis.json`);
+        const genesisPath = path.join(nodesDir, `node0/${app}/config/genesis.json`);
         for (let i = validators; i < nodesCount; i++) {
-          await fs.copy(genesisPath, path.join(nodesDir, `node${i}/simd/config/genesis.json`));
+          await fs.copy(genesisPath, path.join(nodesDir, `node${i}/${app}/config/genesis.json`));
         }
       }
     }
@@ -136,11 +137,11 @@ let init = async function () {
 
     let nodeIds = [];
     for (let i = 0; i < nodesCount; i++) {
-      const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/simd/config/node_key.json`));
+      const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/${app}/config/node_key.json`));
       const nodeId = tenderKeys.getBurrowAddressFromPrivKey(Buffer.from(nodeKey.priv_key.value, "base64").toString("hex"));
       nodeIds.push(nodeId);
 
-      const keySeedPath = path.join(nodesDir, `node${i}/simd/key_seed.json`);
+      const keySeedPath = path.join(nodesDir, `node${i}/${app}/key_seed.json`);
       let curKeySeed = await fs.readJSON(keySeedPath);
       const wallet = Wallet.fromMnemonic(curKeySeed.secret);
       curKeySeed.privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
@@ -154,10 +155,10 @@ let init = async function () {
     for (let i = 0; i < nodesCount; i++) {
       const account = {
         "@type": "/cosmos.auth.v1beta1.BaseAccount",
-        address:"",
+        address: "",
       };
       const balance = {
-        address:"",
+        address: "",
         coins: [
           {
             denom: "stake",
@@ -178,14 +179,14 @@ let init = async function () {
         }
       }
 
-      const genesisPath = path.join(nodesDir, `node${i}/simd/config/genesis.json`);
+      const genesisPath = path.join(nodesDir, `node${i}/${app}/config/genesis.json`);
       let genesis = await fs.readJSON(genesisPath);
       let appState = genesis.app_state;
       appState.auth.accounts.push(...accounts);
       appState.bank.balances.push(...balances);
       if (commonNode > 0) {
         for (let i = nodesCount - commonNode; i < nodesCount; i++) {
-          const keySeedPath = path.join(nodesDir, `node${i}/simd/key_seed.json`);
+          const keySeedPath = path.join(nodesDir, `node${i}/${app}/key_seed.json`);
           let curKeySeed = await fs.readJSON(keySeedPath);
           let curAccount = JSON.parse(JSON.stringify(account));
           let curBalance = JSON.parse(JSON.stringify(balance));
@@ -216,7 +217,7 @@ let init = async function () {
 
     for (let i = 0; i < nodesCount; i++) {
       let data;
-      const appConfigPath = path.join(nodesDir, `node${i}/simd/config/app.toml`);
+      const appConfigPath = path.join(nodesDir, `node${i}/${app}/config/app.toml`);
       const swaggerPort = config.swaggerPort || 1317;
       const rosettaPort = config.rosettaPort || 8080;
       const grpcPort = config.grpcPort || 9090;
@@ -235,11 +236,11 @@ let init = async function () {
       data = data.replace(`minimum-gas-prices = "0stake"`, `minimum-gas-prices = "${config.minimumGasPrices}"`);
       await fs.writeFile(appConfigPath, data);
 
-      const configPath = path.join(nodesDir, `node${i}/simd/config/config.toml`);
+      const configPath = path.join(nodesDir, `node${i}/${app}/config/config.toml`);
       const rpcServerPort = config.rpcServerPort || 26657;
       const p2pPort = config.p2pPort || 10000;
       const pprofPort = config.pprofPort || 6060;
-      const timeoutCommit = config.timeoutCommit || "3s"
+      const timeoutCommit = config.timeoutCommit || "3s";
       data = await fs.readFile(configPath, "utf8");
       data = data.replace("0.0.0.0:26657", `0.0.0.0:${rpcServerPort + i}`);
       data = data.replaceAll("cors_allowed_origins = []", `cors_allowed_origins = ["*"]`);
@@ -273,16 +274,16 @@ let init = async function () {
     let vbsStop = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
     for (let i = 0; i < nodesCount; i++) {
       let p2pPort = config.p2pPort + i;
-      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${app} start --home ./node${i}/simd/` + (isNohup && platform !== "win32" ? ` >./sim${i}.log 2>&1 &` : "");
+      let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${app} start --home ./node${i}/${app}/` + (isNohup && platform !== "win32" ? ` >./${app}${i}.log 2>&1 &` : "");
       let stop =
-        platform == "win32"
-          ? `@echo off
+          platform == "win32"
+              ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr 0.0.0.0:${p2pPort}') do set PID=%%i
 taskkill /F /PID %PID%`
-          : platform == "linux"
-          ? `pid=\`netstat -anp | grep :::${p2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
+              : platform == "linux"
+                  ? `pid=\`netstat -anp | grep :::${p2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
     kill -15 $pid`
-          : `pid=\`lsof -i :${p2pPort} | grep simd | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
+                  : `pid=\`lsof -i :${p2pPort} | grep ${app} | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
     if [ "$pid" != "" ]; then kill -15 $pid; fi`;
       let startPath = path.join(nodesDir, `start${i}.` + (platform == "win32" ? "bat" : "sh"));
       let stopPath = path.join(nodesDir, `stop${i}.` + (platform == "win32" ? "bat" : "sh"));
@@ -310,7 +311,7 @@ taskkill /F /PID %PID%`
     }
 
     if (isStart) {
-      console.log("Start all simd node under the folder nodes");
+      console.log(`Start all ${app} node under the folder nodes`);
       await execPromis(scriptStart, { cwd: nodesDir }); // 不管怎样先执行一下停止
     }
   } catch (error) {
