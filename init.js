@@ -93,7 +93,7 @@ let init = async function () {
     }
     if (!fs.existsSync(app) || isCompile) {
       console.log(`Start recompiling ${name}...`);
-      let make = await execPromis(name == "simd" ? `go build ../simapp/${app}` : `go build ../cmd/${app}`, { cwd: curDir });
+      let make = await execPromis(`make build`, { cwd: path.join(curDir, "..") });
       console.log(`${name} compile finished`, make);
     }
 
