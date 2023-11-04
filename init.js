@@ -185,8 +185,8 @@ keyring-backend = "test"
 output = "text"
 # <host>:<port> to Tendermint RPC interface for this chain
 node = "tcp://localhost:26657"
-# Transaction broadcasting mode (sync|async|block)
-broadcast-mode = "block"
+# Transaction broadcasting mode (sync|async)
+broadcast-mode = "sync"
 `;
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
