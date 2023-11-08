@@ -245,7 +245,7 @@ const updateCfg = (data, cfg) => {
 };
 
 let init = async function () {
-  console.log("argv:", JSON.stringify(argv), "platform:", platform, "arch:", arch);
+  console.log("argv:", JSON.stringify(argv), "platform:", platform, ", arch:", arch);
   try {
     // 读取配置文件
     let config;
@@ -523,11 +523,11 @@ let init = async function () {
             ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr 0.0.0.0:${p2pPort}') do set PID=%%i
 taskkill /F /PID %PID%`
-            : platform == "linux"
+            : platform == "darwin"
             ? `pid=\`netstat -anp | grep :::${p2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
-    kill -15 $pid`
+kill -15 $pid`
             : `pid=\`lsof -i :${p2pPort} | grep evmosd | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
-    if [ "$pid" != "" ]; then kill -15 $pid; fi`;
+if [ "$pid" != "" ]; then kill -15 $pid; fi`;
         let startPath = path.join(nodesDir, `start${i}.` + (platform == "win32" ? "bat" : "sh"));
         let stopPath = path.join(nodesDir, `stop${i}.` + (platform == "win32" ? "bat" : "sh"));
         await fs.writeFile(startPath, start);
@@ -551,11 +551,11 @@ taskkill /F /PID %PID%`
             ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr 0.0.0.0:${gaiaP2pPort}') do set PID=%%i
 taskkill /F /PID %PID%`
-            : platform == "linux"
+            : platform == "darwin"
             ? `pid=\`netstat -anp | grep :::${gaiaP2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
-    kill -15 $pid`
+kill -15 $pid`
             : `pid=\`lsof -i :${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
-    if [ "$pid" != "" ]; then kill -15 $pid; fi`;
+if [ "$pid" != "" ]; then kill -15 $pid; fi`;
         let startPath = path.join(nodesDir, platform == "win32" ? "startGaia.bat" : "startGaia.sh");
         let stopPath = path.join(nodesDir, platform == "win32" ? "stopGaia.bat" : "stopGaia.sh");
         await fs.writeFile(startPath, start);
@@ -582,7 +582,7 @@ taskkill /F /PID %PID%`
             ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr ${rly}') do set PID=%%i
 taskkill /F /PID %PID%`
-            : platform == "linux"
+            : platform == "darwin"
             ? `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
     kill -15 $pid`
             : `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
