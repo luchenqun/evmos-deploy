@@ -242,7 +242,7 @@ let init = async function () {
       const pprofPort = config.pprofPort || 6060;
       const timeoutCommit = config.timeoutCommit || "3s";
       data = await fs.readFile(configPath, "utf8");
-      data = data.replace("0.0.0.0:26657", `0.0.0.0:${rpcServerPort + i}`);
+      data = data.replace("127.0.0.1:26657", `0.0.0.0:${rpcServerPort + i}`);
       data = data.replaceAll("cors_allowed_origins = []", `cors_allowed_origins = ["*"]`);
       data = data.replaceAll("allow_duplicate_ip = false", `allow_duplicate_ip = true`);
       data = data.replace("tcp://0.0.0.0:26656", `tcp://0.0.0.0:${p2pPort + i}`);
