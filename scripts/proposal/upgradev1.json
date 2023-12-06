@@ -1,0 +1,25 @@
+{
+  "title": "Test Upgrade",
+  "description": "Software upgrades proposal",
+  "messages": [
+    {
+      "@type": "/cosmos.gov.v1.MsgExecLegacyContent",
+      "authority": "quarix10d07y265gmmuvt4z0w9aw880jnsr700j37d24s",
+      "content": {
+        "@type": "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal",
+        "title": "v1.0.0",
+        "description": "upgrade",
+        "plan": {
+          "name": "v1.0.0",
+          "info": "upgrade to v1",
+          "height": "120",
+          "time": "0001-01-01T00:00:00Z",
+          "upgraded_client_state": null
+        }
+      }
+    }
+  ],
+  "chain-id": "quarix_8888888-1",
+  "metadata": "AQ==",
+  "deposit": "10000000aqrx"
+}
