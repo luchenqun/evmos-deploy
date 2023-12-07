@@ -1,17 +1,16 @@
-import { Wallet } from "@ethersproject/wallet";
+import { HDNodeWallet } from "ethers";
 import { exec } from "child_process";
 import download from "download";
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
 import util from "util";
-import _yargs from "yargs";
+import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import TenderKeys from "./tenderKeys.js";
-import { ethToBech32 } from "./utils.js";
+import { ethToBech32, privKeyToBurrowAddres, sleep } from "./utils.js";
 
-const yargs = _yargs(hideBin(process.argv)); // https://github.com/yargs/yargs/issues/1854#issuecomment-787509517
-let argv = yargs
+// https://github.com/yargs/yargs/issues/1854#issuecomment-787509517
+let argv = yargs(hideBin(process.argv))
   .option("n", {
     alias: "nohup",
     demandOption: false,
@@ -206,10 +205,6 @@ broadcast-mode = "block"
 `;
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
-const tenderKeys = new TenderKeys();
-const sleep = (time) => {
-  return new Promise((resolve) => setTimeout(resolve, time));
-};
 
 const updatePorts = (data, ports, index) => {
   let lines = data.split(/\r?\n/);
@@ -472,8 +467,14 @@ let init = async function () {
           await fs.outputJSON(path.join(nodesDir, `node0/quarixd/key_seed.json`), keySeed);
           const keyringPath = path.join(nodesDir, `node0/quarixd/keyring-test`);
           await fs.emptyDir(keyringPath);
-          await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMTA4NjkgKzA4MDAgQ1NUIG09KzAuMDkwODExMTI2IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiaE1GUk1GS3VmWG1MN3JqTCJ9.7BAWENEQQIuPQgTpU4KndAzJehSmrfpmCB3QjetS-aDxkCQi4eKS9g.0Yqfk_vOloLdfMu4.BLT_MDoICsIXwiFVQkHfSwva025Ys6T1vEIgucHj31E8_2LImXjE9E7SF2MayogN9nTr_TRw_rlPy6AJ79Bi3hscunNZHNA46WxsncNJodp5iBMTRt2KG2JeMiCEHRUIh1OATVqc_nKqnkR0ZgPHFKxCQY5xUoPB_Ix_fqARrFcSQEk_sLceRpRMRVWj3yOpg6YzFi47x7IGoIg1OsvhsKj1sOYqCTgTzcRDSzEG3ROZgzbpBuM.u-hKqVwDVyujqCQCMaQzzw");
-          await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMDkzODEgKzA4MDAgQ1NUIG09KzAuMDg5MzIzNDE4IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiUDBPUkJVczJ1eWRYR3RUZyJ9.XaNXPomwcd9zfFaazm6QP3XeFQPY4Qm4zFh12YO3GDyOykBdB_RxiA.VR3S0G6Cm081EtOJ.oq8vBlNiOIJRSfkL3FKTHRClIW5IzVh4yQy-Drh2NnyCRbIKu41arpFq9UggKfm3i2kukscRqX2UN4Fi5KHlc3sS4Vq4d2aMlP_2vp7S3xVeLMEaVqZN-WuMG_FHOJiWxAFgzJn5uV5G-6WxOAK3CsxPzbc0k7VlkV705tSsCmPbWf4jNeuRQjdK6fjppx3jcipmX4M6I5xTO1Rv9imRuMP3prCF_XYgEd86OG3l_HrCTjI-TCaCmhtONaCpenmBzbB-4hDokDSslvxyDbYnoTPnWxDmVLRmm5vH1POVSna7kUXX3UB8uQyDQ_BA2oc6X27r7Ov5S1Jw3cRj-rL9MbpUVe7QftG_FV0CiRsAbEjc1z3iVrbP_uWHk2wGJzKF02GNlsFiLvIDjDAGDN6R1Ku2pNdsoyHllkUZ2P_3masJUR4KXNmPW5w7EePkvl-VegMRzBjS65Qtc-veGtp1VmFIi2o.1FZA0sSwiFUphL4cuXJHog");
+          await fs.writeFile(
+            path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`),
+            "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMTA4NjkgKzA4MDAgQ1NUIG09KzAuMDkwODExMTI2IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiaE1GUk1GS3VmWG1MN3JqTCJ9.7BAWENEQQIuPQgTpU4KndAzJehSmrfpmCB3QjetS-aDxkCQi4eKS9g.0Yqfk_vOloLdfMu4.BLT_MDoICsIXwiFVQkHfSwva025Ys6T1vEIgucHj31E8_2LImXjE9E7SF2MayogN9nTr_TRw_rlPy6AJ79Bi3hscunNZHNA46WxsncNJodp5iBMTRt2KG2JeMiCEHRUIh1OATVqc_nKqnkR0ZgPHFKxCQY5xUoPB_Ix_fqARrFcSQEk_sLceRpRMRVWj3yOpg6YzFi47x7IGoIg1OsvhsKj1sOYqCTgTzcRDSzEG3ROZgzbpBuM.u-hKqVwDVyujqCQCMaQzzw"
+          );
+          await fs.writeFile(
+            path.join(keyringPath, `node0.info`),
+            "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMy0wMy0xNyAxNToxNzoyMi4yMDkzODEgKzA4MDAgQ1NUIG09KzAuMDg5MzIzNDE4IiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiUDBPUkJVczJ1eWRYR3RUZyJ9.XaNXPomwcd9zfFaazm6QP3XeFQPY4Qm4zFh12YO3GDyOykBdB_RxiA.VR3S0G6Cm081EtOJ.oq8vBlNiOIJRSfkL3FKTHRClIW5IzVh4yQy-Drh2NnyCRbIKu41arpFq9UggKfm3i2kukscRqX2UN4Fi5KHlc3sS4Vq4d2aMlP_2vp7S3xVeLMEaVqZN-WuMG_FHOJiWxAFgzJn5uV5G-6WxOAK3CsxPzbc0k7VlkV705tSsCmPbWf4jNeuRQjdK6fjppx3jcipmX4M6I5xTO1Rv9imRuMP3prCF_XYgEd86OG3l_HrCTjI-TCaCmhtONaCpenmBzbB-4hDokDSslvxyDbYnoTPnWxDmVLRmm5vH1POVSna7kUXX3UB8uQyDQ_BA2oc6X27r7Ov5S1Jw3cRj-rL9MbpUVe7QftG_FV0CiRsAbEjc1z3iVrbP_uWHk2wGJzKF02GNlsFiLvIDjDAGDN6R1Ku2pNdsoyHllkUZ2P_3masJUR4KXNmPW5w7EePkvl-VegMRzBjS65Qtc-veGtp1VmFIi2o.1FZA0sSwiFUphL4cuXJHog"
+          );
         }
       }
 
@@ -486,15 +487,14 @@ let init = async function () {
       let nodeIds = [];
       for (let i = 0; i < nodesCount; i++) {
         const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/quarixd/config/node_key.json`));
-        const nodeId = tenderKeys.getBurrowAddressFromPrivKey(Buffer.from(nodeKey.priv_key.value, "base64").toString("hex"));
+        const nodeId = privKeyToBurrowAddres(nodeKey.priv_key.value).toString("hex");
         nodeIds.push(nodeId);
 
         const keySeedPath = path.join(nodesDir, `node${i}/quarixd/key_seed.json`);
         let curKeySeed = await fs.readJSON(keySeedPath);
-        const wallet = Wallet.fromMnemonic(curKeySeed.secret);
-        curKeySeed.privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
-        curKeySeed.publicKey = wallet._signingKey().publicKey.toLowerCase().replace("0x", "");
-        curKeySeed.compressedPublicKey = wallet._signingKey().compressedPublicKey.toLowerCase().replace("0x", "");
+        const wallet = HDNodeWallet.fromPhrase(curKeySeed.secret);
+        curKeySeed.privateKey = wallet.privateKey.replace("0x", "");
+        curKeySeed.publicKey = wallet.publicKey.replace("0x", "");
         curKeySeed.address = wallet.address;
         curKeySeed.bip39Address = ethToBech32(wallet.address, "quarix");
         curKeySeed.valAddress = ethToBech32(wallet.address, "quarixvaloper");
@@ -635,11 +635,8 @@ let init = async function () {
             ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr 0.0.0.0:${p2pPort}') do set PID=%%i
 taskkill /F /PID %PID%`
-            : platform == "linux"
-            ? `pid=\`netstat -anp | grep :::${p2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
-    kill -15 $pid`
-            : `pid=\`lsof -i :${p2pPort} | grep quarixd | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
-    if [ "$pid" != "" ]; then kill -15 $pid; fi`;
+            : `pid=\`lsof -iTCP:${p2pPort} -sTCP:LISTEN -t\`;
+if [[ -n $pid ]]; then kill -15 $pid; fi`;
         let startPath = path.join(nodesDir, `start${i}.` + (platform == "win32" ? "bat" : "sh"));
         let stopPath = path.join(nodesDir, `stop${i}.` + (platform == "win32" ? "bat" : "sh"));
         await fs.writeFile(startPath, start);
@@ -663,11 +660,8 @@ taskkill /F /PID %PID%`
             ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr 0.0.0.0:${gaiaP2pPort}') do set PID=%%i
 taskkill /F /PID %PID%`
-            : platform == "linux"
-            ? `pid=\`netstat -anp | grep :::${gaiaP2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
-    kill -15 $pid`
-            : `pid=\`lsof -i :${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
-    if [ "$pid" != "" ]; then kill -15 $pid; fi`;
+            : `pid=\`lsof -iTCP:${gaiaP2pPort} -sTCP:LISTEN -t\`;
+if [[ -n $pid ]]; then kill -15 $pid; fi`;
         let startPath = path.join(nodesDir, platform == "win32" ? "startGaia.bat" : "startGaia.sh");
         let stopPath = path.join(nodesDir, platform == "win32" ? "stopGaia.bat" : "stopGaia.sh");
         await fs.writeFile(startPath, start);
@@ -694,11 +688,8 @@ taskkill /F /PID %PID%`
             ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr ${rly}') do set PID=%%i
 taskkill /F /PID %PID%`
-            : platform == "linux"
-            ? `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
-    kill -15 $pid`
             : `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
-    if [ "$pid" != "" ]; then kill -15 $pid; fi`;
+if [ "$pid" != "" ]; then kill -15 $pid; fi`;
         let startPath = path.join(nodesDir, platform == "win32" ? "startRly.bat" : "startRly.sh");
         let stopPath = path.join(nodesDir, platform == "win32" ? "stopRly.bat" : "stopRly.sh");
         let ibcTransrerPath = path.join(nodesDir, platform == "win32" ? "ibcTransrer.bat" : "ibcTransrer.sh");

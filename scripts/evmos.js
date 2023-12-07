@@ -1,4 +1,4 @@
-import { Wallet } from "@ethersproject/wallet";
+import { Wallet, HDNodeWallet } from "ethers";
 import signUtil from "@metamask/eth-sig-util";
 import { ethToEvmos } from "@tharsis/address-converter";
 import { generatePostBodyBroadcast } from "@tharsis/provider";
@@ -21,7 +21,7 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, createMessage, params
     accountAddress: address,
     sequence: account.account.base_account.sequence,
     accountNumber: account.account.base_account.account_number,
-    pubkey: Buffer.from(wallet._signingKey().compressedPublicKey.replace("0x", ""), "hex").toString("base64"),
+    pubkey: Buffer.from(wallet.publicKey.replace("0x", ""), "hex").toString("base64"),
   };
 
   const msg = createMessage(chain, sender, fee, memo, params);
@@ -43,14 +43,13 @@ const txHexBytes = async (privateKeyHex, chain, fee, memo, createMessage, params
 };
 
 const nodeKey = async (node) => {
-  const keySeed = await fs.readJSON(`../nodes/${node}/evmosd/key_seed.json`);
-  const wallet = Wallet.fromMnemonic(keySeed.secret);
-  const privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
+  const keySeed = await fs.readJSON(`../nodes/${node}/quarixd/key_seed.json`);
+  const wallet = HDNodeWallet.fromPhrase(keySeed.secret);
+  const privateKey = wallet.privateKey.replace("0x", "");
   const address = wallet.address;
   const evmosAddress = ethToEvmos(address);
-  const publicKey = wallet._signingKey().publicKey;
-  const compressedPublicKey = wallet._signingKey().compressedPublicKey;
-  return { privateKey, publicKey, compressedPublicKey, address, evmosAddress };
+  const publicKey = wallet.publicKey;
+  return { privateKey, publicKey, address, evmosAddress };
 };
 
 const toAevmos = (evmos) => {
