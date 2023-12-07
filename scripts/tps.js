@@ -1,28 +1,28 @@
-import { Wallet } from "@ethersproject/wallet";
+import { HDNodeWallet, Wallet } from "ethers";
 import axios from "axios";
 import fs from "fs-extra";
-import Web3 from "web3";
 import WebSocket from "ws";
 
-const web3 = new Web3();
 const sleep = (time) => {
   return new Promise((resolve) => setTimeout(resolve, time));
 };
 
 (async () => {
   let privateKey = ""; // put hex private key with prefix 0x
+  let wallet;
   if (!privateKey) {
     try {
       const keySeed = await fs.readJSON("../nodes/node0/evmosd/key_seed.json");
-      privateKey = Wallet.fromMnemonic(keySeed.secret)._signingKey().privateKey.toLowerCase();
+      wallet = HDNodeWallet.fromPhrase(keySeed.secret);
     } catch (error) {
       console.log(error);
     }
+  } else {
+    wallet = new Wallet(privateKey);
   }
-  const account = web3.eth.accounts.privateKeyToAccount(privateKey);
-  const address = account.address;
+  const address = wallet.address;
 
-  const ws = new WebSocket("ws://127.0.0.1:8546");
+  const ws = new WebSocket("ws://127.0.0.1:7545");
   const unconfirmedTxs = `http://127.0.0.1:26657/num_unconfirmed_txs`;
   const TxPoolId = 0;
   const TxId = 1;
@@ -102,16 +102,17 @@ const sleep = (time) => {
       }
       // 塞满交易池
       while (maxPending - pending > 0) {
-        const transaction = await account.signTransaction({
-          gas: 21000,
+        const txRequest = {
+          gasLimit: 21000,
           gasPrice: 875000000,
           from: address,
           to: "0x00000be6819f41400225702d32d3dd23663dd690",
           value: 1,
           chainId: curChainId,
           nonce: sendNonce,
-        });
-        txRaw.params[0] = transaction.rawTransaction;
+        };
+        const signedTx = await wallet.signTransaction(txRequest);
+        txRaw.params[0] = signedTx;
         ws.send(JSON.stringify(txRaw));
         pending++;
         sendNonce++;

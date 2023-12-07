@@ -1,4 +1,4 @@
-import { Wallet } from "@ethersproject/wallet";
+import { HDNodeWallet } from "ethers";
 import { ethToEvmos } from "@tharsis/address-converter";
 import { exec } from "child_process";
 import download from "download";
@@ -295,8 +295,35 @@ let init = async function () {
 
     const nodeKey = { priv_key: { type: "tendermint/PrivKeyEd25519", value: "zLwmvMEw3OGwtdgaismSKF+ujNfHfO6z382MjtK4RljqK3k31x5dr+nopsN78fSNyc2nfnuWJTgJMGjr2GKhhw==" } };
     const privValidatorKey = { address: "020A0F48A2F4CE0F0CA6DEBF71DB83474DD717D0", pub_key: { type: "tendermint/PubKeyEd25519", value: "nfJ0axJC9dhta1MAE1EBFaVdxxkYzxYrBaHuJVjG//M=" }, priv_key: { type: "tendermint/PrivKeyEd25519", value: "YSBETu11SkiMJgh5z5QMrLG1vMBk/0U5hYR3FDZtvAKd8nRrEkL12G1rUwATUQEVpV3HGRjPFisFoe4lWMb/8w==" } };
-    const createValidator = { body: { messages: [{ "@type": "/cosmos.staking.v1beta1.MsgCreateValidator", description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" }, commission: { rate: "0.100000000000000000", max_rate: "1.000000000000000000", max_change_rate: "1.000000000000000000" }, min_self_delegation: "1", delegator_address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh", validator_address: "evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82", pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "nfJ0axJC9dhta1MAE1EBFaVdxxkYzxYrBaHuJVjG//M=" }, value: { denom: "aevmos", amount: "100000000000000000000" } }], memo: "855fc1f66a514c7ac32d2c081cca0af4b81dfb8c@192.168.0.1:26656", timeout_height: "0", extension_options: [], non_critical_extension_options: [] }, auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" }, tip: null }, signatures: ["wv9gukw9krBF9r6uEFAK5iHVFXynF1FKnbIfgfOXCdpMi4v++dQ3zoCnDjsHvuTRqCZWJuyREbaijV9oN70CVwE="] };
-    const keySeed = { secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft", privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2", publicKey: "049d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c1adb92ef31b067e67e77dc77061f76bb52fe4dfa85667f27657610a77429a09b", compressedPublicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c", address: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7", bip39Address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh" };
+    const createValidator = {
+      body: {
+        messages: [
+          {
+            "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+            description: { moniker: "node0", identity: "", website: "", security_contact: "", details: "" },
+            commission: { rate: "0.100000000000000000", max_rate: "1.000000000000000000", max_change_rate: "1.000000000000000000" },
+            min_self_delegation: "1",
+            delegator_address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh",
+            validator_address: "evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82",
+            pubkey: { "@type": "/cosmos.crypto.ed25519.PubKey", key: "nfJ0axJC9dhta1MAE1EBFaVdxxkYzxYrBaHuJVjG//M=" },
+            value: { denom: "aevmos", amount: "100000000000000000000" },
+          },
+        ],
+        memo: "855fc1f66a514c7ac32d2c081cca0af4b81dfb8c@192.168.0.1:26656",
+        timeout_height: "0",
+        extension_options: [],
+        non_critical_extension_options: [],
+      },
+      auth_info: { signer_infos: [{ public_key: { "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey", key: "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc" }, mode_info: { single: { mode: "SIGN_MODE_DIRECT" } }, sequence: "0" }], fee: { amount: [], gas_limit: "0", payer: "", granter: "" }, tip: null },
+      signatures: ["wv9gukw9krBF9r6uEFAK5iHVFXynF1FKnbIfgfOXCdpMi4v++dQ3zoCnDjsHvuTRqCZWJuyREbaijV9oN70CVwE="],
+    };
+    const keySeed = {
+      secret: "october pride genuine harvest reunion sight become tuna kingdom punch girl lizard cat crater fee emotion seat test output safe volume caught design soft",
+      privateKey: "e54bff83fc945cba77ca3e45d69adc5b57ad8db6073736c8422692abecfb5fe2",
+      publicKey: "039d2b6c98374cc3c009bcc4e548e0d1c971f9de2e74102d820a8442207bbfd49c",
+      address: "0xbf657D0ef7b48167657A703Ed8Fd063F075246D7",
+      bip39Address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh",
+    };
     if (await fs.pathExists(scriptStop)) {
       console.log("Try to stop the evmosd under the nodes directory");
       await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
@@ -379,8 +406,14 @@ let init = async function () {
           await fs.outputJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`), keySeed);
           const keyringPath = path.join(nodesDir, `node0/evmosd/keyring-test`);
           await fs.emptyDir(keyringPath);
-          await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NjQ4NTEgKzA4MDAgQ1NUIG09KzAuMjI4NTE5MjUxIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiVHM3QXhNRmV4MlZtMTZpeiJ9.OrWluGLeod9SjmLDqvXTcA63z9P1VZ-D0l5LFzwVOhJG67vl3b0HXQ.BrINO_FqPHviDFff.yk2tJKWkWIo-OXZfxr7INBATtLws_mHvT5s4kSfwDkbpp2JJVyoEwFcozQHp5hh9owc3bPG7HRa_QHQarB5_Oz-fXJkuPlTxR955P6azI1C8vuWqBcZ7nfZkAhoFHgSZzQAPuFp6sPTWoDampAqocmtWu2lYPSiRnDHRZ6gEmP1slwsRwJTlASEwpmzjBeDsqrwCn9cT_jNrI7ilWB4LBUUXAkkKVu-p1X9bkqo8yZ_UrFFR2rI.6rVArcxnth5pzzgbEtuHSQ");
-          await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NTg1NjYgKzA4MDAgQ1NUIG09KzAuMjIyMjM0MDQzIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoicmk3MzV2Y3Fid2VkUF9JcCJ9.ht-BieDMdmkOBfb1saBx2nvBDaD9anNxP5RTirHIk-tHUXJr6HbeKA.FvpzGpaY6il86ngO.WwHd6HTneYvxg3KkEhsXx1_F_XkmzHqVJwSmQrnX9ZSg2L8ZCAxV6rvliuRwt30816o8tElb06qpp1krFGwGL_LvP1FtnOiX4GdJJxAyX1lgBgJQrhZuqKc6EEE78ArwUR1Mb6b3ax_6oV7IB42izg1ci2PP5bgXN-510EM9RrSi9fnVl3UMoAanoBL8NfJGYHo2Cusn_Y14yEnPDHxS96vTl7wZx_pZrjtapyQ9ktnDQHVBfsupIKmIYXSwpQ16FQ9G4eclfKGhit4uUFofdT0UMG1g_aQEGHt1nPG08w66w8PxmW8ma_D8yCQp0TW6m9pTLWODiCztorLucEr9RFW9mJLofi4pFdCuqHrGm_o.X06PXwtrfTMDgiQDIpPS0g");
+          await fs.writeFile(
+            path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`),
+            "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NjQ4NTEgKzA4MDAgQ1NUIG09KzAuMjI4NTE5MjUxIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiVHM3QXhNRmV4MlZtMTZpeiJ9.OrWluGLeod9SjmLDqvXTcA63z9P1VZ-D0l5LFzwVOhJG67vl3b0HXQ.BrINO_FqPHviDFff.yk2tJKWkWIo-OXZfxr7INBATtLws_mHvT5s4kSfwDkbpp2JJVyoEwFcozQHp5hh9owc3bPG7HRa_QHQarB5_Oz-fXJkuPlTxR955P6azI1C8vuWqBcZ7nfZkAhoFHgSZzQAPuFp6sPTWoDampAqocmtWu2lYPSiRnDHRZ6gEmP1slwsRwJTlASEwpmzjBeDsqrwCn9cT_jNrI7ilWB4LBUUXAkkKVu-p1X9bkqo8yZ_UrFFR2rI.6rVArcxnth5pzzgbEtuHSQ"
+          );
+          await fs.writeFile(
+            path.join(keyringPath, `node0.info`),
+            "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NTg1NjYgKzA4MDAgQ1NUIG09KzAuMjIyMjM0MDQzIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoicmk3MzV2Y3Fid2VkUF9JcCJ9.ht-BieDMdmkOBfb1saBx2nvBDaD9anNxP5RTirHIk-tHUXJr6HbeKA.FvpzGpaY6il86ngO.WwHd6HTneYvxg3KkEhsXx1_F_XkmzHqVJwSmQrnX9ZSg2L8ZCAxV6rvliuRwt30816o8tElb06qpp1krFGwGL_LvP1FtnOiX4GdJJxAyX1lgBgJQrhZuqKc6EEE78ArwUR1Mb6b3ax_6oV7IB42izg1ci2PP5bgXN-510EM9RrSi9fnVl3UMoAanoBL8NfJGYHo2Cusn_Y14yEnPDHxS96vTl7wZx_pZrjtapyQ9ktnDQHVBfsupIKmIYXSwpQ16FQ9G4eclfKGhit4uUFofdT0UMG1g_aQEGHt1nPG08w66w8PxmW8ma_D8yCQp0TW6m9pTLWODiCztorLucEr9RFW9mJLofi4pFdCuqHrGm_o.X06PXwtrfTMDgiQDIpPS0g"
+          );
         }
       }
 
@@ -398,10 +431,9 @@ let init = async function () {
 
         const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
         let curKeySeed = await fs.readJSON(keySeedPath);
-        const wallet = Wallet.fromMnemonic(curKeySeed.secret);
-        curKeySeed.privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
-        curKeySeed.publicKey = wallet._signingKey().publicKey.toLowerCase().replace("0x", "");
-        curKeySeed.compressedPublicKey = wallet._signingKey().compressedPublicKey.toLowerCase().replace("0x", "");
+        const wallet = HDNodeWallet.fromPhrase(curKeySeed.secret);
+        curKeySeed.privateKey = wallet.privateKey.replace("0x", "");
+        curKeySeed.publicKey = wallet.publicKey.replace("0x", "");
         curKeySeed.address = wallet.address;
         curKeySeed.bip39Address = ethToEvmos(wallet.address);
         await fs.outputJson(keySeedPath, curKeySeed, { spaces: 2 });

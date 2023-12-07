@@ -1,6 +1,6 @@
 import util from "util";
 import { exec } from "child_process";
-import { Wallet } from "@ethersproject/wallet";
+import { Wallet, HDNodeWallet } from "ethers";
 import signUtil from "@metamask/eth-sig-util";
 import { ethToEvmos } from "@tharsis/address-converter";
 import { generatePostBodyBroadcast } from "@tharsis/provider";
@@ -54,15 +54,14 @@ const accountInfo = async (node) => {
     wallet = new Wallet(node);
   } else {
     const keySeed = await fs.readJSON(`../nodes/${node}/evmosd/key_seed.json`);
-    wallet = Wallet.fromMnemonic(keySeed.secret);
+    wallet = HDNodeWallet.fromPhrase(keySeed.secret);
   }
-  const privateKey = wallet._signingKey().privateKey.toLowerCase().replace("0x", "");
+  const privateKey = wallet.privateKey.replace("0x", "");
   const address = wallet.address;
   const evmosAddress = ethToEvmos(address);
   const validatorAddress = bech32Encode("evmosvaloper", address);
-  const publicKey = wallet._signingKey().publicKey;
-  const compressedPublicKey = wallet._signingKey().compressedPublicKey;
-  return { privateKey, publicKey, compressedPublicKey, address, evmosAddress, validatorAddress };
+  const publicKey = wallet.publicKey.replace("0x", "");
+  return { privateKey, publicKey, address, evmosAddress, validatorAddress };
 };
 
 (async () => {
@@ -168,7 +167,7 @@ const accountInfo = async (node) => {
       accountAddress: address,
       sequence: account.account.base_account.sequence,
       accountNumber: account.account.base_account.account_number,
-      pubkey: Buffer.from(wallet._signingKey().compressedPublicKey.replace("0x", ""), "hex").toString("base64"),
+      pubkey: Buffer.from(wallet.publicKey.replace("0x", ""), "hex").toString("base64"),
     };
 
     const msg = createMessage(chain, sender, fee, memo, params);
@@ -311,7 +310,7 @@ const accountInfo = async (node) => {
     const ibcDst = _ibcDst || (r ? "ibc-1" : "ibc-0");
     const denom = _denom || (r ? getRandomArrayElements(["aevmos", "transfer/channel-0/uatom"], 1) : getRandomArrayElements(["uatom", "transfer/channel-0/aevmos"], 1));
     const randWei = _amount || toWei(String(Math.random().toFixed(2)));
-    console.log("ibcTransfer", ibcSrc, ibcDst, denom, randWei)
+    console.log("ibcTransfer", ibcSrc, ibcDst, denom, randWei);
 
     try {
       const cmd1 = `./rly tx transfer ${ibcSrc} ${ibcDst} ${randWei}${denom} "$(./rly keys show ${ibcDst} --home ./relayer)" channel-0 -d --home ./relayer`;
@@ -332,23 +331,23 @@ const accountInfo = async (node) => {
     const nodesDir = path.join(process.cwd(), "../nodes");
     let out;
     out = await execPromis(`./rly q bal ibc-0 --home ./relayer`, { cwd: nodesDir });
-    if (!(typeof out.stdout == 'string' && out.stdout.indexOf("uatom") >= 0)) {
-      console.log("ibcTransfer1")
+    if (!(typeof out.stdout == "string" && out.stdout.indexOf("uatom") >= 0)) {
+      console.log("ibcTransfer1");
       await ibcTransfer("ibc-1", "ibc-0", "uatom", toWei(10));
     }
-   
+
     out = await execPromis(`./rly q bal ibc-1 --home ./relayer`, { cwd: nodesDir });
-    if (!(typeof out.stdout == 'string' && out.stdout.indexOf("aevmos") >= 0)) {
-      console.log("ibcTransfer2")
+    if (!(typeof out.stdout == "string" && out.stdout.indexOf("aevmos") >= 0)) {
+      console.log("ibcTransfer2");
       await ibcTransfer("ibc-0", "ibc-1", "aevmos", toWei(10));
     }
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 
   setInterval(async () => {
     await ibcTransfer();
-  }, 1000 * 60 * 15); // 15分钟 
+  }, 1000 * 60 * 15); // 15分钟
 
   setInterval(async () => {
     if (loading) return;
