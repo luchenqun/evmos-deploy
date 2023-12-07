@@ -8,7 +8,7 @@ import os from "os";
 import util from "util";
 import _yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import TenderKeys from "./tenderKeys.js";
+import { privKeyToBurrowAddres } from "./utils.js";
 
 const yargs = _yargs(hideBin(process.argv)); // https://github.com/yargs/yargs/issues/1854#issuecomment-787509517
 let argv = yargs
@@ -185,12 +185,11 @@ keyring-backend = "test"
 output = "text"
 # <host>:<port> to Tendermint RPC interface for this chain
 node = "tcp://localhost:26657"
-# Transaction broadcasting mode (sync|async|block)
-broadcast-mode = "block"
+# Transaction broadcasting mode (sync|async)
+broadcast-mode = "sync"
 `;
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
-const tenderKeys = new TenderKeys();
 const sleep = (time) => {
   return new Promise((resolve) => setTimeout(resolve, time));
 };
@@ -245,7 +244,7 @@ const updateCfg = (data, cfg) => {
 };
 
 let init = async function () {
-  console.log("argv:", JSON.stringify(argv), "platform:", platform, "arch:", arch);
+  console.log("argv:", JSON.stringify(argv), "platform:", platform, ", arch:", arch);
   try {
     // 读取配置文件
     let config;
@@ -394,7 +393,7 @@ let init = async function () {
       let nodeIds = [];
       for (let i = 0; i < nodesCount; i++) {
         const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/evmosd/config/node_key.json`));
-        const nodeId = tenderKeys.getBurrowAddressFromPrivKey(Buffer.from(nodeKey.priv_key.value, "base64").toString("hex"));
+        const nodeId = privKeyToBurrowAddres(nodeKey.priv_key.value);
         nodeIds.push(nodeId);
 
         const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
@@ -523,11 +522,8 @@ let init = async function () {
             ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr 0.0.0.0:${p2pPort}') do set PID=%%i
 taskkill /F /PID %PID%`
-            : platform == "linux"
-            ? `pid=\`netstat -anp | grep :::${p2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
-    kill -15 $pid`
-            : `pid=\`lsof -i :${p2pPort} | grep evmosd | grep LISTEN | awk '{printf $2}'|cut -d/ -f1\`;
-    if [ "$pid" != "" ]; then kill -15 $pid; fi`;
+            : `pid=\`lsof -iTCP:${p2pPort} -sTCP:LISTEN -t\`;
+if [[ -n $pid ]]; then kill -15 $pid; fi`;
         let startPath = path.join(nodesDir, `start${i}.` + (platform == "win32" ? "bat" : "sh"));
         let stopPath = path.join(nodesDir, `stop${i}.` + (platform == "win32" ? "bat" : "sh"));
         await fs.writeFile(startPath, start);
@@ -551,11 +547,11 @@ taskkill /F /PID %PID%`
             ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr 0.0.0.0:${gaiaP2pPort}') do set PID=%%i
 taskkill /F /PID %PID%`
-            : platform == "linux"
+            : platform == "darwin"
             ? `pid=\`netstat -anp | grep :::${gaiaP2pPort} | awk '{printf $7}' | cut -d/ -f1\`;
-    kill -15 $pid`
+kill -15 $pid`
             : `pid=\`lsof -i :${gaiaP2pPort} | grep ${gaiad} | grep LISTEN | awk '{printf $2}' | cut -d/ -f1\`;
-    if [ "$pid" != "" ]; then kill -15 $pid; fi`;
+if [ "$pid" != "" ]; then kill -15 $pid; fi`;
         let startPath = path.join(nodesDir, platform == "win32" ? "startGaia.bat" : "startGaia.sh");
         let stopPath = path.join(nodesDir, platform == "win32" ? "stopGaia.bat" : "stopGaia.sh");
         await fs.writeFile(startPath, start);
@@ -582,7 +578,7 @@ taskkill /F /PID %PID%`
             ? `@echo off
 for /f "tokens=5" %%i in ('netstat -ano ^| findstr ${rly}') do set PID=%%i
 taskkill /F /PID %PID%`
-            : platform == "linux"
+            : platform == "darwin"
             ? `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
     kill -15 $pid`
             : `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;

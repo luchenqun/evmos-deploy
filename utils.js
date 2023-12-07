@@ -1,4 +1,5 @@
 import util from "util";
+import crypto from "crypto";
 import { exec } from "child_process";
 
 export const execPromis = util.promisify(exec);
@@ -14,4 +15,13 @@ export const decodeReply = (reply) => {
     return (stdout.substring(i, j) + ", " + stdout.substring(k)).replace("\n", "");
   }
   return reply.stdout;
+};
+
+export const privKeyToBurrowAddres = (privKey, isBase64 = true) => {
+  if (isBase64) {
+    privKey = Buffer.from(privKey, "base64").toString("hex");
+  }
+  const publicKey = privKey.substring(64, 128);
+  const digest = crypto.createHash("sha256").update(Buffer.from(publicKey, "hex")).digest("hex");
+  return digest.toLowerCase().substring(0, 40);
 };
