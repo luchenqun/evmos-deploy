@@ -40,8 +40,7 @@
       "mempool.version": "\"v1\""
     }
   },
-  "preMineAccounts": [
-  ],
+  "preMineAccounts": [],
   "privateKeys": [
     {
       "name": "qoe",
@@ -50,30 +49,6 @@
   ],
   "preMinePerAccount": "1000000000000000000000",
   "fixedFirstValidator": true,
-  "ibc": {
-    "enable": false,
-    "app": {
-      "minimum-gas-prices": "\"0uatom\"",
-      "pruning": "\"nothing\"",
-      "api.enable": "true",
-      "api.swagger": "true",
-      "api.enabled-unsafe-cors": "true",
-      "api.address": "\"tcp://0.0.0.0:11317\"",
-      "rosetta.address": "\":18080\"",
-      "grpc.enable": "true",
-      "grpc.address": "\"0.0.0.0:19090\"",
-      "grpc-web.enable": "true",
-      "grpc-web.enable-unsafe-cors": "true",
-      "grpc-web.address": "\"0.0.0.0:19091\""
-    },
-    "tendermint": {
-      "rpc.laddr": "\"tcp://0.0.0.0:16657\"",
-      "rpc.cors_allowed_origins": "[\"*\"]",
-      "rpc.pprof_laddr": "\"localhost:16060\"",
-      "p2p.laddr": "\"tcp://0.0.0.0:16656\"",
-      "instrumentation.prometheus_listen_addr": "\":26660\""
-    }
-  },
   "genesisCfg": [
     "consensus_params.block.max_gas='210000000000'",
     "app_state.gov.deposit_params.max_deposit_period='60s'",

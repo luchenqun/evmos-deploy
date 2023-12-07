@@ -17,15 +17,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@metamask/eth-sig-util": "^4.0.1",
-    "axios": "^0.27.2",
-    "bech32-buffer": "^0.2.0",
-    "download": "^8.0.0",
+    "@quarix/address-converter": "^0.1.14",
     "ethers": "^6.3.0",
     "fs-extra": "^10.0.0",
-    "install": "^0.13.0",
-    "quarixjs": "^0.3.26",
-    "web3": "^1.5.0",
     "yargs": "^17.5.1"
   }
 }

@@ -1,6 +1,5 @@
 import { HDNodeWallet } from "ethers";
 import { exec } from "child_process";
-import download from "download";
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
@@ -93,104 +92,7 @@ const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
 const quarixd = platform == "win32" ? "quarixd.exe" : "quarixd";
-const gaiad = platform == "win32" ? "gaiad.exe" : "gaiad";
-const gaiadCmd = platform == "win32" ? "gaiad.exe" : "./gaiad";
-const gaiaHome = "./nodes/gaia";
-const gaiaChainId = "cosmoshub-test";
-let gaiaP2pPort = 16656;
 let chainId = "quarix_8888888-1";
-const rly = platform == "win32" ? "rly.exe" : "rly";
-const rlyCmd = platform == "win32" ? "rly.exe" : "./rly";
-const rlyHome = "./nodes/relayer";
-let rlyCfg = `
-global:
-    api-listen-addr: :5183
-    timeout: 10s
-    memo: "rly"
-    light-cache-size: 20
-chains:
-    ibc-0:
-        type: cosmos
-        value:
-            key: testkey
-            chain-id: ${chainId}
-            rpc-addr: http://localhost:26657
-            account-prefix: quarix
-            keyring-backend: test
-            gas-adjustment: 1.5
-            gas-prices: 1aqare
-            min-gas-amount: 0
-            debug: true
-            timeout: 10s
-            output-format: json
-            sign-mode: direct
-    ibc-1:
-        type: cosmos
-        value:
-            key: testkey
-            chain-id: cosmoshub-test
-            rpc-addr: http://localhost:16657
-            account-prefix: cosmos
-            keyring-backend: test
-            gas-adjustment: 1.5
-            gas-prices: 0uatom
-            min-gas-amount: 0
-            debug: true
-            timeout: 10s
-            output-format: json
-            sign-mode: direct
-paths:
-    demo:
-        src:
-            chain-id: ${chainId}
-        dst:
-            chain-id: cosmoshub-test
-        src-channel-filter:
-            rule: ""
-            channel-list: []
-`;
-
-const ibcTransfer = `
-#!/bin/bash
-
-./rly tx link demo --client-tp 500s -d -t 3s --home ./relayer
-sleep 5
-
-echo "==================>before transfer"
-./rly q bal ibc-0 --home ./relayer
-./rly q bal ibc-1 --home ./relayer
-
-./rly tx transfer ibc-0 ibc-1 5000000000000000000aqrx "$(./rly keys show ibc-1 --home ./relayer)" channel-0 -d --home ./relayer
-sleep 5
-./rly tx relay-packets demo channel-0 -d --home ./relayer
-sleep 5
-./rly tx relay-acknowledgements demo channel-0 -d --home ./relayer
-sleep 5
-
-echo "==================>after transfer"
-./rly q bal ibc-0 --home ./relayer
-./rly q bal ibc-1 --home ./relayer
-
-
-./rly tx transfer ibc-1 ibc-0 2000000000000000000transfer/channel-0/aqrx "$(rly keys show ibc-0 --home ./relayer)" channel-0 -d --home ./relayer
-sleep 5
-./rly tx relay-packets demo channel-0 -d --home ./relayer
-sleep 5
-./rly tx relay-acknowledgements demo channel-0 -d --home ./relayer
-sleep 5
-
-echo "==================>back transfer"
-./rly q bal ibc-0 --home ./relayer
-./rly q bal ibc-1 --home ./relayer
-
-./rly tx transfer ibc-1 ibc-0 1000000000000000000uatom "$(./rly keys show ibc-0 --home ./relayer)" channel-0 -d --home ./relayer
-sleep 5
-./rly tx relay-packets demo channel-0 -d --home ./relayer
-sleep 5
-./rly tx relay-acknowledgements demo channel-0 -d --home ./relayer
-sleep 5
-`;
-
 let clientCfg = `
 # The network chain ID
 chain-id = "${chainId}"
@@ -264,43 +166,10 @@ let init = async function () {
     }
 
     let config = await fs.readJson("./config.json");
-    const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, privateKeys, ibc } = config;
-    gaiaP2pPort = ibc.tendermint["p2p.laddr"].split(":").pop().split(`"`)[0];
+    const { app, tendermint, preMinePerAccount, fixedFirstValidator, preMineAccounts, privateKeys } = config;
     if (app.chain_id) {
       clientCfg = clientCfg.replaceAll(chainId, app.chain_id);
-      rlyCfg = rlyCfg.replaceAll(chainId, app.chain_id);
       chainId = app.chain_id;
-    }
-
-    if (ibc.enable && !fs.existsSync(rly)) {
-      try {
-        console.log("begin download relayer.....");
-        const rlyUrl = `https://github.com/cosmos/relayer/releases/download/v2.1.2/Cosmos.Relayer_2.1.2_${platform}_${arch}.tar.gz`;
-        await download(rlyUrl, "./relayer", { extract: true });
-        await fs.copyFile("./relayer/Cosmos Relayer", `./${rly}`);
-      } catch (error) {}
-    }
-
-    if (ibc.enable && !fs.existsSync(rly)) {
-      console.warn("relayer is not exist, please go to https://github.com/cosmos/relayer/releases download and extract rename executable program to rly");
-      return;
-    } else if (fs.existsSync(rly)) {
-      await fs.chmod(rly, 0o777);
-    }
-
-    if (ibc.enable && !fs.existsSync(gaiad)) {
-      try {
-        console.log("begin download gaiad.....");
-        const gaiadUrl = `https://github.com/cosmos/gaia/releases/download/v7.1.0/gaiad-v7.1.0-${platform}-${arch}`;
-        await download(gaiadUrl, ".", { filename: gaiad });
-      } catch (error) {}
-    }
-
-    if (ibc.enable && !fs.existsSync(gaiad)) {
-      console.warn("gaiad is not exist, please go to https://github.com/cosmos/gaia/releases download and extract rename executable program to gaiad");
-      return;
-    } else if (fs.existsSync(gaiad)) {
-      await fs.chmod(gaiad, 0o777);
     }
 
     const nodeKey = {
@@ -400,35 +269,6 @@ let init = async function () {
       await fs.ensureDir(nodesDir);
       console.log("Folder nodes has been cleaned up");
 
-      // begin init gaia
-      if (ibc.enable) {
-        await execPromis(`${gaiadCmd} init gaia --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
-        await execPromis(`${gaiadCmd} keys add validator --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/validator_seed.json 2>&1`, { cwd: curDir });
-        await execPromis(`${gaiadCmd} keys add user --keyring-backend=test --output json --home ${gaiaHome} > ${gaiaHome}/key_seed.json 2>&1`, { cwd: curDir });
-        const validatorAddress = (await fs.readJSON(`${gaiaHome}/validator_seed.json`)).address;
-        const userAddress = (await fs.readJSON(`${gaiaHome}/key_seed.json`)).address;
-        await execPromis(`${gaiadCmd} add-genesis-account ${validatorAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
-        await execPromis(`${gaiadCmd} add-genesis-account ${userAddress} 100000000000000000000000000uatom --home ${gaiaHome}`, { cwd: curDir });
-        await execPromis(`${gaiadCmd} gentx validator 1000000000000000000uatom --keyring-backend=test --chain-id ${gaiaChainId} --home ${gaiaHome}`, { cwd: curDir });
-        await execPromis(`${gaiadCmd} collect-gentxs --home ${gaiaHome}`, { cwd: curDir });
-
-        let data;
-        const appConfigPath = `${gaiaHome}/config/app.toml`;
-        data = await fs.readFile(appConfigPath, "utf8");
-        data = updateCfg(data, ibc.app);
-        await fs.writeFile(appConfigPath, data);
-
-        const configPath = `${gaiaHome}/config/config.toml`;
-        data = await fs.readFile(configPath, "utf8");
-        data = updateCfg(data, ibc.tendermint);
-        await fs.writeFile(configPath, data);
-
-        const genesisPath = `${gaiaHome}/config/genesis.json`;
-        data = await fs.readFile(genesisPath, "utf8");
-        data = data.replaceAll("stake", `uatom`);
-        await fs.writeFile(genesisPath, data);
-      }
-
       {
         let initFiles = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
         let initFilesValidator = `${platform !== "win32" ? "./" : ""}${quarixd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
@@ -479,10 +319,6 @@ let init = async function () {
       }
 
       await fs.copy(quarixd, `./nodes/${quarixd}`);
-      if (ibc.enable) {
-        await fs.copy(gaiad, `./nodes/${gaiad}`);
-        await fs.copy(rly, `./nodes/${rly}`);
-      }
 
       let nodeIds = [];
       for (let i = 0; i < nodesCount; i++) {
@@ -607,16 +443,6 @@ let init = async function () {
         await fs.writeFile(clientConfigPath, data);
       }
 
-      if (ibc.enable) {
-        await fs.ensureFile(path.join(rlyHome, "config/config.yaml"));
-        await fs.writeFile(path.join(rlyHome, "config/config.yaml"), rlyCfg);
-
-        let keySeed;
-        keySeed = await fs.readJSON(path.join(nodesDir, `node0/quarixd/key_seed.json`));
-        await execPromis(`${rlyCmd} keys restore ibc-0 testkey "${keySeed.secret}" --coin-type 60 --home ${rlyHome}`, { cwd: curDir });
-        keySeed = await fs.readJSON(`${gaiaHome}/key_seed.json`);
-      }
-
       if (Array.isArray(privateKeys)) {
         for (const privateKey of privateKeys) {
           const cmd = `echo -n "your-password" | ./quarixd keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/quarixd --keyring-backend test`;
@@ -650,62 +476,6 @@ if [[ -n $pid ]]; then kill -15 $pid; fi`;
           vbsStop += `./stop${i}.sh\n`;
           await fs.chmod(startPath, 0o777);
           await fs.chmod(stopPath, 0o777);
-        }
-      }
-
-      if (ibc.enable) {
-        let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + `${gaiadCmd} start --home ./gaia` + (isNohup && platform !== "win32" ? ` >./gaia.log 2>&1 &` : "");
-        let stop =
-          platform == "win32"
-            ? `@echo off
-for /f "tokens=5" %%i in ('netstat -ano ^| findstr 0.0.0.0:${gaiaP2pPort}') do set PID=%%i
-taskkill /F /PID %PID%`
-            : `pid=\`lsof -iTCP:${gaiaP2pPort} -sTCP:LISTEN -t\`;
-if [[ -n $pid ]]; then kill -15 $pid; fi`;
-        let startPath = path.join(nodesDir, platform == "win32" ? "startGaia.bat" : "startGaia.sh");
-        let stopPath = path.join(nodesDir, platform == "win32" ? "stopGaia.bat" : "stopGaia.sh");
-        await fs.writeFile(startPath, start);
-        await fs.writeFile(stopPath, stop);
-
-        if (platform == "win32") {
-          vbsStart += `ws.Run ".\\startGaia.bat",0\n`;
-          vbsStop += `ws.Run ".\\stopGaia.bat",0\n`;
-        } else {
-          vbsStart += `./startGaia.sh\n`;
-          vbsStop += `./stopGaia.sh\n`;
-          await fs.chmod(startPath, 0o777);
-          await fs.chmod(stopPath, 0o777);
-        }
-      }
-      if (ibc.enable) {
-        const sleep3s = platform == "win32" ? `TIMEOUT /T 3 /NOBREAK` : `#!/bin/bash\nsleep 3`;
-        const nohubStr = isNohup && platform !== "win32" ? "nohup" : "";
-        const nohubLog = isNohup && platform !== "win32" ? `>./relayer.log 2>&1 &` : "";
-        let start = `${sleep3s}\n${nohubStr} ${rlyCmd} tx link demo -d -t 3s --client-tp 500s --home ./relayer ${nohubLog}`;
-        // start = `${start}\n${nohubStr} ${rlyCmd} start --home ./relayer ${nohubLog}`;
-        let stop =
-          platform == "win32"
-            ? `@echo off
-for /f "tokens=5" %%i in ('netstat -ano ^| findstr ${rly}') do set PID=%%i
-taskkill /F /PID %PID%`
-            : `pid=\`ps -ef | grep "rly start" | grep -v grep | awk '{printf $2}' | cut -d/ -f1\`;
-if [ "$pid" != "" ]; then kill -15 $pid; fi`;
-        let startPath = path.join(nodesDir, platform == "win32" ? "startRly.bat" : "startRly.sh");
-        let stopPath = path.join(nodesDir, platform == "win32" ? "stopRly.bat" : "stopRly.sh");
-        let ibcTransrerPath = path.join(nodesDir, platform == "win32" ? "ibcTransrer.bat" : "ibcTransrer.sh");
-        await fs.writeFile(startPath, start);
-        await fs.writeFile(stopPath, stop);
-        await fs.writeFile(ibcTransrerPath, ibcTransfer);
-
-        if (platform == "win32") {
-          vbsStart += `ws.Run ".\\startRly.bat",0\n`;
-          // vbsStop += `ws.Run ".\\stopRly.bat",0\n`;
-        } else {
-          vbsStart += `./startRly.sh\n`;
-          // vbsStop += `./stopRly.sh\n`;
-          await fs.chmod(startPath, 0o777);
-          await fs.chmod(stopPath, 0o777);
-          await fs.chmod(ibcTransrerPath, 0o777);
         }
       }
 
