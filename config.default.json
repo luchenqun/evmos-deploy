@@ -1,6 +1,6 @@
 {
   "app": {
-    "chain_id": "evmos_9000-1",
+    "chain_id": "polaris-2061",
     "port": {
       "api.address": 1317,
       "rosetta.address": 8080,
@@ -35,12 +35,18 @@
       "rpc.cors_allowed_origins": "[\"*\"]",
       "instrumentation.prometheus": "true",
       "p2p.allow_duplicate_ip": "true",
-      "p2p.seeds": "\"\""
+      "p2p.seeds": "\"\"",
+      "log_format": "\"json\""
     }
   },
   "preMineAccounts": [
-    "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583",
-    "evmos1zyg3qtwny9stqe8j55fvmmm5hldk48uk5wqpd3"
+    "00000be6819f41400225702d32d3dd23663dd690",
+    "1111102dd32160b064f2a512cdef74bfdb6a9f96",
+    "2222207b1f7b8d37566d9a2778732451dbfbc5d0",
+    "33333bffc67dd05a5644b02897ac245baed69040",
+    "4444434e38e74c3e692704e4ba275dae810b6392",
+    "55555d6c72886e5500a9410ca15d08a16011ed95",
+    "666668f2a2e38e93089b6e6a2e37c854bb6db7de"
   ],
   "privateKeys": [
     {
@@ -52,8 +58,8 @@
       "key": "95e06fa1a8411d7f6693f486f0f450b122c58feadbcee43fbd02e13da59395d5"
     }
   ],
-  "preMinePerAccount": "10000000000000000000000000",
-  "fixedFirstValidator": true,
+  "preMinePerAccount": "0x84595161401484a000000",
+  "fixedFirstValidator": false,
   "genesisCfg": [
     "app_state.gov.params.voting_period='600s'"
   ]
