@@ -75,7 +75,7 @@ const arch = os.arch();
 const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
-const evmosd = platform == "win32" ? "evmosd.exe" : "evmosd";
+const evmosd = platform == "win32" ? "qstarsd.exe" : "qstarsd";
 let chainId = "evmos_9000-1";
 let clientCfg = `
 # The network chain ID
@@ -194,7 +194,7 @@ let init = async function () {
 
     if (!fs.existsSync(evmosd) || isCompile) {
       console.log("Start recompiling evmosd...");
-      let make = await execPromis("go build ../cmd/evmosd", { cwd: curDir });
+      let make = await execPromis(`go build -o ${evmosd} ../cmd/evmosd`, { cwd: curDir });
       console.log("evmosd compile finished", make);
     }
 
@@ -270,7 +270,7 @@ let init = async function () {
       }
 
       const account = { "@type": "/ethermint.types.v1.EthAccount", base_account: { address: "", pub_key: null, account_number: "0", sequence: "0" }, code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" };
-      const balance = { address: "", coins: [{ denom: "aevmos", amount: "0" }] };
+      const balance = { address: "", coins: [{ denom: "aqai", amount: "0" }] };
       for (let i = 0; i < nodesCount; i++) {
         let accounts = [];
         let balances = [];
@@ -316,7 +316,7 @@ let init = async function () {
         }
 
         // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
-        appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "evmos1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3z33a4" } }));
+        appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "qai1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzlt2kq" } }));
 
         await fs.outputJson(genesisPath, genesis, { spaces: 2 });
       }
@@ -363,7 +363,7 @@ let init = async function () {
       let vbsStop = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
       for (let i = 0; i < nodesCount; i++) {
         let p2pPort = tendermint.port["p2p.laddr"] + i;
-        let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${evmosd} start --keyring-backend test --home ./node${i}/evmosd/` + (isNohup && platform !== "win32" ? ` >./evmos${i}.log 2>&1 &` : "");
+        let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${evmosd} start --keyring-backend test --home ./node${i}/evmosd/` + (isNohup && platform !== "win32" ? ` >./qstars${i}.log 2>&1 &` : "");
         let stop =
           platform == "win32"
             ? `@echo off

@@ -1,6 +1,6 @@
 {
   "app": {
-    "chain_id": "evmos_9000-1",
+    "chain_id": "qstars_8555-1",
     "port": {
       "api.address": 1317,
       "rosetta.address": 8080,
@@ -11,12 +11,12 @@
       "json-rpc.metrics-address": 6065
     },
     "cfg": {
-      "minimum-gas-prices": "\"0aevmos\"",
+      "minimum-gas-prices": "\"0aqai\"",
       "pruning": "\"nothing\"",
       "api.swagger": "true",
       "api.enabled-unsafe-cors": "true",
       "rosetta.enable": "true",
-      "rosetta.denom-to-suggest": "\"aevmos\"",
+      "rosetta.denom-to-suggest": "\"aqai\"",
       "grpc.enable": "true",
       "grpc-web.enable": "true",
       "grpc-web.enable-unsafe-cors": "true",
@@ -33,14 +33,15 @@
     },
     "cfg": {
       "rpc.cors_allowed_origins": "[\"*\"]",
-      "instrumentation.prometheus": "true",
+      "instrumentation.prometheus": "false",
+      "consensus.timeout_commit": "\"1s\"",
       "p2p.allow_duplicate_ip": "true",
       "p2p.seeds": "\"\""
     }
   },
   "preMineAccounts": [
-    "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583",
-    "evmos1zyg3qtwny9stqe8j55fvmmm5hldk48uk5wqpd3"
+    "qai1qqqqhe5pnaq5qq39wqkn957aydnrm45s7wa0vy",
+    "qai1zyg3qtwny9stqe8j55fvmmm5hldk48uk8n66xy"
   ],
   "privateKeys": [
     {
@@ -53,8 +54,8 @@
     }
   ],
   "preMinePerAccount": "10000000000000000000000000",
-  "fixedFirstValidator": true,
+  "fixedFirstValidator": false,
   "genesisCfg": [
-    "app_state.gov.params.voting_period='600s'"
+    "app_state.gov.voting_params.voting_period='600s'"
   ]
 }
