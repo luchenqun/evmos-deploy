@@ -56,6 +56,7 @@
   "preMinePerAccount": "10000000000000000000000000",
   "fixedFirstValidator": false,
   "genesisCfg": [
+    "consensus_params.block.max_gas='100000000'",
     "app_state.gov.voting_params.voting_period='600s'"
   ]
 }
