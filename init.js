@@ -353,7 +353,7 @@ let init = async function () {
 
       if (Array.isArray(privateKeys)) {
         for (const privateKey of privateKeys) {
-          const cmd = `echo -n "your-password" | ./evmosd keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/evmosd --keyring-backend test`;
+          const cmd = `echo -n "your-password" | ./${evmosd} keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/evmosd --keyring-backend test`;
           await execPromis(cmd, { cwd: curDir });
         }
       }
