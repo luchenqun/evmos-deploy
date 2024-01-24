@@ -75,7 +75,7 @@ const arch = os.arch();
 const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
-const evmosd = platform == "win32" ? "evmosd.exe" : "evmosd";
+const evmosd = platform == "win32" ? "ethosd.exe" : "ethosd";
 let chainId = "evmos_9000-1";
 let clientCfg = `
 # The network chain ID
@@ -194,7 +194,7 @@ let init = async function () {
 
     if (!fs.existsSync(evmosd) || isCompile) {
       console.log("Start recompiling evmosd...");
-      let make = await execPromis("go build ../cmd/evmosd", { cwd: curDir });
+      let make = await execPromis("go build -o ethosd ../cmd/evmosd", { cwd: curDir });
       console.log("evmosd compile finished", make);
     }
 
@@ -270,7 +270,7 @@ let init = async function () {
       }
 
       const account = { "@type": "/ethermint.types.v1.EthAccount", base_account: { address: "", pub_key: null, account_number: "0", sequence: "0" }, code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" };
-      const balance = { address: "", coins: [{ denom: "aevmos", amount: "0" }] };
+      const balance = { address: "", coins: [{ denom: "aethos", amount: "0" }] };
       for (let i = 0; i < nodesCount; i++) {
         let accounts = [];
         let balances = [];
@@ -353,7 +353,7 @@ let init = async function () {
 
       if (Array.isArray(privateKeys)) {
         for (const privateKey of privateKeys) {
-          const cmd = `echo -n "your-password" | ./evmosd keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/evmosd --keyring-backend test`;
+          const cmd = `echo -n "your-password" | ./ethosd keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/evmosd --keyring-backend test`;
           await execPromis(cmd, { cwd: curDir });
         }
       }
@@ -401,7 +401,7 @@ if [[ -n $pid ]]; then kill -15 $pid; fi`;
     }
 
     if (isStart) {
-      console.log("Start all evmosd node under the folder nodes");
+      console.log("Start all ethosd node under the folder nodes");
       await execPromis(scriptStart, { cwd: nodesDir });
     }
   } catch (error) {
