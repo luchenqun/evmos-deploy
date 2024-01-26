@@ -32,6 +32,7 @@
       "instrumentation.prometheus_listen_addr": 16660
     },
     "cfg": {
+      "consensus.timeout_commit": "\"1s\"",
       "rpc.cors_allowed_origins": "[\"*\"]",
       "instrumentation.prometheus": "true",
       "p2p.allow_duplicate_ip": "true",
@@ -55,6 +56,6 @@
   "preMinePerAccount": "10000000000000000000000000",
   "fixedFirstValidator": true,
   "genesisCfg": [
-    "app_state.gov.params.voting_period='600s'"
+    "app_state.gov.voting_params.voting_period='600s'"
   ]
 }
