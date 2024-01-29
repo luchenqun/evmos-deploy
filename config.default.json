@@ -54,7 +54,7 @@
     }
   ],
   "preMinePerAccount": "10000000000000000000000000",
-  "fixedFirstValidator": true,
+  "fixedFirstValidator": false,
   "genesisCfg": [
     "app_state.gov.voting_params.voting_period='600s'"
   ]
