@@ -57,6 +57,8 @@
   "fixedFirstValidator": false,
   "genesisCfg": [
     "consensus_params.block.max_gas='100000000'",
-    "app_state.gov.voting_params.voting_period='600s'"
+    "app_state.gov.voting_params.voting_period='600s'",
+    "app_state.claims.params.claims_denom='aqai'",
+    "app_state.inflation.params.mint_denom='aqai'"
   ]
 }
