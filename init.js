@@ -75,7 +75,7 @@ const arch = os.arch();
 const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
-const evmosd = platform == "win32" ? "qstarsd.exe" : "qstarsd";
+const cerbod = platform == "win32" ? "cerbod.exe" : "cerbod";
 let chainId = "evmos_9000-1";
 let clientCfg = `
 # The network chain ID
@@ -187,19 +187,19 @@ let init = async function () {
       bip39Address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh",
     };
     if (await fs.pathExists(scriptStop)) {
-      console.log("Try to stop the evmosd under the nodes directory");
+      console.log("Try to stop the cerbod under the nodes directory");
       await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
       await sleep(platform == "win32" ? 600 : 300);
     }
 
-    if (!fs.existsSync(evmosd) || isCompile) {
-      console.log("Start recompiling evmosd...");
-      let make = await execPromis(`go build -o ${evmosd} ../cmd/evmosd`, { cwd: curDir });
-      console.log("evmosd compile finished", make);
+    if (!fs.existsSync(cerbod) || isCompile) {
+      console.log("Start recompiling cerbod...");
+      let make = await execPromis(`go build -o ${cerbod} ../cmd/cerbod`, { cwd: curDir });
+      console.log("cerbod compile finished", make);
     }
 
-    if (!fs.existsSync(evmosd)) {
-      console.log("evmosd Executable file does not exist");
+    if (!fs.existsSync(cerbod)) {
+      console.log("cerbod Executable file does not exist");
       return;
     }
 
@@ -214,8 +214,8 @@ let init = async function () {
       console.log("Folder nodes has been cleaned up");
 
       {
-        const initFiles = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
-        const initFilesValidator = `${platform !== "win32" ? "./" : ""}${evmosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
+        const initFiles = `${platform !== "win32" ? "./" : ""}${cerbod} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
+        const initFilesValidator = `${platform !== "win32" ? "./" : ""}${cerbod} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
         console.log(`Exec cmd: ${initFiles}`);
         const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
         console.log(`init-files ${stdout}${stderr}\n`);
@@ -228,38 +228,32 @@ let init = async function () {
 
           // re init validator, and turn a validator node into a common node
           await execPromis(initFilesValidator, { cwd: curDir });
-          const genesisPath = path.join(nodesDir, `node0/evmosd/config/genesis.json`);
+          const genesisPath = path.join(nodesDir, `node0/cerbod/config/genesis.json`);
           for (let i = validators; i < nodesCount; i++) {
-            await fs.copy(genesisPath, path.join(nodesDir, `node${i}/evmosd/config/genesis.json`));
+            await fs.copy(genesisPath, path.join(nodesDir, `node${i}/cerbod/config/genesis.json`));
           }
         }
 
         if (fixedFirstValidator) {
-          await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/node_key.json`), nodeKey);
-          await fs.writeJSON(path.join(nodesDir, `node0/evmosd/config/priv_validator_key.json`), privValidatorKey);
-          await fs.outputJSON(path.join(nodesDir, `node0/evmosd/key_seed.json`), keySeed);
-          const keyringPath = path.join(nodesDir, `node0/evmosd/keyring-test`);
+          await fs.writeJSON(path.join(nodesDir, `node0/cerbod/config/node_key.json`), nodeKey);
+          await fs.writeJSON(path.join(nodesDir, `node0/cerbod/config/priv_validator_key.json`), privValidatorKey);
+          await fs.outputJSON(path.join(nodesDir, `node0/cerbod/key_seed.json`), keySeed);
+          const keyringPath = path.join(nodesDir, `node0/cerbod/keyring-test`);
           await fs.emptyDir(keyringPath);
-          await fs.writeFile(
-            path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`),
-            "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NjQ4NTEgKzA4MDAgQ1NUIG09KzAuMjI4NTE5MjUxIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiVHM3QXhNRmV4MlZtMTZpeiJ9.OrWluGLeod9SjmLDqvXTcA63z9P1VZ-D0l5LFzwVOhJG67vl3b0HXQ.BrINO_FqPHviDFff.yk2tJKWkWIo-OXZfxr7INBATtLws_mHvT5s4kSfwDkbpp2JJVyoEwFcozQHp5hh9owc3bPG7HRa_QHQarB5_Oz-fXJkuPlTxR955P6azI1C8vuWqBcZ7nfZkAhoFHgSZzQAPuFp6sPTWoDampAqocmtWu2lYPSiRnDHRZ6gEmP1slwsRwJTlASEwpmzjBeDsqrwCn9cT_jNrI7ilWB4LBUUXAkkKVu-p1X9bkqo8yZ_UrFFR2rI.6rVArcxnth5pzzgbEtuHSQ"
-          );
-          await fs.writeFile(
-            path.join(keyringPath, `node0.info`),
-            "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NTg1NjYgKzA4MDAgQ1NUIG09KzAuMjIyMjM0MDQzIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoicmk3MzV2Y3Fid2VkUF9JcCJ9.ht-BieDMdmkOBfb1saBx2nvBDaD9anNxP5RTirHIk-tHUXJr6HbeKA.FvpzGpaY6il86ngO.WwHd6HTneYvxg3KkEhsXx1_F_XkmzHqVJwSmQrnX9ZSg2L8ZCAxV6rvliuRwt30816o8tElb06qpp1krFGwGL_LvP1FtnOiX4GdJJxAyX1lgBgJQrhZuqKc6EEE78ArwUR1Mb6b3ax_6oV7IB42izg1ci2PP5bgXN-510EM9RrSi9fnVl3UMoAanoBL8NfJGYHo2Cusn_Y14yEnPDHxS96vTl7wZx_pZrjtapyQ9ktnDQHVBfsupIKmIYXSwpQ16FQ9G4eclfKGhit4uUFofdT0UMG1g_aQEGHt1nPG08w66w8PxmW8ma_D8yCQp0TW6m9pTLWODiCztorLucEr9RFW9mJLofi4pFdCuqHrGm_o.X06PXwtrfTMDgiQDIpPS0g"
-          );
+          await fs.writeFile(path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NjQ4NTEgKzA4MDAgQ1NUIG09KzAuMjI4NTE5MjUxIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoiVHM3QXhNRmV4MlZtMTZpeiJ9.OrWluGLeod9SjmLDqvXTcA63z9P1VZ-D0l5LFzwVOhJG67vl3b0HXQ.BrINO_FqPHviDFff.yk2tJKWkWIo-OXZfxr7INBATtLws_mHvT5s4kSfwDkbpp2JJVyoEwFcozQHp5hh9owc3bPG7HRa_QHQarB5_Oz-fXJkuPlTxR955P6azI1C8vuWqBcZ7nfZkAhoFHgSZzQAPuFp6sPTWoDampAqocmtWu2lYPSiRnDHRZ6gEmP1slwsRwJTlASEwpmzjBeDsqrwCn9cT_jNrI7ilWB4LBUUXAkkKVu-p1X9bkqo8yZ_UrFFR2rI.6rVArcxnth5pzzgbEtuHSQ");
+          await fs.writeFile(path.join(keyringPath, `node0.info`), "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjcmVhdGVkIjoiMjAyMi0wOC0yNCAxODowOTowNC43NTg1NjYgKzA4MDAgQ1NUIG09KzAuMjIyMjM0MDQzIiwiZW5jIjoiQTI1NkdDTSIsInAyYyI6ODE5MiwicDJzIjoicmk3MzV2Y3Fid2VkUF9JcCJ9.ht-BieDMdmkOBfb1saBx2nvBDaD9anNxP5RTirHIk-tHUXJr6HbeKA.FvpzGpaY6il86ngO.WwHd6HTneYvxg3KkEhsXx1_F_XkmzHqVJwSmQrnX9ZSg2L8ZCAxV6rvliuRwt30816o8tElb06qpp1krFGwGL_LvP1FtnOiX4GdJJxAyX1lgBgJQrhZuqKc6EEE78ArwUR1Mb6b3ax_6oV7IB42izg1ci2PP5bgXN-510EM9RrSi9fnVl3UMoAanoBL8NfJGYHo2Cusn_Y14yEnPDHxS96vTl7wZx_pZrjtapyQ9ktnDQHVBfsupIKmIYXSwpQ16FQ9G4eclfKGhit4uUFofdT0UMG1g_aQEGHt1nPG08w66w8PxmW8ma_D8yCQp0TW6m9pTLWODiCztorLucEr9RFW9mJLofi4pFdCuqHrGm_o.X06PXwtrfTMDgiQDIpPS0g");
         }
       }
 
-      await fs.copy(evmosd, `./nodes/${evmosd}`);
+      await fs.copy(cerbod, `./nodes/${cerbod}`);
 
       let nodeIds = [];
       for (let i = 0; i < nodesCount; i++) {
-        const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/evmosd/config/node_key.json`));
+        const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/cerbod/config/node_key.json`));
         const nodeId = privKeyToBurrowAddres(nodeKey.priv_key.value);
         nodeIds.push(nodeId);
 
-        const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
+        const keySeedPath = path.join(nodesDir, `node${i}/cerbod/key_seed.json`);
         let curKeySeed = await fs.readJSON(keySeedPath);
         const wallet = HDNodeWallet.fromPhrase(curKeySeed.secret);
         curKeySeed.privateKey = wallet.privateKey.replace("0x", "");
@@ -270,7 +264,7 @@ let init = async function () {
       }
 
       const account = { "@type": "/ethermint.types.v1.EthAccount", base_account: { address: "", pub_key: null, account_number: "0", sequence: "0" }, code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" };
-      const balance = { address: "", coins: [{ denom: "aqai", amount: "0" }] };
+      const balance = { address: "", coins: [{ denom: "acbo", amount: "0" }] };
       for (let i = 0; i < nodesCount; i++) {
         let accounts = [];
         let balances = [];
@@ -281,14 +275,14 @@ let init = async function () {
           }
         }
 
-        const genesisPath = path.join(nodesDir, `node${i}/evmosd/config/genesis.json`);
+        const genesisPath = path.join(nodesDir, `node${i}/cerbod/config/genesis.json`);
         let genesis = await fs.readJSON(genesisPath);
         let appState = genesis.app_state;
         appState.auth.accounts.push(...accounts);
         appState.bank.balances.push(...balances);
         if (commonNode > 0) {
           for (let i = nodesCount - commonNode; i < nodesCount; i++) {
-            const keySeedPath = path.join(nodesDir, `node${i}/evmosd/key_seed.json`);
+            const keySeedPath = path.join(nodesDir, `node${i}/cerbod/key_seed.json`);
             const curKeySeed = await fs.readJSON(keySeedPath);
             const address = curKeySeed.bip39Address;
             appState.auth.accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
@@ -316,7 +310,7 @@ let init = async function () {
         }
 
         // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
-        appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "qai1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzlt2kq" } }));
+        appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "cbo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqazkh49" } }));
 
         await fs.outputJson(genesisPath, genesis, { spaces: 2 });
       }
@@ -324,13 +318,13 @@ let init = async function () {
       // update app.toml and config.toml
       for (let i = 0; i < nodesCount; i++) {
         let data;
-        const appConfigPath = path.join(nodesDir, `node${i}/evmosd/config/app.toml`);
+        const appConfigPath = path.join(nodesDir, `node${i}/cerbod/config/app.toml`);
         data = await fs.readFile(appConfigPath, "utf8");
         data = updatePorts(data, app.port, i);
         data = updateCfg(data, app.cfg);
         await fs.writeFile(appConfigPath, data);
 
-        const configPath = path.join(nodesDir, `node${i}/evmosd/config/config.toml`);
+        const configPath = path.join(nodesDir, `node${i}/cerbod/config/config.toml`);
         data = await fs.readFile(configPath, "utf8");
         data = updatePorts(data, tendermint.port, i);
         // replace persistent_peers
@@ -345,7 +339,7 @@ let init = async function () {
         data = updateCfg(data, tendermint.cfg);
         await fs.writeFile(configPath, data);
 
-        const clientConfigPath = path.join(nodesDir, `node${i}/evmosd/config/client.toml`);
+        const clientConfigPath = path.join(nodesDir, `node${i}/cerbod/config/client.toml`);
         data = clientCfg;
         data = data.replace("26657", tendermint.port["rpc.laddr"] + i + "");
         await fs.writeFile(clientConfigPath, data);
@@ -353,7 +347,7 @@ let init = async function () {
 
       if (Array.isArray(privateKeys)) {
         for (const privateKey of privateKeys) {
-          const cmd = `echo -n "your-password" | ./${evmosd} keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/evmosd --keyring-backend test`;
+          const cmd = `echo -n "your-password" | ./${cerbod} keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/cerbod --keyring-backend test`;
           await execPromis(cmd, { cwd: curDir });
         }
       }
@@ -363,7 +357,7 @@ let init = async function () {
       let vbsStop = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
       for (let i = 0; i < nodesCount; i++) {
         let p2pPort = tendermint.port["p2p.laddr"] + i;
-        let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${evmosd} start --keyring-backend test --home ./node${i}/evmosd/` + (isNohup && platform !== "win32" ? ` >./qstars${i}.log 2>&1 &` : "");
+        let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${cerbod} start --keyring-backend test --home ./node${i}/cerbod/` + (isNohup && platform !== "win32" ? ` >./cerbo${i}.log 2>&1 &` : "");
         let stop =
           platform == "win32"
             ? `@echo off
@@ -397,11 +391,11 @@ if [[ -n $pid ]]; then kill -15 $pid; fi`;
         await fs.chmod(stopAllPath, 0o777);
       }
     } else {
-      await fs.copy(evmosd, `./nodes/${evmosd}`, { overwrite: true });
+      await fs.copy(cerbod, `./nodes/${cerbod}`, { overwrite: true });
     }
 
     if (isStart) {
-      console.log("Start all evmosd node under the folder nodes");
+      console.log("Start all cerbod node under the folder nodes");
       await execPromis(scriptStart, { cwd: nodesDir });
     }
   } catch (error) {
