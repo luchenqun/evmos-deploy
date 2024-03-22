@@ -316,7 +316,7 @@ let init = async function () {
         }
 
         // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
-        appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "mc1qqqqhe5pnaq5qq39wqkn957aydnrm45s0hjqca" } }));
+        appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "mc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnxy9ze" } }));
 
         await fs.outputJson(genesisPath, genesis, { spaces: 2 });
       }
