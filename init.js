@@ -75,7 +75,7 @@ const arch = os.arch();
 const execPromis = util.promisify(exec);
 const curDir = process.cwd();
 const nodesDir = path.join(curDir, "nodes");
-const ethosd = platform == "win32" ? "ethosd.exe" : "ethosd";
+const mechaind = platform == "win32" ? "mechaind.exe" : "mechaind";
 let chainId = "evmos_9000-1";
 let clientCfg = `
 # The network chain ID
@@ -187,19 +187,19 @@ let init = async function () {
       bip39Address: "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh",
     };
     if (await fs.pathExists(scriptStop)) {
-      console.log("Try to stop the ethosd under the nodes directory");
+      console.log("Try to stop the mechaind under the nodes directory");
       await execPromis(scriptStop, { cwd: nodesDir }); // Anyway, stop it first
       await sleep(platform == "win32" ? 600 : 300);
     }
 
-    if (!fs.existsSync(ethosd) || isCompile) {
-      console.log("Start recompiling ethosd...");
-      let make = await execPromis("go build -o ethosd ../cmd/ethosd", { cwd: curDir });
-      console.log("ethosd compile finished", make);
+    if (!fs.existsSync(mechaind) || isCompile) {
+      console.log("Start recompiling mechaind...");
+      let make = await execPromis("go build -o mechaind ../cmd/mechaind", { cwd: curDir });
+      console.log("mechaind compile finished", make);
     }
 
-    if (!fs.existsSync(ethosd)) {
-      console.log("ethosd Executable file does not exist");
+    if (!fs.existsSync(mechaind)) {
+      console.log("mechaind Executable file does not exist");
       return;
     }
 
@@ -214,8 +214,8 @@ let init = async function () {
       console.log("Folder nodes has been cleaned up");
 
       {
-        const initFiles = `${platform !== "win32" ? "./" : ""}${ethosd} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
-        const initFilesValidator = `${platform !== "win32" ? "./" : ""}${ethosd} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
+        const initFiles = `${platform !== "win32" ? "./" : ""}${mechaind} testnet init-files --v ${nodesCount} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
+        const initFilesValidator = `${platform !== "win32" ? "./" : ""}${mechaind} testnet init-files --v ${validators} --output-dir ./nodes --chain-id ${chainId} --keyring-backend test`;
         console.log(`Exec cmd: ${initFiles}`);
         const { stdout, stderr } = await execPromis(initFiles, { cwd: curDir });
         console.log(`init-files ${stdout}${stderr}\n`);
@@ -228,17 +228,17 @@ let init = async function () {
 
           // re init validator, and turn a validator node into a common node
           await execPromis(initFilesValidator, { cwd: curDir });
-          const genesisPath = path.join(nodesDir, `node0/ethosd/config/genesis.json`);
+          const genesisPath = path.join(nodesDir, `node0/mechaind/config/genesis.json`);
           for (let i = validators; i < nodesCount; i++) {
-            await fs.copy(genesisPath, path.join(nodesDir, `node${i}/ethosd/config/genesis.json`));
+            await fs.copy(genesisPath, path.join(nodesDir, `node${i}/mechaind/config/genesis.json`));
           }
         }
 
         if (fixedFirstValidator) {
-          await fs.writeJSON(path.join(nodesDir, `node0/ethosd/config/node_key.json`), nodeKey);
-          await fs.writeJSON(path.join(nodesDir, `node0/ethosd/config/priv_validator_key.json`), privValidatorKey);
-          await fs.outputJSON(path.join(nodesDir, `node0/ethosd/key_seed.json`), keySeed);
-          const keyringPath = path.join(nodesDir, `node0/ethosd/keyring-test`);
+          await fs.writeJSON(path.join(nodesDir, `node0/mechaind/config/node_key.json`), nodeKey);
+          await fs.writeJSON(path.join(nodesDir, `node0/mechaind/config/priv_validator_key.json`), privValidatorKey);
+          await fs.outputJSON(path.join(nodesDir, `node0/mechaind/key_seed.json`), keySeed);
+          const keyringPath = path.join(nodesDir, `node0/mechaind/keyring-test`);
           await fs.emptyDir(keyringPath);
           await fs.writeFile(
             path.join(keyringPath, `bf657d0ef7b48167657a703ed8fd063f075246d7.address`),
@@ -251,15 +251,15 @@ let init = async function () {
         }
       }
 
-      await fs.copy(ethosd, `./nodes/${ethosd}`);
+      await fs.copy(mechaind, `./nodes/${mechaind}`);
 
       let nodeIds = [];
       for (let i = 0; i < nodesCount; i++) {
-        const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/ethosd/config/node_key.json`));
+        const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/mechaind/config/node_key.json`));
         const nodeId = privKeyToBurrowAddres(nodeKey.priv_key.value);
         nodeIds.push(nodeId);
 
-        const keySeedPath = path.join(nodesDir, `node${i}/ethosd/key_seed.json`);
+        const keySeedPath = path.join(nodesDir, `node${i}/mechaind/key_seed.json`);
         let curKeySeed = await fs.readJSON(keySeedPath);
         const wallet = HDNodeWallet.fromPhrase(curKeySeed.secret);
         curKeySeed.privateKey = wallet.privateKey.replace("0x", "");
@@ -270,7 +270,7 @@ let init = async function () {
       }
 
       const account = { "@type": "/ethermint.types.v1.EthAccount", base_account: { address: "", pub_key: null, account_number: "0", sequence: "0" }, code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" };
-      const balance = { address: "", coins: [{ denom: "aethos", amount: "0" }] };
+      const balance = { address: "", coins: [{ denom: "azkme", amount: "0" }] };
       for (let i = 0; i < nodesCount; i++) {
         let accounts = [];
         let balances = [];
@@ -281,14 +281,14 @@ let init = async function () {
           }
         }
 
-        const genesisPath = path.join(nodesDir, `node${i}/ethosd/config/genesis.json`);
+        const genesisPath = path.join(nodesDir, `node${i}/mechaind/config/genesis.json`);
         let genesis = await fs.readJSON(genesisPath);
         let appState = genesis.app_state;
         appState.auth.accounts.push(...accounts);
         appState.bank.balances.push(...balances);
         if (commonNode > 0) {
           for (let i = nodesCount - commonNode; i < nodesCount; i++) {
-            const keySeedPath = path.join(nodesDir, `node${i}/ethosd/key_seed.json`);
+            const keySeedPath = path.join(nodesDir, `node${i}/mechaind/key_seed.json`);
             const curKeySeed = await fs.readJSON(keySeedPath);
             const address = curKeySeed.bip39Address;
             appState.auth.accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
@@ -316,7 +316,7 @@ let init = async function () {
         }
 
         // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
-        appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "ethos1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhxvx9t" } }));
+        appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: "mc1qqqqhe5pnaq5qq39wqkn957aydnrm45s0hjqca" } }));
 
         await fs.outputJson(genesisPath, genesis, { spaces: 2 });
       }
@@ -324,13 +324,13 @@ let init = async function () {
       // update app.toml and config.toml
       for (let i = 0; i < nodesCount; i++) {
         let data;
-        const appConfigPath = path.join(nodesDir, `node${i}/ethosd/config/app.toml`);
+        const appConfigPath = path.join(nodesDir, `node${i}/mechaind/config/app.toml`);
         data = await fs.readFile(appConfigPath, "utf8");
         data = updatePorts(data, app.port, i);
         data = updateCfg(data, app.cfg);
         await fs.writeFile(appConfigPath, data);
 
-        const configPath = path.join(nodesDir, `node${i}/ethosd/config/config.toml`);
+        const configPath = path.join(nodesDir, `node${i}/mechaind/config/config.toml`);
         data = await fs.readFile(configPath, "utf8");
         data = updatePorts(data, tendermint.port, i);
         // replace persistent_peers
@@ -345,7 +345,7 @@ let init = async function () {
         data = updateCfg(data, tendermint.cfg);
         await fs.writeFile(configPath, data);
 
-        const clientConfigPath = path.join(nodesDir, `node${i}/ethosd/config/client.toml`);
+        const clientConfigPath = path.join(nodesDir, `node${i}/mechaind/config/client.toml`);
         data = clientCfg;
         data = data.replace("26657", tendermint.port["rpc.laddr"] + i + "");
         await fs.writeFile(clientConfigPath, data);
@@ -353,7 +353,7 @@ let init = async function () {
 
       if (Array.isArray(privateKeys)) {
         for (const privateKey of privateKeys) {
-          const cmd = `echo -n "your-password" | ./ethosd keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/ethosd --keyring-backend test`;
+          const cmd = `echo -n "your-password" | ./mechaind keys unsafe-import-eth-key ${privateKey.name} ${privateKey.key} --home ./nodes/node0/mechaind --keyring-backend test`;
           await execPromis(cmd, { cwd: curDir });
         }
       }
@@ -363,7 +363,7 @@ let init = async function () {
       let vbsStop = platform == "win32" ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
       for (let i = 0; i < nodesCount; i++) {
         let p2pPort = tendermint.port["p2p.laddr"] + i;
-        let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${ethosd} start --keyring-backend test --home ./node${i}/ethosd/` + (isNohup && platform !== "win32" ? ` >./ethos${i}.log 2>&1 &` : "");
+        let start = (platform == "win32" ? "" : "#!/bin/bash\n") + (isNohup && platform !== "win32" ? "nohup " : "") + (platform !== "win32" ? "./" : "") + `${mechaind} start --keyring-backend test --home ./node${i}/mechaind/` + (isNohup && platform !== "win32" ? ` >./mechain${i}.log 2>&1 &` : "");
         let stop =
           platform == "win32"
             ? `@echo off
@@ -397,11 +397,11 @@ if [[ -n $pid ]]; then kill -15 $pid; fi`;
         await fs.chmod(stopAllPath, 0o777);
       }
     } else {
-      await fs.copy(ethosd, `./nodes/${ethosd}`, { overwrite: true });
+      await fs.copy(mechaind, `./nodes/${mechaind}`, { overwrite: true });
     }
 
     if (isStart) {
-      console.log("Start all ethosd node under the folder nodes");
+      console.log("Start all mechaind node under the folder nodes");
       await execPromis(scriptStart, { cwd: nodesDir });
     }
   } catch (error) {

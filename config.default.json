@@ -1,6 +1,6 @@
 {
   "app": {
-    "chain_id": "ethos_20191230-1",
+    "chain_id": "mechain_1000000-1",
     "port": {
       "api.address": 1317,
       "rosetta.address": 8080,
@@ -11,12 +11,12 @@
       "json-rpc.metrics-address": 6065
     },
     "cfg": {
-      "minimum-gas-prices": "\"0aethos\"",
+      "minimum-gas-prices": "\"0azkme\"",
       "pruning": "\"nothing\"",
       "api.swagger": "true",
       "api.enabled-unsafe-cors": "true",
       "rosetta.enable": "true",
-      "rosetta.denom-to-suggest": "\"aethos\"",
+      "rosetta.denom-to-suggest": "\"0azkme\"",
       "grpc.enable": "true",
       "grpc-web.enable": "true",
       "grpc-web.enable-unsafe-cors": "true",
@@ -40,8 +40,8 @@
     }
   },
   "preMineAccounts": [
-    "ethos1qqqqhe5pnaq5qq39wqkn957aydnrm45sth6rl0",
-    "ethos1zyg3qtwny9stqe8j55fvmmm5hldk48ukj2ak40"
+    "mc1qqqqhe5pnaq5qq39wqkn957aydnrm45s0hjqca",
+    "mc1zyg3qtwny9stqe8j55fvmmm5hldk48ukk244ja"
   ],
   "privateKeys": [
     {
