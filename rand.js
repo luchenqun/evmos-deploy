@@ -11,7 +11,7 @@ function getRandomInt(min, max) {
 const main = async () => {
   try {
     const ADDRESS = "0x546bc6E008689577C69C42b9C1f6b4C923f59B5d";
-    const PROVIDER = "http://ethos-eth-rpc.mybc.fun/";
+    const PROVIDER = "http://devnet-rpc.mechain.tech/";
     const provider = new ethers.JsonRpcProvider(PROVIDER);
     const ABI = [
       {
