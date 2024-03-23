@@ -1,5 +1,5 @@
 import { HDNodeWallet } from "ethers";
-import { ethToEvmos } from "@tharsis/address-converter";
+import { bech32Chain, ETH } from '@quarix/address-converter'
 import { exec } from "child_process";
 import fs from "fs-extra";
 import path from "path";
@@ -91,6 +91,13 @@ broadcast-mode = "sync"
 `;
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
+
+export const QUARIX = bech32Chain('QUARIX', 'ethos')
+
+export const ethToEvmos = (ethAddress) => {
+  const data = ETH.decoder(ethAddress)
+  return QUARIX.encoder(data)
+}
 
 const updatePorts = (data, ports, index) => {
   let lines = data.split(/\r?\n/);

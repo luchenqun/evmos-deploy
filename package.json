@@ -18,6 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "@metamask/eth-sig-util": "^4.0.1",
+    "@quarix/address-converter": "^0.1.15",
     "@tharsis/address-converter": "^0.1.8",
     "@tharsis/provider": "^0.2.4",
     "@tharsis/transactions": "^0.2.5",
