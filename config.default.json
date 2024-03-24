@@ -16,7 +16,7 @@
       "api.swagger": "true",
       "api.enabled-unsafe-cors": "true",
       "rosetta.enable": "true",
-      "rosetta.denom-to-suggest": "\"0acbo\"",
+      "rosetta.denom-to-suggest": "\"acbo\"",
       "grpc.enable": "true",
       "grpc-web.enable": "true",
       "grpc-web.enable-unsafe-cors": "true",
@@ -58,7 +58,7 @@
   "genesisCfg": [
     "consensus_params.block.max_gas='100000000'",
     "app_state.gov.voting_params.voting_period='600s'",
-    "app_state.claims.params.claims_denom='aqai'",
-    "app_state.inflation.params.mint_denom='aqai'"
+    "app_state.claims.params.claims_denom='acbo'",
+    "app_state.inflation.params.mint_denom='acbo'"
   ]
 }
