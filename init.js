@@ -6,7 +6,15 @@ import path from "path";
 import util from "util";
 import _yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import TenderKeys from "./tenderKeys.js";
+
+export const privKeyToBurrowAddres = (privKey, isBase64 = true) => {
+  if (isBase64) {
+    privKey = Buffer.from(privKey, 'base64').toString('hex');
+  }
+  const publicKey = privKey.substring(64, 128);
+  const digest = crypto.createHash('sha256').update(Buffer.from(publicKey, 'hex')).digest('hex');
+  return digest.toLowerCase().substring(0, 40);
+};
 
 const yargs = _yargs(hideBin(process.argv)); // https://github.com/yargs/yargs/issues/1854#issuecomment-787509517
 let argv = yargs
@@ -69,7 +77,6 @@ const nodesDir = path.join(curDir, "nodes");
 let app = platform == "win32" ? "simd.exe" : "simd";
 const scriptStop = path.join(nodesDir, platform == "win32" ? "stopAll.vbs" : "stopAll.sh");
 const scriptStart = path.join(nodesDir, platform == "win32" ? "startAll.vbs" : "startAll.sh");
-const tenderKeys = new TenderKeys();
 const sleep = (time) => {
   return new Promise((resolve) => setTimeout(resolve, time));
 };
@@ -138,7 +145,7 @@ let init = async function () {
     let nodeIds = [];
     for (let i = 0; i < nodesCount; i++) {
       const nodeKey = await fs.readJSON(path.join(nodesDir, `node${i}/${app}/config/node_key.json`));
-      const nodeId = tenderKeys.getBurrowAddressFromPrivKey(Buffer.from(nodeKey.priv_key.value, "base64").toString("hex"));
+      const nodeId = privKeyToBurrowAddres(nodeKey.priv_key.value);
       nodeIds.push(nodeId);
 
       const keySeedPath = path.join(nodesDir, `node${i}/${app}/key_seed.json`);
@@ -242,7 +249,8 @@ let init = async function () {
       const pprofPort = config.pprofPort || 6060;
       const timeoutCommit = config.timeoutCommit || "3s";
       data = await fs.readFile(configPath, "utf8");
-      data = data.replace("127.0.0.1:26657", `0.0.0.0:${rpcServerPort + i}`);
+      // data = data.replace("127.0.0.1:26657", `0.0.0.0:${rpcServerPort + i}`);
+      data = data.replace("0.0.0.0:26657", `0.0.0.0:${rpcServerPort + i}`);
       data = data.replaceAll("cors_allowed_origins = []", `cors_allowed_origins = ["*"]`);
       data = data.replaceAll("allow_duplicate_ip = false", `allow_duplicate_ip = true`);
       data = data.replace("tcp://0.0.0.0:26656", `tcp://0.0.0.0:${p2pPort + i}`);
@@ -267,6 +275,12 @@ let init = async function () {
         data = data.replace(`persistent_peers = ""`, `persistent_peers = "${peers.join()}"`); // if validator == 1 && common node >= 1
       }
       await fs.writeFile(configPath, data);
+    }
+
+    if (nodesCount >= 2) {
+      await fs.remove("/Users/lcq/.simapp/keyring-test")
+      await fs.copy(path.join(nodesDir, `node1/simd/keyring-test`), "/Users/lcq/.simapp/keyring-test", {overwrite: true})
+      await fs.copy(path.join(nodesDir, `node1/simd/config/priv_validator_key.json`), "/Users/lcq/.simapp/config/priv_validator_key.json", {overwrite: true})
     }
 
     // 生成启动命令脚本
