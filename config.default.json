@@ -1,6 +1,11 @@
 {
   "app": {
+    "prefix": "evmos",
+    "chain_name": "evmos",
     "chain_id": "evmos_9000-1",
+    "denoms": [
+      "aevmos"
+    ],
     "port": {
       "api.address": 1317,
       "rosetta.address": 8080,
@@ -15,8 +20,8 @@
       "pruning": "\"nothing\"",
       "api.swagger": "true",
       "api.enabled-unsafe-cors": "true",
-      "rosetta.enable": "true",
-      "rosetta.denom-to-suggest": "\"aevmos\"",
+      "rosetta.enable": "false",
+      "rosetta.denom-to-suggest": "\"0aevmos\"",
       "grpc.enable": "true",
       "grpc-web.enable": "true",
       "grpc-web.enable-unsafe-cors": "true",
@@ -32,6 +37,7 @@
       "instrumentation.prometheus_listen_addr": 16660
     },
     "cfg": {
+      "consensus.timeout_commit": "\"1s\"",
       "rpc.cors_allowed_origins": "[\"*\"]",
       "instrumentation.prometheus": "true",
       "p2p.allow_duplicate_ip": "true",
@@ -40,7 +46,24 @@
   },
   "preMineAccounts": [
     "evmos1qqqqhe5pnaq5qq39wqkn957aydnrm45sdn8583",
-    "evmos1zyg3qtwny9stqe8j55fvmmm5hldk48uk5wqpd3"
+    "evmos1zyg3qtwny9stqe8j55fvmmm5hldk48uk5wqpd3",
+    "evmos1xddk3ng0s0k3acfs2h4yq2aac0j5cggqq3vp63",
+    "evmos1ge9aumustdeys2e0wp7g47cmjf7f7tdux3grwn",
+    "evmos1ceshnp3lehqe4qq3rjquusgzmseh59vapy9r3m",
+    "evmos1n6jpk5dpxap3887d826vyzqm9thdgsjjze4hxp",
+    "evmos1k86hg3wnp0ygm2aqggr7vwq2n5j9s7v4mrl7w8",
+    "evmos177y7xt5k65wwsf6sfv6xajpg5k4r8u630g0j7x",
+    "evmos18743s33zmsvmvyynfxu5sy2f80e2g5mz2zsp6j",
+    "0x9Cb169581be91F79D5BBBB6d21e18A27E9899F97",
+    "0x22C092e690B0Bb6ac1CEDB9ED120c8950c8606e5",
+    "0xff93B45308FD417dF303D6515aB04D9e89a750Ca",
+    "0x75ceF6115C2E647A0276eC61920CFb8eb2a142Aa",
+    "0x8d99e7C59843778E6FeA6946f5A910d56a1771fC",
+    "0x97D7AC6E94A31Af76Fa82B78a9bde2Db84ACAd96",
+    "0x0000000fedf0d1a68294c1dafe3cbcb295a988f5",
+    "0x11111110e374Ee448e7e90169344Cd7Cbfd56905",
+    "0x2222222011aEe130c9876D66D2F793200a5954b5",
+    "evmos1aqnv66tdd586hykvtk4dtfc4peee2a2ccv527l"
   ],
   "privateKeys": [
     {
@@ -53,8 +76,27 @@
     }
   ],
   "preMinePerAccount": "10000000000000000000000000",
-  "fixedFirstValidator": true,
   "genesisCfg": [
-    "app_state.gov.params.voting_period='600s'"
+    "consensus_params.block.max_gas='40000000'",
+
+    "app_state.gov.params.voting_period='600s'",
+
+    "app_state.feemarket.params.no_base_fee=true",
+    "app_state.feemarket.params.base_fee='10000000000'",
+    "app_state.feemarket.params.min_gas_price='0.000000000000000000'",
+    "app_state.feemarket.params.min_gas_multiplier='0.500000000000000000'",
+
+    "app_state.slashing.params.signed_blocks_window='10'",
+    "app_state.slashing.params.min_signed_per_window='0.500000000000000000'",
+    "app_state.slashing.params.downtime_jail_duration='3s'",
+
+    "app_state.staking.params.unbonding_time='6000s'",
+
+    "app_state.epochs.epochs[1].duration='6s'",
+
+    "app_state.inflation.params.enable_inflation=false",
+    "app_state.inflation.epochs_per_period='3650000'",
+    "app_state.inflation.params.inflation_distribution.staking_rewards='0.800000000000000000'",
+    "app_state.inflation.params.inflation_distribution.community_pool='0.200000000000000000'"
   ]
 }

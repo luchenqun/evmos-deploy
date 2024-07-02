@@ -4,28 +4,23 @@
   "description": "a javascript for deploy node",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js",
-    "init": "node init.js",
-    "start": "node start.js",
-    "stop": "node stop.js"
+    "init": "node dev --v=1 --c --s=no",
+    "start": "node dev --v=1 --c",
+    "start4v": "node dev --v=4 --c",
+    "stop": "node dev --stop=all",
+    "restart": "node dev --c --k"
   },
   "repository": {
-    "type": "git",
-    "url": "git@114.215.177.69:lucq/deploy.git"
+    "type": "https",
+    "url": "https://github.com/luchenqun/deploy.git"
   },
   "type": "module",
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@metamask/eth-sig-util": "^4.0.1",
-    "@tharsis/address-converter": "^0.1.8",
-    "@tharsis/provider": "^0.2.4",
-    "@tharsis/transactions": "^0.2.5",
-    "axios": "^0.27.2",
-    "bech32-buffer": "^0.2.0",
+    "@quarix/address-converter": "^0.1.15",
     "ethers": "^6.9.0",
     "fs-extra": "^10.0.0",
-    "web3": "^1.5.0",
     "yargs": "^17.5.1"
   }
 }

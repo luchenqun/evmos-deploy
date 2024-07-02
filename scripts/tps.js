@@ -69,9 +69,11 @@ const sleep = (time) => {
   const maxGap = 10 * 60; // 压测10分钟
   const maxPending = 2000; // 当交易池待上链交易最大数值
 
-  ws.on("open", function open() {
+  ws.on("open", async () => {
     console.log("connected");
-    ws.send(JSON.stringify(chainId));
+    await sleep(3000);
+    ws.close();
+    // ws.send(JSON.stringify(chainId));
   });
 
   ws.on("close", function close() {
