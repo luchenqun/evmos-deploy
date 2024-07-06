@@ -213,66 +213,79 @@ const main = async function () {
     if (init || isKeep) {
       // These three sets of data(nodeKey, privValidatorConsensusKey, createValidator) need to be replaced.
       // for go update here testutil.GenerateSaveCoinKey
-      const nodeKey = {
-        priv_key: {
-          type: 'tendermint/PrivKeyEd25519',
-          value: 'DItNSN2ZKVYp88sWL511SguAY3As5vOzXtjBD1ZnRlBX0ZXPohdF4AIQnxkeY7XUHlxo2e+dQVJRS62bsAEIbQ==',
-        },
-      };
+      const nodeKey = {"priv_key":{"type":"tendermint/PrivKeyEd25519","value":"M2w7EQvSjvfPzvJrbw9JMKcRogmIrsIwefscrYwi7EJmedi0G9CUb9WIayZeqn/wryGqEgG4wtRJuQRqKZzUdQ=="}};
       const privValidatorConsensusKey = {
-        address: '8F387BCCB4BB9BA0BA483D116406CEB7F3B00556',
-        pub_key: {
-          type: 'tendermint/PubKeyEd25519',
-          value: 'mrrGbrKTwHqWQRBAEReGX3tUwIKh71gT3tPXtvfofME=',
+        "address": "D23B94DD05A3F8F073248D34687F12456A384928",
+        "pub_key": {
+          "type": "tendermint/PubKeyEd25519",
+          "value": "6bpcaYgbaEvAFzT0mgCf/Wdg5gFDC0MjBMmQS59p91Q="
         },
-        priv_key: {
-          type: 'tendermint/PrivKeyEd25519',
-          value: 'oHOiQRCnDv5dopizQmJfoYTF+1AtoX6gNWdmXJexmW2ausZuspPAepZBEEARF4Zfe1TAgqHvWBPe09e29+h8wQ==',
-        },
+        "priv_key": {
+          "type": "tendermint/PrivKeyEd25519",
+          "value": "Q0LeIrmGmlTvHn0TfXXYD1kX+IPaYCYO9cn/n38+CIvpulxpiBtoS8AXNPSaAJ/9Z2DmAUMLQyMEyZBLn2n3VA=="
+        }
       };
       const createValidator = {
-        body: {
-          messages: [
+        "body": {
+          "messages": [
             {
-              '@type': '/cosmos.staking.v1beta1.MsgCreateValidator',
-              description: { moniker: 'node0', identity: '', website: '', security_contact: '', details: '' },
-              commission: {
-                rate: '0.100000000000000000',
-                max_rate: '1.000000000000000000',
-                max_change_rate: '1.000000000000000000',
+              "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+              "description": {
+                "moniker": "node0",
+                "identity": "",
+                "website": "",
+                "security_contact": "",
+                "details": ""
               },
-              min_self_delegation: '1',
-              delegator_address: 'evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh',
-              validator_address: 'evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82',
-              pubkey: { '@type': '/cosmos.crypto.ed25519.PubKey', key: 'mrrGbrKTwHqWQRBAEReGX3tUwIKh71gT3tPXtvfofME=' },
-              value: { denom: 'aevmos', amount: '100000000000000000000' },
-            },
+              "commission": {
+                "rate": "0.100000000000000000",
+                "max_rate": "1.000000000000000000",
+                "max_change_rate": "1.000000000000000000"
+              },
+              "min_self_delegation": "1",
+              "delegator_address": "evmos1hajh6rhhkjqkwet6wqld3lgx8ur4y3khjuxkxh",
+              "validator_address": "evmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khljfx82",
+              "pubkey": {
+                "@type": "/cosmos.crypto.ed25519.PubKey",
+                "key": "6bpcaYgbaEvAFzT0mgCf/Wdg5gFDC0MjBMmQS59p91Q="
+              },
+              "value": {
+                "denom": "aevmos",
+                "amount": "100000000000000000000"
+              }
+            }
           ],
-          memo: '8655a2effde07be91436e89d51fd3d4547b96ab7@192.168.0.1:26656',
-          timeout_height: '0',
-          extension_options: [],
-          non_critical_extension_options: [],
+          "memo": "d16c396b8cd1981a5694037c3f70f0f270828412@192.168.0.1:26656",
+          "timeout_height": "0",
+          "extension_options": [],
+          "non_critical_extension_options": []
         },
-        auth_info: {
-          signer_infos: [
+        "auth_info": {
+          "signer_infos": [
             {
-              public_key: {
-                '@type': '/ethermint.crypto.v1.ethsecp256k1.PubKey',
-                key: 'A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc',
+              "public_key": {
+                "@type": "/ethermint.crypto.v1.ethsecp256k1.PubKey",
+                "key": "A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc"
               },
-              mode_info: { single: { mode: 'SIGN_MODE_DIRECT' } },
-              sequence: '0',
-            },
+              "mode_info": {
+                "single": {
+                  "mode": "SIGN_MODE_DIRECT"
+                }
+              },
+              "sequence": "0"
+            }
           ],
-          fee: {
-            amount: [{ denom: 'aevmos', amount: '250000000000000' }],
-            gas_limit: '250000',
-            payer: '',
-            granter: '',
+          "fee": {
+            "amount": [],
+            "gas_limit": "0",
+            "payer": "",
+            "granter": ""
           },
-          tip: null,
+          "tip": null
         },
-        signatures: ['N3bg5hAYE0Co4KvI7XTAzzYlWku3Rcc5KScDp9+Gp/1MoZteJp6N9PE5ptnGjGoBq2rQ09mhivE6D+8iICg9rQE='],
+        "signatures": [
+          "/DfWgL2nh40484BLYX49PFMNwyh0l/j0gTjE84iCD0MpTKid+ZTH7oaTsW4kI1bzLpSv+3dktlfSonJuE+H/YwA="
+        ]
       };
 
       const validatorSecret =
@@ -370,13 +383,7 @@ const main = async function () {
           await fs.outputJson(keySeedPath, curKeySeed, { spaces: 2 });
         }
 
-        const account = {
-          '@type': '/cosmos.auth.v1beta1.BaseAccount',
-          address: '',
-          pub_key: null,
-          account_number: '0',
-          sequence: '0',
-        };
+        const account = { "@type": "/ethermint.types.v1.EthAccount", base_account: { address: "", pub_key: null, account_number: "0", sequence: "0" }, code_hash: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" };
         const balance = {
           address: '',
           coins: app.denoms.map((denom) => ({ denom, amount: '0' })),
@@ -399,7 +406,7 @@ const main = async function () {
               }
               duplicate[address] = true;
 
-              accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { address }));
+              accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
               balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
             }
           }
@@ -414,7 +421,7 @@ const main = async function () {
               const keySeedPath = path.join(nodesDir, `node${i}/${daemon}/key_seed.json`);
               const curKeySeed = await fs.readJSON(keySeedPath);
               const address = curKeySeed.bip39Address;
-              appState.auth.accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { address }));
+              appState.auth.accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address } }));
               appState.bank.balances.push(Object.assign(JSON.parse(JSON.stringify(balance)), { address }));
             }
           }
@@ -426,7 +433,7 @@ const main = async function () {
           }
 
           if (fixedFirstValidator) {
-            appState.auth.accounts[0].address = keySeed.bip39Address;
+            appState.auth.accounts[0].base_account.address = keySeed.bip39Address;
             appState.bank.balances[0].address = keySeed.bip39Address;
             appState.genutil.gen_txs[0] = createValidator;
           }
@@ -439,11 +446,7 @@ const main = async function () {
           }
 
           // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
-          appState.auth.accounts.unshift(
-            Object.assign(JSON.parse(JSON.stringify(account)), {
-              address: ethToBech32('0x0000000000000000000000000000000000000000', app.prefix),
-            })
-          );
+          appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { base_account: { address: ethToBech32("0x0000000000000000000000000000000000000000", app.prefix) } }));
 
           await fs.outputJson(genesisPath, genesis, { spaces: 2 });
         }
