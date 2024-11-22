@@ -1,0 +1,22 @@
+{
+  "messages": [
+    {
+      "@type": "/cosmos.gov.v1.MsgExecLegacyContent",
+      "content": {
+        "@type": "/cosmos.params.v1beta1.ParameterChangeProposal",
+        "title": "Parameter change: voting period.",
+        "description": "decrease voting period time to 10 minutes (10 * 60 * 1000000000ns)",
+        "changes": [
+          {
+            "subspace": "gov",
+            "key": "votingparams",
+            "value": "{\"voting_period\":\"600000000000\"}"
+          }
+        ]
+      },
+      "authority": "evmos10d07y265gmmuvt4z0w9aw880jnsr700jcrztvm"
+    }
+  ],
+  "metadata": "AQ==",
+  "deposit": "10000000aevmos"
+}

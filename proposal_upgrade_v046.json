@@ -1,0 +1,22 @@
+{
+  "messages": [
+    {
+      "@type": "/cosmos.gov.v1.MsgExecLegacyContent",
+      "authority": "evmos10d07y265gmmuvt4z0w9aw880jnsr700jcrztvm",
+      "content": {
+        "@type": "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal",
+        "title": "Software upgrades: reset evm chain id",
+        "description": "reset evm chain id from 9000 to 168168",
+        "plan": {
+          "name": "v13.1.0",
+          "info": "YOU BINARIES DOWNLOAD URL",
+          "height": "100",
+          "time": "0001-01-01T00:00:00Z",
+          "upgraded_client_state": null
+        }
+      }
+    }
+  ],
+  "metadata": "AQ==",
+  "deposit": "10000000aevmos"
+}
