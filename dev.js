@@ -441,7 +441,11 @@ const main = async function () {
           const genesisCfg = config.genesisCfg;
           if (Array.isArray(genesisCfg)) {
             for (const cfg of genesisCfg) {
-              eval('genesis.' + cfg);
+              try {
+                eval('genesis.' + cfg);
+              } catch (e) {
+                console.log(cfg)
+              }
             }
           }
 
