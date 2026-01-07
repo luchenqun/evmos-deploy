@@ -53,7 +53,7 @@ let argv = yargs(hideBin(process.argv))
   .option('f', {
     alias: 'fixed',
     demandOption: false,
-    default: false,
+    default: true,
     describe: 'Whether fixed the first validator',
     type: 'bool',
   })
@@ -215,43 +215,79 @@ const main = async function () {
     if (init || isKeep) {
       // These three sets of data(nodeKey, privValidatorConsensusKey, createValidator) need to be replaced.
       // for go update here testutil.GenerateSaveCoinKey
-      const nodeKey = { priv_key: { type: 'tendermint/PrivKeyEd25519', value: 'J6S7jdRHKZdwKOMbjxs4kM6wwnLvq3wFauz0yLq//8G66PQw+I8cChjRrpzm72B3TBFRk12EYs3vH/6rz0YOTQ==' } };
+      const nodeKey = { priv_key: { type: 'tendermint/PrivKeyEd25519', value: 'MyChxRnudv2/rxKnpGc7t2LydaMKvyagZZOwhL4M6ZtEhrhTOnk98mFXnyUjYdyr6sVYGscV5QQxV5/eb/W4ZA==' } };
       const privValidatorConsensusKey = {
-        address: 'BEBCB67095D4014190E0665CB277B6C54092C7F4',
-        pub_key: { type: 'tendermint/PubKeyEd25519', value: 'vQyjluIV8QMftrDEicWCAFRrqDIJpB5uVRC0KUqigzY=' },
-        priv_key: { type: 'tendermint/PrivKeyEd25519', value: 'q5MvYI6RwF+jzHq4oDzqgkMAmdUHrqDc93csa0G3GKC9DKOW4hXxAx+2sMSJxYIAVGuoMgmkHm5VELQpSqKDNg==' },
+        address: '61434330DD449AD645356579CDCC0FEB607830B6',
+        pub_key: {
+          type: 'tendermint/PubKeyEd25519',
+          value: 'iWXOcw9xzHo8+r7HbzONTGmjdPKodDG1KB0gvxjCC70=',
+        },
+        priv_key: {
+          type: 'tendermint/PrivKeyEd25519',
+          value: 'LwNeXNArRcrcIQRZNvx44GgL5YyvUyf0VJF1TxIbVhaJZc5zD3HMejz6vsdvM41MaaN08qh0MbUoHSC/GMILvQ==',
+        },
       };
       const createValidator = {
         body: {
           messages: [
             {
               '@type': '/cosmos.staking.v1beta1.MsgCreateValidator',
-              description: { moniker: 'node0', identity: '', website: '', security_contact: '', details: '' },
-              commission: { rate: '0.100000000000000000', max_rate: '1.000000000000000000', max_change_rate: '1.000000000000000000' },
+              description: {
+                moniker: 'node0',
+                identity: '',
+                website: '',
+                security_contact: '',
+                details: '',
+              },
+              commission: {
+                rate: '0.100000000000000000',
+                max_rate: '1.000000000000000000',
+                max_change_rate: '1.000000000000000000',
+              },
               min_self_delegation: '1',
-              delegator_address: 'mud1hajh6rhhkjqkwet6wqld3lgx8ur4y3khkw3zhq',
-              validator_address: 'mudvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khdfjl3y',
-              pubkey: { '@type': '/cosmos.crypto.ed25519.PubKey', key: 'vQyjluIV8QMftrDEicWCAFRrqDIJpB5uVRC0KUqigzY=' },
-              value: { denom: 'amud', amount: '100000000000000000000' },
+              delegator_address: '',
+              validator_address: 'cosmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3kh4frdsv',
+              pubkey: {
+                '@type': '/cosmos.crypto.ed25519.PubKey',
+                key: 'iWXOcw9xzHo8+r7HbzONTGmjdPKodDG1KB0gvxjCC70=',
+              },
+              value: {
+                denom: 'stake',
+                amount: '100000000000000000000',
+              },
             },
           ],
-          memo: 'e38f79893f569a56ae41d20559973a50f486e6ff@192.168.0.1:26656',
+          memo: 'ab6c6100963d4728708af8a4edbeed88a379a185@192.168.0.1:26656',
           timeout_height: '0',
+          unordered: false,
+          timeout_timestamp: null,
           extension_options: [],
           non_critical_extension_options: [],
         },
         auth_info: {
           signer_infos: [
             {
-              public_key: { '@type': '/ethermint.crypto.v1.ethsecp256k1.PubKey', key: 'A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc' },
-              mode_info: { single: { mode: 'SIGN_MODE_DIRECT' } },
+              public_key: {
+                '@type': '/cosmos.evm.crypto.v1.ethsecp256k1.PubKey',
+                key: 'A50rbJg3TMPACbzE5Ujg0clx+d4udBAtggqEQiB7v9Sc',
+              },
+              mode_info: {
+                single: {
+                  mode: 'SIGN_MODE_DIRECT',
+                },
+              },
               sequence: '0',
             },
           ],
-          fee: { amount: [], gas_limit: '0', payer: '', granter: '' },
+          fee: {
+            amount: [],
+            gas_limit: '0',
+            payer: '',
+            granter: '',
+          },
           tip: null,
         },
-        signatures: ['RtVlZOMVdI8IhZxSwrT7X7xakHRASwRWZL9L4MWAoTgoLnH0MfO0W/gaH99WY2w4zNSI7BVw5itwaw2DW1FswQA='],
+        signatures: ['60TkvVnKvrQ8z+0FbrRV5mfVs712uC5iGwQvwRcPcyVcxk50mHibqb6STXXCWdIcqMU89KMyA44Vw7AmgsDP2gA='],
       };
 
       const validatorSecret =
@@ -380,10 +416,6 @@ const main = async function () {
                 continue;
               }
               duplicate[address] = true;
-              // for inflation module account
-              if (address !== 'mud1d4e35hk3gk4k6t5gh02dcm923z8ck86qq63aqs') {
-                accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { address }));
-              }
               balances.push({ address, coins: app.denoms.map((denom) => ({ denom, amount })) });
             }
           }
