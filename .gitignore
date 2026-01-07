@@ -1,0 +1,5 @@
+nodes/
+node_modules/
+evmd
+config.json
+package-lock.json
