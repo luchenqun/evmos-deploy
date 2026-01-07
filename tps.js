@@ -9,8 +9,8 @@ const main = async () => {
   const RPC = 'http://localhost:26657';
   const PRIVATE_KEY = 'f78a036930ce63791ea6ea20072986d8c3f16a6811f6a2583b0787c45086f769';
   const TO = '0x1111102dd32160b064f2a512cdef74bfdb6a9f96';
-  const TEST_TIME = 600;
-  const CACHE_TX = 3000;
+  const TEST_TIME = 300;
+  const CACHE_TX = 5000;
 
   const provider = new JsonRpcProvider(PROVIDER);
   const wallet = new Wallet(PRIVATE_KEY, provider);
