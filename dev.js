@@ -417,6 +417,7 @@ const main = async function () {
               }
               duplicate[address] = true;
               balances.push({ address, coins: app.denoms.map((denom) => ({ denom, amount })) });
+              accounts.push(Object.assign(JSON.parse(JSON.stringify(account)), { address }));
             }
           }
 

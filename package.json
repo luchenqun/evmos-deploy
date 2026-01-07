@@ -4,7 +4,7 @@
   "description": "a javascript for deploy node",
   "main": "index.js",
   "scripts": {
-    "init": "node dev --v=1 --c --s=no",
+    "init": "node dev --v=1 --c=false --s=no",
     "start": "node dev --v=1 --c",
     "start4v": "node dev --v=4 --c",
     "stop": "node dev --stop=all",
