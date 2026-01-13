@@ -1,9 +1,9 @@
 {
   "app": {
-    "prefix": "cosmos",
-    "chain_name": "evm",
-    "chain_id": "9001",
-    "denoms": ["atest"],
+    "prefix": "quarix",
+    "chain_name": "quarix",
+    "chain_id": "8888888",
+    "denoms": ["aqare"],
     "keyring": "test",
     "port": {
       "api.address": 1317,
@@ -15,12 +15,12 @@
       "json-rpc.metrics-address": 6065
     },
     "cfg": {
-      "minimum-gas-prices": "\"0atest\"",
+      "minimum-gas-prices": "\"0aqare\"",
       "pruning": "\"nothing\"",
       "api.swagger": "true",
       "api.enabled-unsafe-cors": "true",
       "rosetta.enable": "false",
-      "rosetta.denom-to-suggest": "\"0atest\"",
+      "rosetta.denom-to-suggest": "\"0aqare\"",
       "grpc.enable": "true",
       "grpc-web.enable": "true",
       "grpc-web.enable-unsafe-cors": "true",
