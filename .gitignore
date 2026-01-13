@@ -1,5 +1,7 @@
 nodes/
 node_modules/
 evmd
+quarixd
+testnet
 config.json
 package-lock.json

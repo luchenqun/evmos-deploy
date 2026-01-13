@@ -215,16 +215,16 @@ const main = async function () {
     if (init || isKeep) {
       // These three sets of data(nodeKey, privValidatorConsensusKey, createValidator) need to be replaced.
       // for go update here testutil.GenerateSaveCoinKey
-      const nodeKey = { priv_key: { type: 'tendermint/PrivKeyEd25519', value: 'MyChxRnudv2/rxKnpGc7t2LydaMKvyagZZOwhL4M6ZtEhrhTOnk98mFXnyUjYdyr6sVYGscV5QQxV5/eb/W4ZA==' } };
+      const nodeKey = { priv_key: { type: 'tendermint/PrivKeyEd25519', value: 'b/a1Snfm+i++rqChO6xM6Pv+QMWjGe/x1UmG8nRgyRVgVpAfyZF+DsX458nj/pRNkWGJ3VARYfL4a6VF2S1rEQ==' } };
       const privValidatorConsensusKey = {
-        address: '61434330DD449AD645356579CDCC0FEB607830B6',
+        address: 'CAE4F5CEF79E7604DE6FC733A4F0430F35810279',
         pub_key: {
           type: 'tendermint/PubKeyEd25519',
-          value: 'iWXOcw9xzHo8+r7HbzONTGmjdPKodDG1KB0gvxjCC70=',
+          value: 'BmTKG2IDNnvetmrqHEJLm9DiyGrkah0tsqBNJ2bzcBk=',
         },
         priv_key: {
           type: 'tendermint/PrivKeyEd25519',
-          value: 'LwNeXNArRcrcIQRZNvx44GgL5YyvUyf0VJF1TxIbVhaJZc5zD3HMejz6vsdvM41MaaN08qh0MbUoHSC/GMILvQ==',
+          value: 'T5i134bZgCh1OzIV4VIEOz3QthMS6+ITDiL8nTzppWsGZMobYgM2e962auocQkub0OLIauRqHS2yoE0nZvNwGQ==',
         },
       };
       const createValidator = {
@@ -240,24 +240,24 @@ const main = async function () {
                 details: '',
               },
               commission: {
-                rate: '0.100000000000000000',
+                rate: '1.000000000000000000',
                 max_rate: '1.000000000000000000',
                 max_change_rate: '1.000000000000000000',
               },
               min_self_delegation: '1',
               delegator_address: '',
-              validator_address: 'cosmosvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3kh4frdsv',
+              validator_address: 'quarixvaloper1hajh6rhhkjqkwet6wqld3lgx8ur4y3khajuzj7',
               pubkey: {
                 '@type': '/cosmos.crypto.ed25519.PubKey',
-                key: 'iWXOcw9xzHo8+r7HbzONTGmjdPKodDG1KB0gvxjCC70=',
+                key: 'BmTKG2IDNnvetmrqHEJLm9DiyGrkah0tsqBNJ2bzcBk=',
               },
               value: {
-                denom: 'stake',
+                denom: 'aqrx',
                 amount: '100000000000000000000',
               },
             },
           ],
-          memo: 'ab6c6100963d4728708af8a4edbeed88a379a185@192.168.0.1:26656',
+          memo: '9974261f8b65b1c2273efbe6b38684a3a3d7238f@192.168.0.1:26656',
           timeout_height: '0',
           unordered: false,
           timeout_timestamp: null,
@@ -287,7 +287,7 @@ const main = async function () {
           },
           tip: null,
         },
-        signatures: ['60TkvVnKvrQ8z+0FbrRV5mfVs712uC5iGwQvwRcPcyVcxk50mHibqb6STXXCWdIcqMU89KMyA44Vw7AmgsDP2gA='],
+        signatures: ['VpeXDiHm8zl6BqLdpJVCDFormijAnE2OY5vZLDC+3Bs0+cuGanHPXPIOduReAP6FIYXtXQ+PXtgdZxvSOzQpywA='],
       };
 
       const validatorSecret =
@@ -305,6 +305,7 @@ const main = async function () {
         console.log(`Start recompiling ${daemonApp} in ${curDir}...`);
         let make = await execPromis(`make build`, { cwd: projectDir });
         console.log(`${daemonApp} compile finished`, make);
+        await execPromis(`mv evmd quarixd`, { cwd: curDir });
       }
 
       if (!fs.existsSync(daemonApp)) {

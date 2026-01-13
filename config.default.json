@@ -43,7 +43,7 @@
       "p2p.seeds": "\"\""
     }
   },
-  "preMineAccounts": ["0x00000be6819f41400225702d32d3dd23663dd690", "0x1111102dd32160b064f2a512cdef74bfdb6a9f96"],
+  "preMineAccounts": ["0x00000be6819f41400225702d32d3dd23663dd690", "0x1111102dd32160b064f2a512cdef74bfdb6a9f96", "0x0000000bA7906929D5629151777BC2321346828D"],
   "privateKeys": [
     {
       "name": "alice",
@@ -55,5 +55,5 @@
     }
   ],
   "preMinePerAccount": "10000000000000000000000000",
-  "genesisCfg": ["app_state.gov.params.voting_period='120s'"]
+  "genesisCfg": ["app_state.gov.params.voting_period='120s'","app_state.feemarket.params.base_fee='0.000000000000000000'"]
 }
