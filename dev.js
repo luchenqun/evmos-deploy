@@ -302,10 +302,9 @@ const main = async function () {
       };
 
       if (!fs.existsSync(daemonApp) || isCompile) {
-        console.log(`Start recompiling ${daemonApp} in ${curDir}...`);
+        console.log(`Start recompiling ${daemonApp}...`);
         let make = await execPromis(`make build`, { cwd: projectDir });
         console.log(`${daemonApp} compile finished`, make);
-        await execPromis(`mv evmd quarixd`, { cwd: curDir });
       }
 
       if (!fs.existsSync(daemonApp)) {
@@ -454,6 +453,47 @@ const main = async function () {
             }
           }
 
+          // 激活所有预编译合约 (Activate all static precompiles)
+          const precompileAddresses = [
+            "0x0000000000000000000000000000000000000800", // Staking
+            "0x0000000000000000000000000000000000000801", // Distribution
+            "0x0000000000000000000000000000000000000802", // ICS20
+            "0x0000000000000000000000000000000000000803", // Vesting
+            "0x0000000000000000000000000000000000000804", // Bank
+            "0x0000000000000000000000000000000000000805", // Gov
+            "0x0000000000000000000000000000000000000806", // Slashing
+            "0x0000000000000000000000000000000000000807", // ICS02
+            "0x0000000000000000000000000000000000000900"  // Blacklist
+          ];
+          appState.evm.params.active_static_precompiles = precompileAddresses;
+
+
+          // 将 dead 地址添加到 blacklist 模块 (Add dead address to blacklist module)
+          const deadAddressHex = '0x000000000000000000dead000000000000000000';
+          if (appState.blacklist) {
+            if (!Array.isArray(appState.blacklist.addresses)) {
+              appState.blacklist.addresses = [];
+            }
+            if (!appState.blacklist.addresses.includes(deadAddressHex)) {
+              appState.blacklist.addresses.push(deadAddressHex);
+            }
+          }
+
+          // 将 dead 地址添加到 kybkyc 模块的 service_provider.kycs (Add dead address to kybkyc service_provider.kycs)
+          if (appState.kybkyc && appState.kybkyc.service_provider) {
+            if (!Array.isArray(appState.kybkyc.service_provider.kycs)) {
+              appState.kybkyc.service_provider.kycs = [];
+            }
+            // 检查地址是否已存在
+            const exists = appState.kybkyc.service_provider.kycs.some(kyc => kyc.to === deadAddressHex);
+            if (!exists) {
+              appState.kybkyc.service_provider.kycs.push({
+                to: deadAddressHex,
+                expiry_date: "9999999999"  // 永不过期 (year 2286)
+              });
+            }
+          }
+
           // Use zero address to occupy the first account, Because of account_ Accounts with number 0 cannot send Cosmos transactions
           appState.auth.accounts.unshift(Object.assign(JSON.parse(JSON.stringify(account)), { address: ethToBech32('0x0000000000000000000000000000000000000000', app.prefix) }));
 
@@ -507,7 +547,7 @@ const main = async function () {
             (platform == 'win32' ? '' : '#!/bin/bash\n') +
             (isNohup && platform !== 'win32' ? 'nohup ' : '') +
             (platform !== 'win32' ? './' : '') +
-            `${daemonApp} start --keyring-backend ${keyring} --home ./node${i}/${daemon}/` +
+            `${daemonApp} start --keyring-backend ${keyring} --api.enabled-unsafe-cors --json-rpc.enable-indexer=true --home ./node${i}/${daemon}/` +
             (isNohup && platform !== 'win32' ? ` >./${daemon}${i}.log 2>&1 &` : '');
           let stop =
             platform == 'win32'
