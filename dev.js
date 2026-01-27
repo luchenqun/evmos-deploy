@@ -543,9 +543,13 @@ const main = async function () {
         let vbsStop = platform == 'win32' ? `set ws=WScript.CreateObject("WScript.Shell")\n` : `#!/bin/bash\n`;
         for (let i = 0; i < nodesCount; i++) {
           let p2pPort = tendermint.port['p2p.laddr'] + i;
+          // 使用 env -i 隔离环境，只保留必要的 PATH 和 HOME
+          // 这可以避免 GVM 等工具的环境变量（如 LD_LIBRARY_PATH）干扰 quarixd 的 gRPC 服务启动
+          let envPrefix = platform !== 'win32' ? 'env -i PATH="$PATH" HOME="$HOME" ' : '';
           let start =
             (platform == 'win32' ? '' : '#!/bin/bash\n') +
             (isNohup && platform !== 'win32' ? 'nohup ' : '') +
+            envPrefix +
             (platform !== 'win32' ? './' : '') +
             `${daemonApp} start --keyring-backend ${keyring} --api.enabled-unsafe-cors --json-rpc.enable-indexer=true --home ./node${i}/${daemon}/` +
             (isNohup && platform !== 'win32' ? ` >./${daemon}${i}.log 2>&1 &` : '');
