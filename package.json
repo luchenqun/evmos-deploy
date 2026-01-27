@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "init": "node dev --v=1 --c=false --s=no",
-    "start": "node dev --v=1 --c",
+    "start": "node dev --v=1 --c=false",
     "start4v": "node dev --v=4 --c",
     "stop": "node dev --stop=all",
     "restart": "node dev --c --k"
