@@ -55,5 +55,5 @@
     }
   ],
   "preMinePerAccount": "10000000000000000000000000",
-  "genesisCfg": ["app_state.gov.params.voting_period='120s'","app_state.feemarket.params.base_fee='0.000000000000000000'"]
+  "genesisCfg": ["app_state.gov.params.voting_period='120s'", "app_state.feemarket.params.base_fee='0.000000000000000000'"]
 }
