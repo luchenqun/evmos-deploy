@@ -437,8 +437,8 @@ const main = async function () {
           }
 
           if (fixedFirstValidator) {
-            appState.auth.accounts[0].address = keySeed.bip39Address;
-            appState.bank.balances[0].address = keySeed.bip39Address;
+            appState.auth.accounts.push({ '@type': '/cosmos.auth.v1beta1.BaseAccount', address: keySeed.bip39Address, pub_key: null, account_number: '0', sequence: '0' });
+            appState.bank.balances.push({ address: keySeed.bip39Address, coins: [{ denom: 'aqare', amount: '1000000000000000000000' }, { denom: 'aqrx', amount: '500000000000000000000' }] });
             appState.genutil.gen_txs[0] = createValidator;
           }
 
